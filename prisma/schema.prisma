@@ -1,0 +1,42 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+model Group {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  users     User[]
+}
+
+model User {
+  id            String        @id @default(cuid())
+  username      String        @unique
+  passwordHash  String
+  realName      String
+  role          Role          @default(USER)
+  groupId       String
+  group         Group         @relation(fields: [groupId], references: [id])
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  weightEntries WeightEntry[]
+}
+
+model WeightEntry {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  weight     Decimal  @db.Decimal(5, 2)
+  recordedAt DateTime @default(now())
+  createdAt  DateTime @default(now())
+}

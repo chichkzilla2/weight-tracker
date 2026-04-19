@@ -1,0 +1,63 @@
+import { auth } from "@/lib/auth"
+import { redirect } from "next/navigation"
+import { prisma } from "@/lib/db"
+import AdminClient from "./AdminClient"
+
+export default async function AdminPage() {
+  const session = await auth()
+  if (!session) redirect("/login")
+  if (session.user.role !== "ADMIN") redirect("/")
+
+  const [users, groups, recentEntries] = await Promise.all([
+    prisma.user.findMany({
+      orderBy: { createdAt: "asc" },
+      include: {
+        group: true,
+        weightEntries: { orderBy: { recordedAt: "desc" }, take: 1 },
+      },
+    }),
+    prisma.group.findMany({ orderBy: { name: "asc" } }),
+    prisma.weightEntry.findMany({
+      orderBy: { recordedAt: "desc" },
+      take: 50,
+      include: { user: { include: { group: true } } },
+    }),
+  ])
+
+  const serializedUsers = users.map((u) => ({
+    id: u.id,
+    username: u.username,
+    realName: u.realName,
+    role: u.role as string,
+    groupId: u.groupId,
+    groupName: u.group.name,
+    createdAt: u.createdAt.toISOString(),
+    latestWeight: u.weightEntries[0] ? parseFloat(u.weightEntries[0].weight.toString()) : null,
+  }))
+
+  const serializedGroups = groups.map((g) => ({
+    id: g.id,
+    name: g.name,
+    createdAt: g.createdAt.toISOString(),
+  }))
+
+  const serializedEntries = recentEntries.map((e) => ({
+    id: e.id,
+    weight: parseFloat(e.weight.toString()),
+    recordedAt: e.recordedAt.toISOString(),
+    userId: e.userId,
+    userName: e.user.realName,
+    groupName: e.user.group.name,
+  }))
+
+  return (
+    <div className="max-w-lg mx-auto px-4 py-6">
+      <h1 className="text-xl font-bold text-[#5C3D1E] mb-5">แผงผู้ดูแลระบบ</h1>
+      <AdminClient
+        users={serializedUsers}
+        groups={serializedGroups}
+        entries={serializedEntries}
+      />
+    </div>
+  )
+}

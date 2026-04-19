@@ -1,0 +1,86 @@
+"use client"
+
+import Link from "next/link"
+import { usePathname } from "next/navigation"
+import { Home, Trophy, BarChart2, User } from "lucide-react"
+import { useState } from "react"
+
+const navItems = [
+  { href: "/", label: "หน้าหลัก", icon: Home },
+  { href: "/leaderboard", label: "อันดับ", icon: Trophy },
+  { href: "/dashboard", label: "Dashboard", icon: BarChart2 },
+  { href: "/profile", label: "โปรไฟล์", icon: User },
+]
+
+function getScale(index: number, hoveredIndex: number | null): number {
+  if (hoveredIndex === null) return 1
+  const dist = Math.abs(index - hoveredIndex)
+  if (dist === 0) return 1.5
+  if (dist === 1) return 1.2
+  return 1
+}
+
+export default function BottomNav() {
+  const pathname = usePathname()
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
+
+  return (
+    <>
+      {/* Desktop: left sidebar */}
+      <nav
+        className="hidden lg:flex fixed left-0 top-0 h-full w-16 flex-col items-center justify-center gap-12 bg-white border-r border-[#D4C4A8] z-50 overflow-visible"
+        onMouseLeave={() => setHoveredIndex(null)}
+      >
+        {navItems.map((item, index) => {
+          const isActive = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href)
+          const Icon = item.icon
+          const scale = getScale(index, hoveredIndex)
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              onMouseEnter={() => setHoveredIndex(index)}
+              style={{
+                transform: `scale(${scale})`,
+                transformOrigin: "left center",
+                transition: "transform 180ms ease",
+                display: "block",
+              }}
+              className={isActive ? "text-[#5C3D1E]" : "text-[#A08060] hover:text-[#5C3D1E]"}
+            >
+              <Icon size={28} />
+            </Link>
+          )
+        })}
+      </nav>
+
+      {/* Mobile: bottom bar */}
+      <nav
+        className="lg:hidden fixed bottom-0 left-0 right-0 h-20 flex items-end justify-around pb-3 bg-white border-t border-[#D4C4A8] z-50 overflow-visible"
+        onMouseLeave={() => setHoveredIndex(null)}
+      >
+        {navItems.map((item, index) => {
+          const isActive = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href)
+          const Icon = item.icon
+          const scale = getScale(index, hoveredIndex)
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              onMouseEnter={() => setHoveredIndex(index)}
+              style={{
+                transform: `scale(${scale})`,
+                transformOrigin: "bottom center",
+                transition: "transform 180ms ease",
+                display: "block",
+              }}
+              className={isActive ? "text-[#5C3D1E]" : "text-[#A08060] hover:text-[#5C3D1E]"}
+            >
+              <Icon size={28} />
+            </Link>
+          )
+        })}
+      </nav>
+    </>
+  )
+}
