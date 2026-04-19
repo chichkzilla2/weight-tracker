@@ -24,7 +24,7 @@ export default async function AdminPage() {
     }),
   ])
 
-  const serializedUsers = users.map((u) => ({
+  const serializedUsers = users.map((u: (typeof users)[number]) => ({
     id: u.id,
     username: u.username,
     realName: u.realName,
@@ -35,13 +35,13 @@ export default async function AdminPage() {
     latestWeight: u.weightEntries[0] ? parseFloat(u.weightEntries[0].weight.toString()) : null,
   }))
 
-  const serializedGroups = groups.map((g) => ({
+  const serializedGroups = groups.map((g: (typeof groups)[number]) => ({
     id: g.id,
     name: g.name,
     createdAt: g.createdAt.toISOString(),
   }))
 
-  const serializedEntries = recentEntries.map((e) => ({
+  const serializedEntries = recentEntries.map((e: (typeof recentEntries)[number]) => ({
     id: e.id,
     weight: parseFloat(e.weight.toString()),
     recordedAt: e.recordedAt.toISOString(),
