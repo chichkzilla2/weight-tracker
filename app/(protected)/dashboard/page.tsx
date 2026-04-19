@@ -20,13 +20,13 @@ export default async function DashboardPage() {
     },
   })
 
-  const serializedGroups = groups.map((g) => ({
+  const serializedGroups = groups.map((g: (typeof groups)[number]) => ({
     id: g.id,
     name: g.name,
-    users: g.users.map((u) => ({
+    users: g.users.map((u: (typeof g.users)[number]) => ({
       id: u.id,
       realName: u.realName,
-      weightEntries: u.weightEntries.map((e) => ({
+      weightEntries: u.weightEntries.map((e: (typeof u.weightEntries)[number]) => ({
         id: e.id,
         userId: e.userId,
         weight: parseFloat(e.weight.toString()),

@@ -26,13 +26,13 @@ export default async function HomePage() {
     take: 365,
   })
 
-  const serializedAsc = entriesAsc.map((e) => ({
+  const serializedAsc = entriesAsc.map((e: (typeof entriesAsc)[number]) => ({
     id: e.id,
     weight: parseFloat(e.weight.toString()),
     recordedAt: e.recordedAt.toISOString(),
   }))
 
-  const serializedDesc = entriesDesc.map((e) => ({
+  const serializedDesc = entriesDesc.map((e: (typeof entriesDesc)[number]) => ({
     id: e.id,
     weight: parseFloat(e.weight.toString()),
     recordedAt: e.recordedAt.toISOString(),
