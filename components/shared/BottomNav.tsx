@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Home, Trophy, BarChart2, User } from "lucide-react"
+import { Home, Trophy, BarChart2, User, BookOpen } from "lucide-react"
 import { useState } from "react"
 
 const navItems = [
@@ -10,6 +10,7 @@ const navItems = [
   { href: "/leaderboard", label: "อันดับ", icon: Trophy },
   { href: "/dashboard", label: "Dashboard", icon: BarChart2 },
   { href: "/profile", label: "โปรไฟล์", icon: User },
+  { href: "/how-to-use", label: "วิธีใช้", icon: BookOpen },
 ]
 
 function getScale(index: number, hoveredIndex: number | null): number {
