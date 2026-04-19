@@ -1,12 +1,12 @@
-import { auth } from "@/lib/auth"
-import { redirect } from "next/navigation"
-import { prisma } from "@/lib/db"
-import AdminClient from "./AdminClient"
+import { auth } from "@/lib/auth";
+import { redirect } from "next/navigation";
+import { prisma } from "@/lib/db";
+import AdminClient from "./AdminClient";
 
 export default async function AdminPage() {
-  const session = await auth()
-  if (!session) redirect("/login")
-  if (session.user.role !== "ADMIN") redirect("/")
+  const session = await auth();
+  if (!session) redirect("/login");
+  if (session.user.role !== "ADMIN") redirect("/");
 
   const [users, groups, recentEntries] = await Promise.all([
     prisma.user.findMany({
@@ -22,7 +22,7 @@ export default async function AdminPage() {
       take: 50,
       include: { user: { include: { group: true } } },
     }),
-  ])
+  ]);
 
   const serializedUsers = users.map((u: (typeof users)[number]) => ({
     id: u.id,
@@ -32,23 +32,27 @@ export default async function AdminPage() {
     groupId: u.groupId,
     groupName: u.group.name,
     createdAt: u.createdAt.toISOString(),
-    latestWeight: u.weightEntries[0] ? parseFloat(u.weightEntries[0].weight.toString()) : null,
-  }))
+    latestWeight: u.weightEntries[0]
+      ? parseFloat(u.weightEntries[0].weight.toString())
+      : null,
+  }));
 
   const serializedGroups = groups.map((g: (typeof groups)[number]) => ({
     id: g.id,
     name: g.name,
     createdAt: g.createdAt.toISOString(),
-  }))
+  }));
 
-  const serializedEntries = recentEntries.map((e: (typeof recentEntries)[number]) => ({
-    id: e.id,
-    weight: parseFloat(e.weight.toString()),
-    recordedAt: e.recordedAt.toISOString(),
-    userId: e.userId,
-    userName: e.user.realName,
-    groupName: e.user.group.name,
-  }))
+  const serializedEntries = recentEntries.map(
+    (e: (typeof recentEntries)[number]) => ({
+      id: e.id,
+      weight: parseFloat(e.weight.toString()),
+      recordedAt: e.recordedAt.toISOString(),
+      userId: e.userId,
+      userName: e.user.realName,
+      groupName: e.user.group.name,
+    }),
+  );
 
   return (
     <div className="max-w-lg mx-auto px-4 py-6">
@@ -59,5 +63,5 @@ export default async function AdminPage() {
         entries={serializedEntries}
       />
     </div>
-  )
+  );
 }
