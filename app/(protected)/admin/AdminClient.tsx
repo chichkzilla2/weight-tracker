@@ -72,7 +72,7 @@ export default function AdminClient({ users, groups, entries }: AdminClientProps
   const [confirming, setConfirming] = useState(false)
 
   const [userGroupSelections, setUserGroupSelections] = useState<Record<string, string>>(() =>
-    Object.fromEntries(users.map((u) => [u.id, u.groupId]))
+    Object.fromEntries(users.map((u) => [u.id, u.groupId ?? ""]))
   )
   const [userState, userFormAction, userPending] = useActionState(createUser, initialUserState)
   const [groupState, groupFormAction, groupPending] = useActionState(createGroup, initialGroupState)
@@ -90,7 +90,7 @@ export default function AdminClient({ users, groups, entries }: AdminClientProps
   const filteredUsers = users.filter((u) => {
     const q = userSearch.toLowerCase()
     if (q && !u.realName.toLowerCase().includes(q) && !u.username.toLowerCase().includes(q)) return false
-    if (userGroupFilter && u.groupId !== userGroupFilter) return false
+    if (userGroupFilter && (u.groupId || "") !== userGroupFilter) return false
     if (userWeightMin !== "" && (u.latestWeight === null || u.latestWeight < parseFloat(userWeightMin))) return false
     if (userWeightMax !== "" && (u.latestWeight === null || u.latestWeight > parseFloat(userWeightMax))) return false
     return true
@@ -101,12 +101,12 @@ export default function AdminClient({ users, groups, entries }: AdminClientProps
   )
 
   const pendingGroupChanges = users
-    .filter((u) => (userGroupSelections[u.id] ?? u.groupId) !== u.groupId)
+    .filter((u) => (userGroupSelections[u.id] ?? u.groupId ?? "") !== (u.groupId ?? ""))
     .map((u) => ({
       userId: u.id,
       userName: u.realName,
       oldGroupName: u.groupName,
-      newGroupName: groups.find((g) => g.id === userGroupSelections[u.id])?.name ?? "",
+      newGroupName: groups.find((g) => g.id === userGroupSelections[u.id])?.name ?? "ไม่มีกลุ่ม",
     }))
 
   async function handleConfirm() {
@@ -369,14 +369,15 @@ export default function AdminClient({ users, groups, entries }: AdminClientProps
                       </td>
                       <td className="px-3 py-2.5">
                         <select
-                          value={userGroupSelections[u.id] ?? u.groupId}
+                          value={userGroupSelections[u.id] ?? u.groupId ?? ""}
                           onChange={(e) => setUserGroupSelections((prev) => ({ ...prev, [u.id]: e.target.value }))}
                           className={`text-xs border rounded-lg px-2 py-1 bg-white cursor-pointer focus:outline-none focus:border-[#5C3D1E] ${
-                            (userGroupSelections[u.id] ?? u.groupId) !== u.groupId
+                            (userGroupSelections[u.id] ?? u.groupId ?? "") !== (u.groupId ?? "")
                               ? "border-[#5C3D1E] text-[#5C3D1E] font-semibold"
                               : "border-[#D4C4A8] text-[#5C3D1E]"
                           }`}
                         >
+                          <option value="">ไม่มีกลุ่ม</option>
                           {groups.map((g) => <option key={g.id} value={g.id}>{g.name}</option>)}
                         </select>
                       </td>

@@ -13,7 +13,7 @@ interface LeaderboardClientProps {
   monthlyLeaderboards: MonthlyLeaderboard[]
   currentMonthKey: string
   prevMonthKey: string
-  currentGroupId: string
+  currentGroupId: string | null
   lastUpdated: string
 }
 
@@ -25,7 +25,7 @@ function LeaderboardTable({
   filterMine,
 }: {
   leaderboard: LeaderboardEntry[]
-  currentGroupId: string
+  currentGroupId: string | null
   filterMine: boolean
 }) {
   const displayed = filterMine
@@ -34,15 +34,15 @@ function LeaderboardTable({
 
   return (
     <div className="bg-white border border-[#D4C4A8] rounded-2xl shadow-sm overflow-hidden">
-      <div className="overflow-y-auto max-h-96">
+      <div className="overflow-x-auto overflow-y-auto max-h-96">
       <table className="w-full text-base">
         <thead>
           <tr className="bg-[#F7F0E4] border-b border-[#D4C4A8] sticky top-0 z-10">
-            <th className="text-left px-5 py-4 font-semibold text-[#5C3D1E]">#</th>
-            <th className="text-left px-5 py-4 font-semibold text-[#5C3D1E] min-w-[160px]">ชื่อกลุ่ม</th>
-            <th className="text-right px-5 py-4 font-semibold text-[#5C3D1E]">น้ำหนักรวม</th>
-            <th className="text-right px-5 py-4 font-semibold text-[#5C3D1E]">ลดลง (กก.)</th>
-            <th className="text-right px-5 py-4 font-semibold text-[#5C3D1E]">% ลด</th>
+            <th className="text-left px-5 py-4 font-semibold text-[#5C3D1E] whitespace-nowrap">#</th>
+            <th className="text-left px-5 py-4 font-semibold text-[#5C3D1E] whitespace-nowrap">ชื่อกลุ่ม</th>
+            <th className="text-right px-5 py-4 font-semibold text-[#5C3D1E] whitespace-nowrap">น้ำหนักรวม</th>
+            <th className="text-right px-5 py-4 font-semibold text-[#5C3D1E] whitespace-nowrap">ลดลง (กก.)</th>
+            <th className="text-right px-5 py-4 font-semibold text-[#5C3D1E] whitespace-nowrap">% ลด</th>
           </tr>
         </thead>
         <tbody>
@@ -62,29 +62,27 @@ function LeaderboardTable({
                     : "bg-[#FDFAF5]"
                 }`}
               >
-                <td className="px-5 py-4 text-[#5C3D1E] font-bold">
+                <td className="px-5 py-4 text-[#5C3D1E] font-bold whitespace-nowrap">
                   {medal ? (
                     <span className="text-2xl leading-none">{medal}</span>
                   ) : (
                     `${globalRank + 1}`
                   )}
                 </td>
-                <td className="px-5 py-4 text-[#2C1810] font-medium min-w-[160px]">
-                  <div className="flex flex-col">
-                    <span>{entry.groupName}</span>
-                    {isMyGroup && (
-                      <span className="text-xs text-[#A08060]">(ของฉัน)</span>
-                    )}
-                  </div>
+                <td className="px-5 py-4 text-[#2C1810] font-medium whitespace-nowrap">
+                  {entry.groupName}
+                  {isMyGroup && (
+                    <span className="text-xs text-[#A08060] ml-1">(ของฉัน)</span>
+                  )}
                 </td>
-                <td className="px-5 py-4 text-right text-[#2C1810]">
+                <td className="px-5 py-4 text-right text-[#2C1810] whitespace-nowrap">
                   {entry.latestTotal.toFixed(1)}
                 </td>
-                <td className="px-5 py-4 text-right text-green-600 font-medium">
+                <td className="px-5 py-4 text-right text-green-600 font-medium whitespace-nowrap">
                   {entry.lostKg > 0 ? "-" : ""}
                   {Math.abs(entry.lostKg).toFixed(1)}
                 </td>
-                <td className="px-5 py-4 text-right text-green-600 font-bold">
+                <td className="px-5 py-4 text-right text-green-600 font-bold whitespace-nowrap">
                   {entry.lostPercent > 0 ? "-" : ""}
                   {Math.abs(entry.lostPercent).toFixed(1)}%
                 </td>

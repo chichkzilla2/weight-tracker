@@ -7,8 +7,8 @@ declare module "next-auth" {
       username: string
       realName: string
       role: string
-      groupId: string
-      groupName: string
+      groupId: string | null
+      groupName: string | null
     } & DefaultSession["user"]
   }
 }

@@ -13,6 +13,12 @@ export default async function LeaderboardPage() {
   const session = await auth()
   if (!session) return null
 
+  const currentUser = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { groupId: true },
+  })
+  const currentGroupId = currentUser?.groupId ?? null
+
   const groups = await prisma.group.findMany({
     include: {
       users: {
@@ -55,7 +61,7 @@ export default async function LeaderboardPage() {
           monthlyLeaderboards={monthlyLeaderboards}
           currentMonthKey={currentMonthKey}
           prevMonthKey={prevMonthKey}
-          currentGroupId={session.user.groupId}
+          currentGroupId={currentGroupId}
           lastUpdated={formatThaiDateTime(now)}
         />
       </div>

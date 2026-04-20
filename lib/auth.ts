@@ -25,8 +25,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           username: user.username,
           realName: user.realName,
           role: user.role,
-          groupId: user.groupId,
-          groupName: user.group.name,
+          groupId: user.groupId ?? null,
+          groupName: user.group?.name ?? null,
         }
       },
     }),
@@ -48,8 +48,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       session.user.username = token.username as string
       session.user.realName = token.realName as string
       session.user.role = token.role as string
-      session.user.groupId = token.groupId as string
-      session.user.groupName = token.groupName as string
+      session.user.groupId = (token.groupId as string | null) ?? null
+      session.user.groupName = (token.groupName as string | null) ?? null
       return session
     },
   },

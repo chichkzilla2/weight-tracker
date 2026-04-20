@@ -2,12 +2,13 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Home, Trophy, BarChart2, User, BookOpen } from "lucide-react"
+import { Home, Trophy, BarChart2, User, BookOpen, Users } from "lucide-react"
 import { useState } from "react"
 
 const navItems = [
   { href: "/", label: "หน้าหลัก", icon: Home },
   { href: "/leaderboard", label: "อันดับ", icon: Trophy },
+  { href: "/group", label: "กลุ่ม", icon: Users },
   { href: "/dashboard", label: "Dashboard", icon: BarChart2 },
   { href: "/profile", label: "โปรไฟล์", icon: User },
   { href: "/how-to-use", label: "วิธีใช้", icon: BookOpen },

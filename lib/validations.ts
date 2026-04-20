@@ -15,7 +15,7 @@ export const createUserSchema = z.object({
   username: z.string().min(3, "ชื่อผู้ใช้ต้องมีอย่างน้อย 3 ตัวอักษร"),
   password: z.string().min(6, "รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร"),
   realName: z.string().min(1, "กรุณากรอกชื่อจริง"),
-  groupId: z.string().min(1, "กรุณาเลือกกลุ่ม"),
+  groupId: z.string().optional(),
   role: z.enum(["USER", "ADMIN"]),
 })
 
@@ -37,7 +37,7 @@ export const registerSchema = z.object({
   username: z.string().min(3, "ชื่อผู้ใช้ต้องมีอย่างน้อย 3 ตัวอักษร").max(30, "ชื่อผู้ใช้ต้องไม่เกิน 30 ตัวอักษร"),
   password: z.string().min(6, "รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร").max(128, "รหัสผ่านต้องไม่เกิน 128 ตัวอักษร"),
   confirmPassword: z.string().min(1, "กรุณายืนยันรหัสผ่าน"),
-  groupId: z.string().min(1, "กรุณาเลือกกลุ่ม"),
+  groupId: z.string().optional(),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "รหัสผ่านไม่ตรงกัน",
   path: ["confirmPassword"],

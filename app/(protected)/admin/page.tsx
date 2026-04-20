@@ -29,8 +29,8 @@ export default async function AdminPage() {
     username: u.username,
     realName: u.realName,
     role: u.role as string,
-    groupId: u.groupId,
-    groupName: u.group.name,
+    groupId: u.groupId ?? "",
+    groupName: u.group?.name ?? "ไม่มีกลุ่ม",
     createdAt: u.createdAt.toISOString(),
     latestWeight: u.weightEntries[0]
       ? parseFloat(u.weightEntries[0].weight.toString())
@@ -50,7 +50,7 @@ export default async function AdminPage() {
       recordedAt: e.recordedAt.toISOString(),
       userId: e.userId,
       userName: e.user.realName,
-      groupName: e.user.group.name,
+      groupName: e.user.group?.name ?? "ไม่มีกลุ่ม",
     }),
   );
 

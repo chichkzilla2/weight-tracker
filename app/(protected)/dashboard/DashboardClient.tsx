@@ -33,7 +33,7 @@ interface GroupData {
 interface DashboardClientProps {
   groups: GroupData[]
   allGroups: SerializedGroupWithUsers[]
-  userGroupId: string
+  userGroupId: string | null
 }
 
 type TimeRange = "6" | "12" | "all"

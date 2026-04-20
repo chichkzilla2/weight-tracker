@@ -1,25 +1,25 @@
-"use server"
+"use server";
 
-import { auth } from "@/lib/auth"
-import { prisma } from "@/lib/db"
-import { createUserSchema, createGroupSchema } from "@/lib/validations"
-import bcrypt from "bcryptjs"
-import { revalidatePath } from "next/cache"
-import { Prisma } from "@prisma/client"
+import { auth } from "@/lib/auth";
+import { prisma } from "@/lib/db";
+import { createUserSchema, createGroupSchema } from "@/lib/validations";
+import bcrypt from "bcryptjs";
+import { revalidatePath } from "next/cache";
+import { Prisma } from "@prisma/client";
 
 async function requireAdmin() {
-  const session = await auth()
+  const session = await auth();
   if (!session || session.user.role !== "ADMIN") {
-    throw new Error("ไม่มีสิทธิ์เข้าถึง")
+    throw new Error("ไม่มีสิทธิ์เข้าถึง");
   }
-  return session
+  return session;
 }
 
 export async function createUser(
   prevState: { error: string; success: boolean },
-  formData: FormData
+  formData: FormData,
 ) {
-  await requireAdmin()
+  await requireAdmin();
 
   const raw = {
     username: formData.get("username") as string,
@@ -27,19 +27,32 @@ export async function createUser(
     realName: formData.get("realName") as string,
     groupId: formData.get("groupId") as string,
     role: formData.get("role") as string,
-  }
+  };
 
-  const parsed = createUserSchema.safeParse(raw)
+  const parsed = createUserSchema.safeParse(raw);
   if (!parsed.success) {
-    return { error: parsed.error.issues[0]?.message ?? "ข้อมูลไม่ถูกต้อง", success: false }
+    return {
+      error: parsed.error.issues[0]?.message ?? "ข้อมูลไม่ถูกต้อง",
+      success: false,
+    };
   }
 
-  const existing = await prisma.user.findUnique({ where: { username: parsed.data.username } })
+  const existing = await prisma.user.findUnique({
+    where: { username: parsed.data.username },
+  });
   if (existing) {
-    return { error: "ชื่อผู้ใช้นี้มีอยู่แล้ว", success: false }
+    return { error: "ชื่อผู้ใช้นี้มีอยู่แล้ว", success: false };
   }
 
-  const passwordHash = await bcrypt.hash(parsed.data.password, 12)
+  if (parsed.data.groupId) {
+    const count = await prisma.user.count({
+      where: { groupId: parsed.data.groupId },
+    });
+    if (count >= 10)
+      return { error: "กลุ่มนี้มีสมาชิกครบ 10 คนแล้ว", success: false };
+  }
+
+  const passwordHash = await bcrypt.hash(parsed.data.password, 12);
 
   try {
     await prisma.user.create({
@@ -47,127 +60,164 @@ export async function createUser(
         username: parsed.data.username,
         passwordHash,
         realName: parsed.data.realName,
-        groupId: parsed.data.groupId,
+        groupId: parsed.data.groupId ?? null,
         role: parsed.data.role as "USER" | "ADMIN",
       },
-    })
+    });
   } catch (err) {
-    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
-      return { error: "ชื่อผู้ใช้นี้มีอยู่แล้ว", success: false }
+    if (
+      err instanceof Prisma.PrismaClientKnownRequestError &&
+      err.code === "P2002"
+    ) {
+      return { error: "ชื่อผู้ใช้นี้มีอยู่แล้ว", success: false };
     }
-    throw err
+    throw err;
   }
 
-  revalidatePath("/admin")
-  return { error: "", success: true }
+  revalidatePath("/admin");
+  return { error: "", success: true };
 }
 
-export async function deleteUser(userId: string): Promise<{ error?: string; success: boolean }> {
-  await requireAdmin()
+export async function deleteUser(
+  userId: string,
+): Promise<{ error?: string; success: boolean }> {
+  await requireAdmin();
 
   try {
     await prisma.$transaction([
       prisma.weightEntry.deleteMany({ where: { userId } }),
       prisma.user.delete({ where: { id: userId } }),
-    ])
+    ]);
   } catch (err) {
-    console.error(err)
-    return { error: "ลบผู้ใช้ไม่สำเร็จ", success: false }
+    console.error(err);
+    return { error: "ลบผู้ใช้ไม่สำเร็จ", success: false };
   }
 
-  revalidatePath("/admin")
-  return { success: true }
+  revalidatePath("/admin");
+  return { success: true };
 }
 
 export async function createGroup(
   prevState: { error: string; success: boolean },
-  formData: FormData
+  formData: FormData,
 ) {
-  await requireAdmin()
+  await requireAdmin();
 
-  const raw = { name: formData.get("name") as string }
-  const parsed = createGroupSchema.safeParse(raw)
+  const raw = { name: formData.get("name") as string };
+  const parsed = createGroupSchema.safeParse(raw);
 
   if (!parsed.success) {
-    return { error: parsed.error.issues[0]?.message ?? "ข้อมูลไม่ถูกต้อง", success: false }
+    return {
+      error: parsed.error.issues[0]?.message ?? "ข้อมูลไม่ถูกต้อง",
+      success: false,
+    };
   }
 
-  const existing = await prisma.group.findUnique({ where: { name: parsed.data.name } })
+  const existing = await prisma.group.findUnique({
+    where: { name: parsed.data.name },
+  });
   if (existing) {
-    return { error: "ชื่อกลุ่มนี้มีอยู่แล้ว", success: false }
+    return { error: "ชื่อกลุ่มนี้มีอยู่แล้ว", success: false };
   }
 
   try {
-    await prisma.group.create({ data: { name: parsed.data.name } })
+    await prisma.group.create({ data: { name: parsed.data.name } });
   } catch (err) {
-    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
-      return { error: "ชื่อกลุ่มนี้มีอยู่แล้ว", success: false }
+    if (
+      err instanceof Prisma.PrismaClientKnownRequestError &&
+      err.code === "P2002"
+    ) {
+      return { error: "ชื่อกลุ่มนี้มีอยู่แล้ว", success: false };
     }
-    throw err
+    throw err;
   }
 
-  revalidatePath("/admin")
-  return { error: "", success: true }
+  revalidatePath("/admin");
+  return { error: "", success: true };
 }
 
 export async function changeUserGroup(
   userId: string,
-  groupId: string
+  groupId: string,
 ): Promise<{ error?: string; success: boolean }> {
-  await requireAdmin()
+  await requireAdmin();
 
-  const group = await prisma.group.findUnique({ where: { id: groupId } })
-  if (!group) return { error: "ไม่พบกลุ่ม", success: false }
+  if (!groupId) {
+    await prisma.user.update({
+      where: { id: userId },
+      data: { groupId: null },
+    });
+    revalidatePath("/admin");
+    return { success: true };
+  }
 
-  await prisma.user.update({ where: { id: userId }, data: { groupId } })
-  revalidatePath("/admin")
-  return { success: true }
+  const group = await prisma.group.findUnique({ where: { id: groupId } });
+  if (!group) return { error: "ไม่พบกลุ่ม", success: false };
+
+  const count = await prisma.user.count({ where: { groupId } });
+  if (count >= 10)
+    return {
+      error: `กลุ่ม ${group.name} มีสมาชิกครบ 10 คนแล้ว`,
+      success: false,
+    };
+
+  await prisma.user.update({ where: { id: userId }, data: { groupId } });
+  revalidatePath("/admin");
+  return { success: true };
 }
 
 export async function updateGroupName(
   groupId: string,
-  name: string
+  name: string,
 ): Promise<{ error?: string; success: boolean }> {
-  await requireAdmin()
+  await requireAdmin();
 
-  const trimmed = name.trim()
-  if (!trimmed) return { error: "กรุณากรอกชื่อกลุ่ม", success: false }
+  const trimmed = name.trim();
+  if (!trimmed) return { error: "กรุณากรอกชื่อกลุ่ม", success: false };
 
-  const existing = await prisma.group.findUnique({ where: { name: trimmed } })
+  const existing = await prisma.group.findUnique({ where: { name: trimmed } });
   if (existing && existing.id !== groupId) {
-    return { error: "ชื่อกลุ่มนี้มีอยู่แล้ว", success: false }
+    return { error: "ชื่อกลุ่มนี้มีอยู่แล้ว", success: false };
   }
 
   try {
-    await prisma.group.update({ where: { id: groupId }, data: { name: trimmed } })
+    await prisma.group.update({
+      where: { id: groupId },
+      data: { name: trimmed },
+    });
   } catch (err) {
-    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
-      return { error: "ชื่อกลุ่มนี้มีอยู่แล้ว", success: false }
+    if (
+      err instanceof Prisma.PrismaClientKnownRequestError &&
+      err.code === "P2002"
+    ) {
+      return { error: "ชื่อกลุ่มนี้มีอยู่แล้ว", success: false };
     }
-    throw err
+    throw err;
   }
 
-  revalidatePath("/admin")
-  revalidatePath("/")
-  revalidatePath("/dashboard")
-  return { success: true }
+  revalidatePath("/admin");
+  revalidatePath("/");
+  revalidatePath("/dashboard");
+  return { success: true };
 }
 
-export async function deleteGroup(groupId: string): Promise<{ error?: string; success: boolean }> {
-  await requireAdmin()
+export async function deleteGroup(
+  groupId: string,
+): Promise<{ error?: string; success: boolean }> {
+  await requireAdmin();
 
-  const usersInGroup = await prisma.user.count({ where: { groupId } })
+  const usersInGroup = await prisma.user.count({ where: { groupId } });
   if (usersInGroup > 0) {
-    return { error: "ไม่สามารถลบกลุ่มที่มีสมาชิกได้", success: false }
+    return { error: "ไม่สามารถลบกลุ่มที่มีสมาชิกได้", success: false };
   }
 
   try {
-    await prisma.group.delete({ where: { id: groupId } })
+    await prisma.group.delete({ where: { id: groupId } });
   } catch (err) {
-    console.error(err)
-    return { error: "ลบกลุ่มไม่สำเร็จ", success: false }
+    console.error(err);
+    return { error: "ลบกลุ่มไม่สำเร็จ", success: false };
   }
 
-  revalidatePath("/admin")
-  return { success: true }
+  revalidatePath("/admin");
+  return { success: true };
 }

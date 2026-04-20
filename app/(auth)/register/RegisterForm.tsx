@@ -125,21 +125,15 @@ export default function RegisterForm({ groups }: Props) {
 
             <div className="space-y-2">
               <Label htmlFor="groupId" className="text-[#5C3D1E] font-medium">
-                กลุ่ม
+                กลุ่ม <span className="text-[#A08060] font-normal text-xs">(ไม่บังคับ)</span>
               </Label>
               <select
                 id="groupId"
                 name="groupId"
-                required
                 defaultValue=""
                 className="w-full border border-[#D4C4A8] focus:border-[#5C3D1E] rounded-xl px-3 py-2 text-sm bg-white text-[#1a1a1a] outline-none focus:ring-1 focus:ring-[#5C3D1E]"
               >
-                <option value="" disabled>
-                  เลือกกลุ่ม
-                </option>
-                {groups.length === 0 && (
-                  <option value="" disabled>ยังไม่มีกลุ่ม กรุณาติดต่อผู้ดูแลระบบ</option>
-                )}
+                <option value="">ไม่เลือกกลุ่ม (สามารถเลือกภายหลังได้)</option>
                 {groups.map((group) => (
                   <option key={group.id} value={group.id}>
                     {group.name}
