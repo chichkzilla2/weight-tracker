@@ -4,6 +4,7 @@ import { Suspense, useState } from "react"
 import { signIn } from "next-auth/react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
+import { Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -104,7 +105,12 @@ function LoginContent() {
               disabled={loading}
               className="w-full bg-[#5C3D1E] hover:bg-[#2C1810] text-white rounded-xl py-3 font-medium text-base transition-colors"
             >
-              {loading ? "กำลังเข้าสู่ระบบ..." : "เข้าสู่ระบบ"}
+              {loading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <Loader2 size={18} className="animate-spin" />
+                  กำลังเข้าสู่ระบบ...
+                </span>
+              ) : "เข้าสู่ระบบ"}
             </Button>
           </form>
         </div>

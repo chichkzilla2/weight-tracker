@@ -1,6 +1,8 @@
 import { prisma } from "@/lib/db"
 import RegisterForm from "./RegisterForm"
 
+export const dynamic = "force-dynamic"
+
 export default async function RegisterPage() {
   let groups: { id: string; name: string }[] = []
   try {
