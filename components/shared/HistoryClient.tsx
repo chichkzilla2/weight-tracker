@@ -78,11 +78,6 @@ export default function HistoryClient({ entries, allEntries }: HistoryClientProp
       ? parseFloat((firstEntry.weight - lastEntry.weight).toFixed(1))
       : 0
 
-  const lostPercent =
-    firstEntry && firstEntry.weight > 0
-      ? parseFloat(((totalLost / firstEntry.weight) * 100).toFixed(1))
-      : 0
-
   // Build per-entry change for the all-entries table (allEntries is desc)
   const allEntriesWithChange = allEntries.map((entry, idx) => {
     // Next item in the desc array = the previous chronological entry
@@ -188,25 +183,12 @@ export default function HistoryClient({ entries, allEntries }: HistoryClientProp
             </span>
           </div>
           <div className="flex justify-between text-sm">
-            <span className="text-[#A08060]">ลดลงรวม</span>
-            <span
-              className={`font-bold text-base ${
-                totalLost > 0 ? "text-green-600" : "text-[#2C1810]"
-              }`}
-            >
-              {totalLost > 0 ? "-" : ""}
-              {Math.abs(totalLost).toFixed(1)} กก.
+            <span className={`font-semibold ${totalLost > 0 ? "text-green-600" : totalLost < 0 ? "text-red-500" : "text-[#A08060]"}`}>
+              {totalLost > 0 ? "น้ำหนักลดลง" : totalLost < 0 ? "น้ำหนักเพิ่มขึ้น" : "น้ำหนักคงที่"}
             </span>
-          </div>
-          <div className="flex justify-between text-sm">
-            <span className="text-[#A08060]">เปอร์เซ็นต์ที่ลดลง</span>
-            <span
-              className={`font-bold text-base ${
-                lostPercent > 0 ? "text-green-600" : "text-[#2C1810]"
-              }`}
-            >
-              {lostPercent > 0 ? "-" : ""}
-              {Math.abs(lostPercent).toFixed(1)}%
+            <span className={`font-bold text-base ${totalLost > 0 ? "text-green-600" : totalLost < 0 ? "text-red-500" : "text-[#A08060]"}`}>
+              {totalLost > 0 ? "-" : totalLost < 0 ? "+" : ""}
+              {Math.abs(totalLost).toFixed(1)} กก.
             </span>
           </div>
         </div>
