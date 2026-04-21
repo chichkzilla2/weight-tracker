@@ -34,6 +34,22 @@ export async function addWeightEntry(prevState: { error: string; success: boolea
   return { error: "", success: true }
 }
 
+export async function deleteWeightEntry(id: string) {
+  const session = await auth()
+  if (!session) return { error: "กรุณาเข้าสู่ระบบ" }
+
+  const entry = await prisma.weightEntry.findUnique({ where: { id } })
+  if (!entry || entry.userId !== session.user.id) return { error: "ไม่พบข้อมูลหรือไม่มีสิทธิ์" }
+
+  await prisma.weightEntry.delete({ where: { id } })
+
+  revalidatePath("/")
+  revalidatePath("/leaderboard")
+  revalidatePath("/dashboard")
+
+  return { error: "" }
+}
+
 export async function getMyWeightEntries() {
   const session = await auth()
   if (!session) return []

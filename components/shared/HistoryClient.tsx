@@ -1,13 +1,16 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useTransition } from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
+import Modal from "@mui/material/Modal"
 import {
   THAI_MONTHS,
   THAI_MONTHS_SHORT,
   toThaiYear,
   formatThaiDate,
+  formatThaiDateTime,
 } from "@/lib/calculations"
+import { deleteWeightEntry } from "@/lib/actions/weight"
 
 interface EntryData {
   id: string
@@ -30,6 +33,8 @@ interface MonthRow {
 export default function HistoryClient({ entries, allEntries }: HistoryClientProps) {
   const currentCEYear = new Date().getFullYear()
   const [ceYear, setCeYear] = useState(currentCEYear)
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; weight: number; date: string } | null>(null)
+  const [isPending, startTransition] = useTransition()
 
   // Build monthly map for this year
   const yearEntries = entries.filter((e) => {
@@ -80,11 +85,27 @@ export default function HistoryClient({ entries, allEntries }: HistoryClientProp
 
   // Build per-entry change for the all-entries table (allEntries is desc)
   const allEntriesWithChange = allEntries.map((entry, idx) => {
-    // Next item in the desc array = the previous chronological entry
     const older = allEntries[idx + 1]
     const change = older !== undefined ? parseFloat((entry.weight - older.weight).toFixed(1)) : null
     return { ...entry, change }
   })
+
+  function handleDeleteClick(entry: EntryData) {
+    setDeleteTarget({
+      id: entry.id,
+      weight: entry.weight,
+      date: formatThaiDateTime(new Date(entry.recordedAt)),
+    })
+  }
+
+  function handleConfirmDelete() {
+    if (!deleteTarget) return
+    const id = deleteTarget.id
+    setDeleteTarget(null)
+    startTransition(async () => {
+      await deleteWeightEntry(id)
+    })
+  }
 
   return (
     <div>
@@ -191,25 +212,37 @@ export default function HistoryClient({ entries, allEntries }: HistoryClientProp
               {Math.abs(totalLost).toFixed(1)} กก.
             </span>
           </div>
+          {totalLost !== 0 && firstEntry && (
+            <div className="flex justify-between text-sm">
+              <span className={`font-semibold ${totalLost > 0 ? "text-green-600" : "text-red-500"}`}>
+                {totalLost > 0 ? "น้ำหนักลดลง %" : "น้ำหนักเพิ่มขึ้น %"}
+              </span>
+              <span className={`font-bold text-base ${totalLost > 0 ? "text-green-600" : "text-red-500"}`}>
+                {totalLost > 0 ? "-" : "+"}
+                {Math.abs((totalLost / firstEntry.weight) * 100).toFixed(2)}%
+              </span>
+            </div>
+          )}
         </div>
       )}
 
       {/* All individual weight entries */}
       <h2 className="text-base font-bold text-[#5C3D1E] mb-3">รายการน้ำหนักทั้งหมด</h2>
       <div className="bg-white border border-[#D4C4A8] rounded-2xl shadow-sm overflow-hidden mb-5">
-        <div className="overflow-y-auto max-h-96">
+        <div className="overflow-x-auto overflow-y-auto max-h-96">
         <table className="w-full text-sm">
           <thead>
             <tr className="bg-[#F7F0E4] border-b border-[#D4C4A8] sticky top-0 z-10">
-              <th className="text-left px-4 py-3 font-semibold text-[#5C3D1E]">วันที่</th>
-              <th className="text-right px-4 py-3 font-semibold text-[#5C3D1E]">น้ำหนัก (กก.)</th>
-              <th className="text-right px-4 py-3 font-semibold text-[#5C3D1E]">เปลี่ยนแปลง</th>
+              <th className="text-left px-4 py-3 font-semibold text-[#5C3D1E] whitespace-nowrap">วันที่</th>
+              <th className="text-right px-4 py-3 font-semibold text-[#5C3D1E] whitespace-nowrap">น้ำหนัก (กก.)</th>
+              <th className="text-right px-4 py-3 font-semibold text-[#5C3D1E] whitespace-nowrap">เปลี่ยนแปลง</th>
+              <th className="px-4 py-3" />
             </tr>
           </thead>
           <tbody>
             {allEntriesWithChange.length === 0 ? (
               <tr>
-                <td colSpan={3} className="px-4 py-8 text-center text-[#A08060]">
+                <td colSpan={4} className="px-4 py-8 text-center text-[#A08060]">
                   ยังไม่มีข้อมูล
                 </td>
               </tr>
@@ -221,13 +254,13 @@ export default function HistoryClient({ entries, allEntries }: HistoryClientProp
                     i % 2 === 0 ? "bg-white" : "bg-[#FDFAF5]"
                   }`}
                 >
-                  <td className="px-4 py-3 text-[#2C1810]">
-                    {formatThaiDate(new Date(entry.recordedAt))}
+                  <td className="px-4 py-3 text-[#2C1810] whitespace-nowrap">
+                    {formatThaiDateTime(new Date(entry.recordedAt))}
                   </td>
-                  <td className="px-4 py-3 text-right font-medium text-[#2C1810]">
+                  <td className="px-4 py-3 text-right font-medium text-[#2C1810] whitespace-nowrap">
                     {entry.weight.toFixed(1)}
                   </td>
-                  <td className="px-4 py-3 text-right">
+                  <td className="px-4 py-3 text-right whitespace-nowrap">
                     {entry.change !== null ? (
                       <span
                         className={
@@ -245,6 +278,15 @@ export default function HistoryClient({ entries, allEntries }: HistoryClientProp
                       <span className="text-[#D4C4A8]">—</span>
                     )}
                   </td>
+                  <td className="px-4 py-3 text-right whitespace-nowrap">
+                    <button
+                      onClick={() => handleDeleteClick(entry)}
+                      disabled={isPending}
+                      className="px-3 py-1 rounded-lg bg-red-500 hover:bg-red-600 text-white text-xs font-medium transition-colors disabled:opacity-40"
+                    >
+                      ลบข้อมูล
+                    </button>
+                  </td>
                 </tr>
               ))
             )}
@@ -252,6 +294,38 @@ export default function HistoryClient({ entries, allEntries }: HistoryClientProp
         </table>
         </div>
       </div>
+
+      {/* Delete confirm modal */}
+      <Modal
+        open={deleteTarget !== null}
+        onClose={() => { if (!isPending) setDeleteTarget(null) }}
+        slotProps={{ backdrop: { style: { backgroundColor: "rgba(0,0,0,0.45)" } } }}
+      >
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl shadow-2xl w-[calc(100%-2rem)] max-w-sm p-5 outline-none">
+          <h3 className="font-bold text-[#2C1810] text-base mb-2">ยืนยันการลบรายการ</h3>
+          <p className="text-sm text-[#A08060] mb-5">
+            ลบรายการน้ำหนัก{" "}
+            <span className="font-semibold text-[#5C3D1E]">{deleteTarget?.weight.toFixed(1)} กก.</span>{" "}
+            วันที่ <span className="font-semibold text-[#5C3D1E]">{deleteTarget?.date}</span>?
+          </p>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setDeleteTarget(null)}
+              disabled={isPending}
+              className="flex-1 py-2.5 rounded-xl border border-[#D4C4A8] text-[#5C3D1E] text-sm font-medium hover:bg-[#EDE3D0] transition-colors disabled:opacity-40"
+            >
+              ยกเลิก
+            </button>
+            <button
+              onClick={handleConfirmDelete}
+              disabled={isPending}
+              className="flex-1 py-2.5 rounded-xl bg-red-500 text-white text-sm font-medium hover:bg-red-600 transition-colors disabled:opacity-40"
+            >
+              {isPending ? "กำลังลบ..." : "ลบรายการ"}
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   )
 }

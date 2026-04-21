@@ -49,6 +49,7 @@ export default async function DashboardPage() {
           groups={serializedGroups}
           allGroups={serializedGroups}
           userGroupId={session.user.groupId}
+          userRole={session.user.role}
         />
       </div>
     </div>

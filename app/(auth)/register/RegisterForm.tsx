@@ -91,6 +91,7 @@ export default function RegisterForm({ groups }: Props) {
                 autoComplete="username"
                 className="border-[#D4C4A8] focus:border-[#5C3D1E] rounded-xl"
               />
+              <p className="text-xs text-[#A08060]">ชื่อผู้ใช้ขั้นต่ำ 3 ตัวอักษร</p>
             </div>
 
             <div className="space-y-2">
@@ -106,6 +107,7 @@ export default function RegisterForm({ groups }: Props) {
                 autoComplete="new-password"
                 className="border-[#D4C4A8] focus:border-[#5C3D1E] rounded-xl"
               />
+              <p className="text-xs text-[#A08060]">รหัสผ่านขั้นต่ำ 6 ตัวอักษร</p>
             </div>
 
             <div className="space-y-2">
