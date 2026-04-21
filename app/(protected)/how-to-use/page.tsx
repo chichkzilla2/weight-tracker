@@ -168,7 +168,7 @@ export default async function HowToUsePage() {
                 สำหรับผู้ดูแลระบบ (Admin) เท่านั้น
               </h2>
               <span className="ml-auto text-xs font-semibold px-2 py-0.5 rounded-full bg-red-100 text-red-700 whitespace-nowrap">
-                Admin only
+                แอดมิน
               </span>
             </div>
 
