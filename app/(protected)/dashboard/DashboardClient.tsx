@@ -390,21 +390,36 @@ export default function DashboardClient({
   const summaryCards = [
     {
       label: "น้ำหนักรวมเดือนที่แล้ว",
-      value: `${summaryStats.prevMonthTotal.toFixed(1)} กก.`,
+      value:
+        summaryStats.prevMonthTotal > 0
+          ? `${summaryStats.prevMonthTotal.toFixed(1)} กก.`
+          : "—",
     },
     {
       label: "น้ำหนักล่าสุด",
       value: `${summaryStats.latestTotal.toFixed(1)} กก.`,
     },
     {
-      label: "ลดลง (กก.)",
-      value: `${summaryStats.lostKg > 0 ? "-" : ""}${Math.abs(summaryStats.lostKg).toFixed(1)} กก.`,
+      label:
+        summaryStats.lostKg > 0
+          ? "น้ำหนักรวมลดลง (กก.)"
+          : summaryStats.lostKg < 0
+            ? "น้ำหนักรวมเพิ่มขึ้น (กก.)"
+            : "น้ำหนักรวมคงที่",
+      value: `${Math.abs(summaryStats.lostKg).toFixed(1)} กก.`,
       highlight: summaryStats.lostKg > 0,
+      negative: summaryStats.lostKg < 0,
     },
     {
-      label: "ลดลง %",
-      value: `${summaryStats.lostPercent > 0 ? "-" : ""}${Math.abs(summaryStats.lostPercent).toFixed(1)}%`,
+      label:
+        summaryStats.lostPercent > 0
+          ? "น้ำหนักรวมลดลง %"
+          : summaryStats.lostPercent < 0
+            ? "น้ำหนักรวมเพิ่มขึ้น %"
+            : "น้ำหนักรวมคงที่ %",
+      value: `${Math.abs(summaryStats.lostPercent).toFixed(1)}%`,
       highlight: summaryStats.lostPercent > 0,
+      negative: summaryStats.lostPercent < 0,
     },
   ];
 
@@ -431,7 +446,11 @@ export default function DashboardClient({
                 <p className="text-xs text-[#A08060] mb-1">{card.label}</p>
                 <p
                   className={`text-2xl font-bold ${
-                    card.highlight ? "text-green-600" : "text-[#5C3D1E]"
+                    card.highlight
+                      ? "text-green-600"
+                      : (card as { negative?: boolean }).negative
+                        ? "text-red-500"
+                        : "text-[#5C3D1E]"
                   }`}
                 >
                   {card.value}
