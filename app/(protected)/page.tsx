@@ -1,51 +1,83 @@
-import { auth } from "@/lib/auth"
-import { prisma } from "@/lib/db"
-import WeightCard from "@/components/shared/WeightCard"
-import WeightForm from "@/components/shared/WeightForm"
-import HistoryClient from "@/components/shared/HistoryClient"
-import PageHeader from "@/components/shared/PageHeader"
+import { auth } from "@/lib/auth";
+import { prisma } from "@/lib/db";
+import WeightCard from "@/components/shared/WeightCard";
+import WeightForm from "@/components/shared/WeightForm";
+import WaistCard from "@/components/shared/WaistCard";
+import WaistForm from "@/components/shared/WaistForm";
+import HistoryClient from "@/components/shared/HistoryClient";
+import PageHeader from "@/components/shared/PageHeader";
 
 export default async function HomePage() {
-  const session = await auth()
-  if (!session) return null
+  const session = await auth();
+  if (!session) return null;
 
   const currentUser = await prisma.user.findUnique({
     where: { id: session.user.id },
     select: { group: { select: { name: true } } },
-  })
-  const groupName = currentUser?.group?.name ?? null
+  });
+  const groupName = currentUser?.group?.name ?? null;
 
-  const latestEntry = await prisma.weightEntry.findFirst({
-    where: { userId: session.user.id },
-    orderBy: { recordedAt: "desc" },
-  })
+  const [
+    latestWeight,
+    latestWaist,
+    weightEntriesAsc,
+    weightEntriesDesc,
+    waistEntriesAsc,
+    waistEntriesDesc,
+  ] = await Promise.all([
+    prisma.weightEntry.findFirst({
+      where: { userId: session.user.id },
+      orderBy: { recordedAt: "desc" },
+    }),
+    prisma.waistEntry.findFirst({
+      where: { userId: session.user.id },
+      orderBy: { recordedAt: "desc" },
+    }),
+    prisma.weightEntry.findMany({
+      where: { userId: session.user.id },
+      orderBy: { recordedAt: "asc" },
+      take: 365,
+    }),
+    prisma.weightEntry.findMany({
+      where: { userId: session.user.id },
+      orderBy: { recordedAt: "desc" },
+      take: 365,
+    }),
+    prisma.waistEntry.findMany({
+      where: { userId: session.user.id },
+      orderBy: { recordedAt: "asc" },
+      take: 365,
+    }),
+    prisma.waistEntry.findMany({
+      where: { userId: session.user.id },
+      orderBy: { recordedAt: "desc" },
+      take: 365,
+    }),
+  ]);
 
-  const entriesAsc = await prisma.weightEntry.findMany({
-    where: { userId: session.user.id },
-    orderBy: { recordedAt: "asc" },
-    take: 365,
-  })
-
-  const entriesDesc = await prisma.weightEntry.findMany({
-    where: { userId: session.user.id },
-    orderBy: { recordedAt: "desc" },
-    take: 365,
-  })
-
-  const serializedAsc = entriesAsc.map((e: (typeof entriesAsc)[number]) => ({
+  const serializedWeightAsc = weightEntriesAsc.map((e) => ({
     id: e.id,
     weight: parseFloat(e.weight.toString()),
     recordedAt: e.recordedAt.toISOString(),
-  }))
-
-  const serializedDesc = entriesDesc.map((e: (typeof entriesDesc)[number]) => ({
+  }));
+  const serializedWeightDesc = weightEntriesDesc.map((e) => ({
     id: e.id,
     weight: parseFloat(e.weight.toString()),
     recordedAt: e.recordedAt.toISOString(),
-  }))
+  }));
+  const serializedWaistAsc = waistEntriesAsc.map((e) => ({
+    id: e.id,
+    waist: parseFloat(e.waist.toString()),
+    recordedAt: e.recordedAt.toISOString(),
+  }));
+  const serializedWaistDesc = waistEntriesDesc.map((e) => ({
+    id: e.id,
+    waist: parseFloat(e.waist.toString()),
+    recordedAt: e.recordedAt.toISOString(),
+  }));
 
   return (
-    <div className="w-full max-w-lg mx-auto">
+    <div className="w-full max-w-2xl mx-auto">
       <PageHeader
         title={`🏠 ${session.user.realName}`}
         subtitle={
@@ -60,25 +92,44 @@ export default async function HomePage() {
           )
         }
       />
-      {/* Top section */}
-      <div className="max-w-sm mx-auto space-y-3 mb-8">
 
-        {/* Weight Card */}
-        <WeightCard
-          weight={latestEntry ? parseFloat(latestEntry.weight.toString()) : null}
-          recordedAt={latestEntry?.recordedAt ?? null}
+      <div className="px-4 pb-6">
+        {/* Responsive: desktop = 2×2 grid, mobile = weight card→form→waist card→form */}
+        <div className="flex flex-col md:grid md:grid-cols-2 gap-3 mb-8 gap-x-8">
+          <div className="order-1 md:order-1">
+            <WeightCard
+              weight={
+                latestWeight ? parseFloat(latestWeight.weight.toString()) : null
+              }
+              recordedAt={latestWeight?.recordedAt ?? null}
+            />
+          </div>
+          <div className="order-3 md:order-2 mt-6 md:mt-0">
+            <WaistCard
+              waist={
+                latestWaist ? parseFloat(latestWaist.waist.toString()) : null
+              }
+              recordedAt={latestWaist?.recordedAt ?? null}
+            />
+          </div>
+          <div className="order-2 md:order-3">
+            <WeightForm />
+          </div>
+          <div className="order-4 md:order-4">
+            <WaistForm />
+          </div>
+        </div>
+
+        <div className="border-t border-[#EDE3D0] mb-5" />
+
+        <h2 className="text-base font-bold text-[#5C3D1E] mb-3">ประวัติ</h2>
+        <HistoryClient
+          entries={serializedWeightAsc}
+          allEntries={serializedWeightDesc}
+          waistEntries={serializedWaistAsc}
+          allWaistEntries={serializedWaistDesc}
         />
-
-        {/* Weight Form */}
-        <WeightForm />
       </div>
-
-      {/* Divider */}
-      <div className="border-t border-[#EDE3D0] mb-5" />
-
-      {/* History */}
-      <h2 className="text-base font-bold text-[#5C3D1E] mb-3">ประวัติน้ำหนัก</h2>
-      <HistoryClient entries={serializedAsc} allEntries={serializedDesc} />
     </div>
-  )
+  );
 }

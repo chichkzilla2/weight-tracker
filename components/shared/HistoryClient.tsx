@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
-import Modal from "@mui/material/Modal"
+import AppModal from "@/components/shared/AppModal"
 import {
   THAI_MONTHS,
   THAI_MONTHS_SHORT,
@@ -11,100 +11,182 @@ import {
   formatThaiDateTime,
 } from "@/lib/calculations"
 import { deleteWeightEntry } from "@/lib/actions/weight"
+import { deleteWaistEntry } from "@/lib/actions/waist"
 
-interface EntryData {
+interface WeightEntryData {
   id: string
   weight: number
   recordedAt: string
 }
 
+interface WaistEntryData {
+  id: string
+  waist: number
+  recordedAt: string
+}
+
 interface HistoryClientProps {
-  entries: EntryData[]
-  allEntries: EntryData[]
+  entries: WeightEntryData[]
+  allEntries: WeightEntryData[]
+  waistEntries: WaistEntryData[]
+  allWaistEntries: WaistEntryData[]
 }
 
 interface MonthRow {
   monthKey: string
-  monthName: string
   weight: number | null
-  change: number | null
+  weightChange: number | null
+  waist: number | null
+  waistChange: number | null
 }
 
-export default function HistoryClient({ entries, allEntries }: HistoryClientProps) {
+type EntryTab = "weight" | "waist"
+
+export default function HistoryClient({
+  entries,
+  allEntries,
+  waistEntries,
+  allWaistEntries,
+}: HistoryClientProps) {
   const currentCEYear = new Date().getFullYear()
   const [ceYear, setCeYear] = useState(currentCEYear)
-  const [deleteTarget, setDeleteTarget] = useState<{ id: string; weight: number; date: string } | null>(null)
+  const [entryTab, setEntryTab] = useState<EntryTab>("weight")
+  const [deleteTarget, setDeleteTarget] = useState<{
+    id: string
+    value: number
+    unit: string
+    date: string
+    type: EntryTab
+  } | null>(null)
   const [isPending, startTransition] = useTransition()
 
-  // Build monthly map for this year
-  const yearEntries = entries.filter((e) => {
-    const d = new Date(e.recordedAt)
-    return d.getFullYear() === ceYear
-  })
+  // --- Monthly summary ---
+  const yearWeightEntries = entries.filter(
+    (e) => new Date(e.recordedAt).getFullYear() === ceYear,
+  )
+  const yearWaistEntries = waistEntries.filter(
+    (e) => new Date(e.recordedAt).getFullYear() === ceYear,
+  )
 
-  // Last weight per month
-  const monthlyMap = new Map<string, number>()
-  for (const entry of yearEntries) {
-    const d = new Date(entry.recordedAt)
-    const key = String(d.getMonth() + 1).padStart(2, "0")
-    monthlyMap.set(key, entry.weight)
+  const weightMonthlyMap = new Map<string, number>()
+  for (const e of yearWeightEntries) {
+    const key = String(new Date(e.recordedAt).getMonth() + 1).padStart(2, "0")
+    weightMonthlyMap.set(key, e.weight)
   }
 
-  // Build 12 rows
-  const rows: MonthRow[] = THAI_MONTHS_SHORT.map((shortName, idx) => {
+  const waistMonthlyMap = new Map<string, number>()
+  for (const e of yearWaistEntries) {
+    const key = String(new Date(e.recordedAt).getMonth() + 1).padStart(2, "0")
+    waistMonthlyMap.set(key, e.waist)
+  }
+
+  const rows: MonthRow[] = THAI_MONTHS_SHORT.map((_, idx) => {
     const monthKey = String(idx + 1).padStart(2, "0")
-    const weight = monthlyMap.get(monthKey) ?? null
     return {
       monthKey,
-      monthName: `${shortName} (${idx + 1})`,
-      weight,
-      change: null,
+      weight: weightMonthlyMap.get(monthKey) ?? null,
+      weightChange: null,
+      waist: waistMonthlyMap.get(monthKey) ?? null,
+      waistChange: null,
     }
   })
 
-  // Calculate changes
   for (let i = 1; i < rows.length; i++) {
-    const curr = rows[i]
-    const prev = rows[i - 1]
-    if (curr !== undefined && prev !== undefined && curr.weight !== null && prev.weight !== null) {
-      curr.change = parseFloat((curr.weight - prev.weight).toFixed(1))
-    }
+    const curr = rows[i]!
+    const prev = rows[i - 1]!
+    if (curr.weight !== null && prev.weight !== null)
+      curr.weightChange = parseFloat((curr.weight - prev.weight).toFixed(1))
+    if (curr.waist !== null && prev.waist !== null)
+      curr.waistChange = parseFloat((curr.waist - prev.waist).toFixed(1))
   }
 
-  // Summary stats (based on all-time asc entries)
-  const allSorted = [...entries].sort(
-    (a, b) => new Date(a.recordedAt).getTime() - new Date(b.recordedAt).getTime()
+  // --- Weight summary ---
+  const allWeightSorted = [...entries].sort(
+    (a, b) => new Date(a.recordedAt).getTime() - new Date(b.recordedAt).getTime(),
   )
-  const firstEntry = allSorted[0]
-  const lastEntry = allSorted[allSorted.length - 1]
-
-  const totalLost =
-    firstEntry && lastEntry
-      ? parseFloat((firstEntry.weight - lastEntry.weight).toFixed(1))
+  const firstWeight = allWeightSorted[0]
+  const lastWeight = allWeightSorted[allWeightSorted.length - 1]
+  const totalWeightLost =
+    firstWeight && lastWeight
+      ? parseFloat((firstWeight.weight - lastWeight.weight).toFixed(1))
       : 0
 
-  // Build per-entry change for the all-entries table (allEntries is desc)
-  const allEntriesWithChange = allEntries.map((entry, idx) => {
+  // --- Waist summary ---
+  const allWaistSorted = [...waistEntries].sort(
+    (a, b) => new Date(a.recordedAt).getTime() - new Date(b.recordedAt).getTime(),
+  )
+  const firstWaist = allWaistSorted[0]
+  const lastWaist = allWaistSorted[allWaistSorted.length - 1]
+  const totalWaistLost =
+    firstWaist && lastWaist
+      ? parseFloat((firstWaist.waist - lastWaist.waist).toFixed(1))
+      : 0
+
+  // --- All-entries with change ---
+  const weightEntriesWithChange = allEntries.map((e, idx) => {
     const older = allEntries[idx + 1]
-    const change = older !== undefined ? parseFloat((entry.weight - older.weight).toFixed(1)) : null
-    return { ...entry, change }
+    return {
+      ...e,
+      change: older !== undefined ? parseFloat((e.weight - older.weight).toFixed(1)) : null,
+    }
   })
 
-  function handleDeleteClick(entry: EntryData) {
+  const waistEntriesWithChange = allWaistEntries.map((e, idx) => {
+    const older = allWaistEntries[idx + 1]
+    return {
+      ...e,
+      change: older !== undefined ? parseFloat((e.waist - older.waist).toFixed(1)) : null,
+    }
+  })
+
+  // --- Delete handlers ---
+  function handleDeleteWeight(e: WeightEntryData) {
     setDeleteTarget({
-      id: entry.id,
-      weight: entry.weight,
-      date: formatThaiDateTime(new Date(entry.recordedAt)),
+      id: e.id,
+      value: e.weight,
+      unit: "กก.",
+      date: formatThaiDateTime(new Date(e.recordedAt)),
+      type: "weight",
+    })
+  }
+
+  function handleDeleteWaist(e: WaistEntryData) {
+    setDeleteTarget({
+      id: e.id,
+      value: e.waist,
+      unit: "ซม.",
+      date: formatThaiDateTime(new Date(e.recordedAt)),
+      type: "waist",
     })
   }
 
   function handleConfirmDelete() {
     if (!deleteTarget) return
-    const id = deleteTarget.id
+    const { id, type } = deleteTarget
     setDeleteTarget(null)
     startTransition(async () => {
-      await deleteWeightEntry(id)
+      if (type === "weight") await deleteWeightEntry(id)
+      else await deleteWaistEntry(id)
     })
+  }
+
+  function changeCell(val: number | null, unit: string) {
+    if (val === null) return <span className="text-[#D4C4A8]">—</span>
+    return (
+      <span
+        className={
+          val < 0
+            ? "text-green-600 font-medium"
+            : val > 0
+              ? "text-red-500 font-medium"
+              : "text-[#A08060]"
+        }
+      >
+        {val > 0 ? "+" : ""}
+        {val.toFixed(1)}
+        {unit && ` ${unit}`}
+      </span>
+    )
   }
 
   return (
@@ -129,183 +211,240 @@ export default function HistoryClient({ entries, allEntries }: HistoryClientProp
 
       {/* Monthly summary table */}
       <div className="bg-white border border-[#D4C4A8] rounded-2xl shadow-sm overflow-hidden mb-5">
-        <div className="overflow-y-auto max-h-80">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="bg-[#F7F0E4] border-b border-[#D4C4A8] sticky top-0 z-10">
-              <th className="text-left px-4 py-3 font-semibold text-[#5C3D1E]">เดือน</th>
-              <th className="text-right px-4 py-3 font-semibold text-[#5C3D1E]">
-                น้ำหนักล่าสุด
-              </th>
-              <th className="text-right px-4 py-3 font-semibold text-[#5C3D1E]">
-                เปลี่ยนแปลง
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((row, i) => (
-              <tr
-                key={row.monthKey}
-                className={`border-b border-[#EDE3D0] last:border-0 ${
-                  i % 2 === 0 ? "bg-white" : "bg-[#FDFAF5]"
-                }`}
-              >
-                <td className="px-4 py-3 text-[#2C1810]">
-                  {THAI_MONTHS[i]}
-                </td>
-                <td className="px-4 py-3 text-right text-[#2C1810]">
-                  {row.weight !== null ? `${row.weight.toFixed(1)} กก.` : "—"}
-                </td>
-                <td className="px-4 py-3 text-right">
-                  {row.change !== null ? (
-                    <span
-                      className={
-                        row.change < 0
-                          ? "text-green-600 font-medium"
-                          : row.change > 0
-                          ? "text-red-500 font-medium"
-                          : "text-[#A08060]"
-                      }
-                    >
-                      {row.change > 0 ? "+" : ""}
-                      {row.change.toFixed(1)}
-                    </span>
-                  ) : (
-                    <span className="text-[#D4C4A8]">—</span>
-                  )}
-                </td>
+        <div className="overflow-x-auto overflow-y-auto max-h-80">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="bg-[#F7F0E4] border-b border-[#D4C4A8] sticky top-0 z-10">
+                <th className="text-left px-4 py-3 font-semibold text-[#5C3D1E] whitespace-nowrap">เดือน</th>
+                <th className="text-right px-4 py-3 font-semibold text-[#5C3D1E] whitespace-nowrap">น้ำหนัก</th>
+                <th className="text-right px-4 py-3 font-semibold text-[#5C3D1E] whitespace-nowrap">น้ำหนักที่เปลี่ยนแปลง</th>
+                <th className="text-right px-4 py-3 font-semibold text-[#5C3D1E] whitespace-nowrap">รอบเอว</th>
+                <th className="text-right px-4 py-3 font-semibold text-[#5C3D1E] whitespace-nowrap">รอบเอวที่เปลี่ยนแปลง</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {rows.map((row, i) => (
+                <tr
+                  key={row.monthKey}
+                  className={`border-b border-[#EDE3D0] last:border-0 ${i % 2 === 0 ? "bg-white" : "bg-[#FDFAF5]"}`}
+                >
+                  <td className="px-4 py-3 text-[#2C1810] whitespace-nowrap">{THAI_MONTHS[i]}</td>
+                  <td className="px-4 py-3 text-right text-[#2C1810] whitespace-nowrap">
+                    {row.weight !== null ? `${row.weight.toFixed(1)} กก.` : "—"}
+                  </td>
+                  <td className="px-4 py-3 text-right whitespace-nowrap">
+                    {changeCell(row.weightChange, "")}
+                  </td>
+                  <td className="px-4 py-3 text-right text-[#2C1810] whitespace-nowrap">
+                    {row.waist !== null ? `${row.waist.toFixed(1)} ซม.` : "—"}
+                  </td>
+                  <td className="px-4 py-3 text-right whitespace-nowrap">
+                    {changeCell(row.waistChange, "")}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
 
       {/* Summary */}
-      {firstEntry && lastEntry && (
+      {firstWeight && lastWeight && (
         <div className="bg-white border border-[#D4C4A8] rounded-2xl shadow-sm p-5 space-y-3 mb-5">
-          <h3 className="font-bold text-[#5C3D1E] text-base mb-3">สรุปผล</h3>
+          <h3 className="font-bold text-[#5C3D1E] text-base mb-3">สรุปผล — น้ำหนัก</h3>
           <div className="flex justify-between text-sm">
             <span className="text-[#A08060]">น้ำหนักเริ่มต้น</span>
             <span className="font-semibold text-[#2C1810]">
-              {firstEntry.weight.toFixed(1)} กก.{" "}
+              {firstWeight.weight.toFixed(1)} กก.{" "}
               <span className="text-[#A08060] font-normal">
-                ({toThaiYear(new Date(firstEntry.recordedAt).getFullYear())})
+                ({toThaiYear(new Date(firstWeight.recordedAt).getFullYear())})
               </span>
             </span>
           </div>
           <div className="flex justify-between text-sm">
             <span className="text-[#A08060]">น้ำหนักล่าสุด</span>
             <span className="font-semibold text-[#2C1810]">
-              {lastEntry.weight.toFixed(1)} กก.{" "}
+              {lastWeight.weight.toFixed(1)} กก.{" "}
               <span className="text-[#A08060] font-normal">
-                ({formatThaiDate(new Date(lastEntry.recordedAt))})
+                ({formatThaiDate(new Date(lastWeight.recordedAt))})
               </span>
             </span>
           </div>
           <div className="flex justify-between text-sm">
-            <span className={`font-semibold ${totalLost > 0 ? "text-green-600" : totalLost < 0 ? "text-red-500" : "text-[#A08060]"}`}>
-              {totalLost > 0 ? "น้ำหนักลดลง" : totalLost < 0 ? "น้ำหนักเพิ่มขึ้น" : "น้ำหนักคงที่"}
+            <span className={`font-semibold ${totalWeightLost > 0 ? "text-green-600" : totalWeightLost < 0 ? "text-red-500" : "text-[#A08060]"}`}>
+              {totalWeightLost > 0 ? "น้ำหนักลดลง" : totalWeightLost < 0 ? "น้ำหนักเพิ่มขึ้น" : "น้ำหนักคงที่"}
             </span>
-            <span className={`font-bold text-base ${totalLost > 0 ? "text-green-600" : totalLost < 0 ? "text-red-500" : "text-[#A08060]"}`}>
-              {totalLost > 0 ? "-" : totalLost < 0 ? "+" : ""}
-              {Math.abs(totalLost).toFixed(1)} กก.
+            <span className={`font-bold text-base ${totalWeightLost > 0 ? "text-green-600" : totalWeightLost < 0 ? "text-red-500" : "text-[#A08060]"}`}>
+              {totalWeightLost > 0 ? "-" : totalWeightLost < 0 ? "+" : ""}
+              {Math.abs(totalWeightLost).toFixed(1)} กก.
             </span>
           </div>
-          {totalLost !== 0 && firstEntry && (
+          {totalWeightLost !== 0 && firstWeight && (
             <div className="flex justify-between text-sm">
-              <span className={`font-semibold ${totalLost > 0 ? "text-green-600" : "text-red-500"}`}>
-                {totalLost > 0 ? "น้ำหนักลดลง %" : "น้ำหนักเพิ่มขึ้น %"}
+              <span className={`font-semibold ${totalWeightLost > 0 ? "text-green-600" : "text-red-500"}`}>
+                {totalWeightLost > 0 ? "น้ำหนักลดลง %" : "น้ำหนักเพิ่มขึ้น %"}
               </span>
-              <span className={`font-bold text-base ${totalLost > 0 ? "text-green-600" : "text-red-500"}`}>
-                {totalLost > 0 ? "-" : "+"}
-                {Math.abs((totalLost / firstEntry.weight) * 100).toFixed(2)}%
+              <span className={`font-bold text-base ${totalWeightLost > 0 ? "text-green-600" : "text-red-500"}`}>
+                {totalWeightLost > 0 ? "-" : "+"}
+                {Math.abs((totalWeightLost / firstWeight.weight) * 100).toFixed(2)}%
               </span>
             </div>
           )}
         </div>
       )}
 
-      {/* All individual weight entries */}
-      <h2 className="text-base font-bold text-[#5C3D1E] mb-3">รายการน้ำหนักทั้งหมด</h2>
+      {firstWaist && lastWaist && (
+        <div className="bg-white border border-[#D4C4A8] rounded-2xl shadow-sm p-5 space-y-3 mb-5">
+          <h3 className="font-bold text-[#5C3D1E] text-base mb-3">สรุปผล — รอบเอว</h3>
+          <div className="flex justify-between text-sm">
+            <span className="text-[#A08060]">รอบเอวเริ่มต้น</span>
+            <span className="font-semibold text-[#2C1810]">
+              {firstWaist.waist.toFixed(1)} ซม.{" "}
+              <span className="text-[#A08060] font-normal">
+                ({toThaiYear(new Date(firstWaist.recordedAt).getFullYear())})
+              </span>
+            </span>
+          </div>
+          <div className="flex justify-between text-sm">
+            <span className="text-[#A08060]">รอบเอวล่าสุด</span>
+            <span className="font-semibold text-[#2C1810]">
+              {lastWaist.waist.toFixed(1)} ซม.{" "}
+              <span className="text-[#A08060] font-normal">
+                ({formatThaiDate(new Date(lastWaist.recordedAt))})
+              </span>
+            </span>
+          </div>
+          <div className="flex justify-between text-sm">
+            <span className={`font-semibold ${totalWaistLost > 0 ? "text-green-600" : totalWaistLost < 0 ? "text-red-500" : "text-[#A08060]"}`}>
+              {totalWaistLost > 0 ? "รอบเอวลดลง" : totalWaistLost < 0 ? "รอบเอวเพิ่มขึ้น" : "รอบเอวคงที่"}
+            </span>
+            <span className={`font-bold text-base ${totalWaistLost > 0 ? "text-green-600" : totalWaistLost < 0 ? "text-red-500" : "text-[#A08060]"}`}>
+              {totalWaistLost > 0 ? "-" : totalWaistLost < 0 ? "+" : ""}
+              {Math.abs(totalWaistLost).toFixed(1)} ซม.
+            </span>
+          </div>
+          {totalWaistLost !== 0 && firstWaist && (
+            <div className="flex justify-between text-sm">
+              <span className={`font-semibold ${totalWaistLost > 0 ? "text-green-600" : "text-red-500"}`}>
+                {totalWaistLost > 0 ? "รอบเอวลดลง %" : "รอบเอวเพิ่มขึ้น %"}
+              </span>
+              <span className={`font-bold text-base ${totalWaistLost > 0 ? "text-green-600" : "text-red-500"}`}>
+                {totalWaistLost > 0 ? "-" : "+"}
+                {Math.abs((totalWaistLost / firstWaist.waist) * 100).toFixed(2)}%
+              </span>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* All entries with tabs */}
+      <h2 className="text-base font-bold text-[#5C3D1E] mb-3">รายการทั้งหมด</h2>
+
+      {/* Tab switcher */}
+      <div className="relative flex bg-[#EDE3D0] rounded-xl p-1 mb-3">
+        <div
+          className="absolute top-1 bottom-1 left-1 rounded-lg bg-[#5C3D1E] shadow-sm pointer-events-none transition-transform duration-200"
+          style={{ width: "calc((100% - 8px) / 2)", transform: `translateX(${entryTab === "waist" ? "100%" : "0%"})` }}
+        />
+        {(["weight", "waist"] as EntryTab[]).map((t) => (
+          <button
+            key={t}
+            onClick={() => setEntryTab(t)}
+            className={`relative z-10 flex-1 py-2 rounded-lg text-sm font-medium cursor-pointer transition-colors duration-200 ${entryTab === t ? "text-white" : "text-[#A08060]"}`}
+          >
+            {t === "weight" ? "น้ำหนัก" : "รอบเอว"}
+          </button>
+        ))}
+      </div>
+
       <div className="bg-white border border-[#D4C4A8] rounded-2xl shadow-sm overflow-hidden mb-5">
         <div className="overflow-x-auto overflow-y-auto max-h-96">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="bg-[#F7F0E4] border-b border-[#D4C4A8] sticky top-0 z-10">
-              <th className="text-left px-4 py-3 font-semibold text-[#5C3D1E] whitespace-nowrap">วันที่</th>
-              <th className="text-right px-4 py-3 font-semibold text-[#5C3D1E] whitespace-nowrap">น้ำหนัก (กก.)</th>
-              <th className="text-right px-4 py-3 font-semibold text-[#5C3D1E] whitespace-nowrap">เปลี่ยนแปลง</th>
-              <th className="px-4 py-3" />
-            </tr>
-          </thead>
-          <tbody>
-            {allEntriesWithChange.length === 0 ? (
-              <tr>
-                <td colSpan={4} className="px-4 py-8 text-center text-[#A08060]">
-                  ยังไม่มีข้อมูล
-                </td>
-              </tr>
-            ) : (
-              allEntriesWithChange.map((entry, i) => (
-                <tr
-                  key={entry.id}
-                  className={`border-b border-[#EDE3D0] last:border-0 ${
-                    i % 2 === 0 ? "bg-white" : "bg-[#FDFAF5]"
-                  }`}
-                >
-                  <td className="px-4 py-3 text-[#2C1810] whitespace-nowrap">
-                    {formatThaiDateTime(new Date(entry.recordedAt))}
-                  </td>
-                  <td className="px-4 py-3 text-right font-medium text-[#2C1810] whitespace-nowrap">
-                    {entry.weight.toFixed(1)}
-                  </td>
-                  <td className="px-4 py-3 text-right whitespace-nowrap">
-                    {entry.change !== null ? (
-                      <span
-                        className={
-                          entry.change < 0
-                            ? "text-green-600 font-medium"
-                            : entry.change > 0
-                            ? "text-red-500 font-medium"
-                            : "text-[#A08060]"
-                        }
-                      >
-                        {entry.change > 0 ? "+" : ""}
-                        {entry.change.toFixed(1)}
-                      </span>
-                    ) : (
-                      <span className="text-[#D4C4A8]">—</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 text-right whitespace-nowrap">
-                    <button
-                      onClick={() => handleDeleteClick(entry)}
-                      disabled={isPending}
-                      className="px-3 py-1 rounded-lg bg-red-500 hover:bg-red-600 text-white text-xs font-medium transition-colors disabled:opacity-40"
-                    >
-                      ลบข้อมูล
-                    </button>
-                  </td>
+          {entryTab === "weight" ? (
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-[#F7F0E4] border-b border-[#D4C4A8] sticky top-0 z-10">
+                  <th className="text-left px-4 py-3 font-semibold text-[#5C3D1E] whitespace-nowrap">วันที่</th>
+                  <th className="text-right px-4 py-3 font-semibold text-[#5C3D1E] whitespace-nowrap">น้ำหนัก (กก.)</th>
+                  <th className="text-right px-4 py-3 font-semibold text-[#5C3D1E] whitespace-nowrap">เปลี่ยนแปลง</th>
+                  <th className="px-4 py-3" />
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              </thead>
+              <tbody>
+                {weightEntriesWithChange.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} className="px-4 py-8 text-center text-[#A08060]">ยังไม่มีข้อมูล</td>
+                  </tr>
+                ) : (
+                  weightEntriesWithChange.map((e, i) => (
+                    <tr key={e.id} className={`border-b border-[#EDE3D0] last:border-0 ${i % 2 === 0 ? "bg-white" : "bg-[#FDFAF5]"}`}>
+                      <td className="px-4 py-3 text-[#2C1810] whitespace-nowrap">{formatThaiDateTime(new Date(e.recordedAt))}</td>
+                      <td className="px-4 py-3 text-right font-medium text-[#2C1810] whitespace-nowrap">{e.weight.toFixed(1)}</td>
+                      <td className="px-4 py-3 text-right whitespace-nowrap">{changeCell(e.change, "")}</td>
+                      <td className="px-4 py-3 text-right whitespace-nowrap">
+                        <button
+                          onClick={() => handleDeleteWeight(e)}
+                          disabled={isPending}
+                          className="px-3 py-1 rounded-lg bg-red-500 hover:bg-red-600 text-white text-xs font-medium transition-colors disabled:opacity-40"
+                        >
+                          ลบข้อมูล
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          ) : (
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-[#F7F0E4] border-b border-[#D4C4A8] sticky top-0 z-10">
+                  <th className="text-left px-4 py-3 font-semibold text-[#5C3D1E] whitespace-nowrap">วันที่</th>
+                  <th className="text-right px-4 py-3 font-semibold text-[#5C3D1E] whitespace-nowrap">รอบเอว (ซม.)</th>
+                  <th className="text-right px-4 py-3 font-semibold text-[#5C3D1E] whitespace-nowrap">เปลี่ยนแปลง</th>
+                  <th className="px-4 py-3" />
+                </tr>
+              </thead>
+              <tbody>
+                {waistEntriesWithChange.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} className="px-4 py-8 text-center text-[#A08060]">ยังไม่มีข้อมูล</td>
+                  </tr>
+                ) : (
+                  waistEntriesWithChange.map((e, i) => (
+                    <tr key={e.id} className={`border-b border-[#EDE3D0] last:border-0 ${i % 2 === 0 ? "bg-white" : "bg-[#FDFAF5]"}`}>
+                      <td className="px-4 py-3 text-[#2C1810] whitespace-nowrap">{formatThaiDateTime(new Date(e.recordedAt))}</td>
+                      <td className="px-4 py-3 text-right font-medium text-[#2C1810] whitespace-nowrap">{e.waist.toFixed(1)}</td>
+                      <td className="px-4 py-3 text-right whitespace-nowrap">{changeCell(e.change, "")}</td>
+                      <td className="px-4 py-3 text-right whitespace-nowrap">
+                        <button
+                          onClick={() => handleDeleteWaist(e)}
+                          disabled={isPending}
+                          className="px-3 py-1 rounded-lg bg-red-500 hover:bg-red-600 text-white text-xs font-medium transition-colors disabled:opacity-40"
+                        >
+                          ลบข้อมูล
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          )}
         </div>
       </div>
 
       {/* Delete confirm modal */}
-      <Modal
+      <AppModal
         open={deleteTarget !== null}
         onClose={() => { if (!isPending) setDeleteTarget(null) }}
-        slotProps={{ backdrop: { style: { backgroundColor: "rgba(0,0,0,0.45)" } } }}
       >
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl shadow-2xl w-[calc(100%-2rem)] max-w-sm p-5 outline-none">
           <h3 className="font-bold text-[#2C1810] text-base mb-2">ยืนยันการลบรายการ</h3>
           <p className="text-sm text-[#A08060] mb-5">
-            ลบรายการน้ำหนัก{" "}
-            <span className="font-semibold text-[#5C3D1E]">{deleteTarget?.weight.toFixed(1)} กก.</span>{" "}
+            ลบรายการ{" "}
+            <span className="font-semibold text-[#5C3D1E]">
+              {deleteTarget?.value.toFixed(1)} {deleteTarget?.unit}
+            </span>{" "}
             วันที่ <span className="font-semibold text-[#5C3D1E]">{deleteTarget?.date}</span>?
           </p>
           <div className="flex gap-2">
@@ -325,7 +464,7 @@ export default function HistoryClient({ entries, allEntries }: HistoryClientProp
             </button>
           </div>
         </div>
-      </Modal>
+      </AppModal>
     </div>
   )
 }

@@ -8,20 +8,12 @@ export default async function AdminPage() {
   if (!session) redirect("/login");
   if (session.user.role !== "ADMIN") redirect("/");
 
-  const [users, groups, recentEntries] = await Promise.all([
+  const [users, groups] = await Promise.all([
     prisma.user.findMany({
       orderBy: { createdAt: "asc" },
-      include: {
-        group: true,
-        weightEntries: { orderBy: { recordedAt: "desc" }, take: 1 },
-      },
+      include: { group: true },
     }),
     prisma.group.findMany({ orderBy: { name: "asc" } }),
-    prisma.weightEntry.findMany({
-      orderBy: { recordedAt: "desc" },
-      take: 50,
-      include: { user: { include: { group: true } } },
-    }),
   ]);
 
   const serializedUsers = users.map((u: (typeof users)[number]) => ({
@@ -32,9 +24,6 @@ export default async function AdminPage() {
     groupId: u.groupId ?? "",
     groupName: u.group?.name ?? "ไม่มีกลุ่ม",
     createdAt: u.createdAt.toISOString(),
-    latestWeight: u.weightEntries[0]
-      ? parseFloat(u.weightEntries[0].weight.toString())
-      : null,
   }));
 
   const serializedGroups = groups.map((g: (typeof groups)[number]) => ({
@@ -43,25 +32,10 @@ export default async function AdminPage() {
     createdAt: g.createdAt.toISOString(),
   }));
 
-  const serializedEntries = recentEntries.map(
-    (e: (typeof recentEntries)[number]) => ({
-      id: e.id,
-      weight: parseFloat(e.weight.toString()),
-      recordedAt: e.recordedAt.toISOString(),
-      userId: e.userId,
-      userName: e.user.realName,
-      groupName: e.user.group?.name ?? "ไม่มีกลุ่ม",
-    }),
-  );
-
   return (
     <div className="max-w-lg mx-auto px-4 py-6">
       <h1 className="text-xl font-bold text-[#5C3D1E] mb-5">แผงผู้ดูแลระบบ</h1>
-      <AdminClient
-        users={serializedUsers}
-        groups={serializedGroups}
-        entries={serializedEntries}
-      />
+      <AdminClient users={serializedUsers} groups={serializedGroups} />
     </div>
   );
 }

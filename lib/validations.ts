@@ -11,6 +11,12 @@ export const weightEntrySchema = z.object({
     .positive("น้ำหนักต้องมากกว่า 0"),
 })
 
+export const waistEntrySchema = z.object({
+  waist: z
+    .number({ error: "กรุณากรอกรอบเอวที่ถูกต้อง" })
+    .positive("รอบเอวต้องมากกว่า 0"),
+})
+
 export const createUserSchema = z.object({
   username: z.string().min(3, "ชื่อผู้ใช้ต้องมีอย่างน้อย 3 ตัวอักษร"),
   password: z.string().min(6, "รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร"),
@@ -45,6 +51,7 @@ export const registerSchema = z.object({
 
 export type LoginInput = z.infer<typeof loginSchema>
 export type WeightEntryInput = z.infer<typeof weightEntrySchema>
+export type WaistEntryInput = z.infer<typeof waistEntrySchema>
 export type CreateUserInput = z.infer<typeof createUserSchema>
 export type CreateGroupInput = z.infer<typeof createGroupSchema>
 export type ChangePasswordInput = z.infer<typeof changePasswordSchema>

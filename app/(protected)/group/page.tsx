@@ -40,38 +40,67 @@ export default async function GroupPage() {
         where: { recordedAt: { gte: monthStart, lte: monthEnd } },
         orderBy: { recordedAt: "asc" },
       },
+      waistEntries: {
+        where: { recordedAt: { gte: monthStart, lte: monthEnd } },
+        orderBy: { recordedAt: "asc" },
+      },
     },
     orderBy: { realName: "asc" },
   })
 
   const memberStats = members
     .map((m) => {
-      const entries = m.weightEntries
-      const firstWeight = entries[0] ? parseFloat(entries[0].weight.toString()) : null
-      const lastWeight = entries[entries.length - 1]
-        ? parseFloat(entries[entries.length - 1]!.weight.toString())
+      const wEntries = m.weightEntries
+      const firstWeight = wEntries[0] ? parseFloat(wEntries[0].weight.toString()) : null
+      const lastWeight = wEntries[wEntries.length - 1]
+        ? parseFloat(wEntries[wEntries.length - 1]!.weight.toString())
         : null
-      const change =
+      const weightChange =
         firstWeight !== null && lastWeight !== null ? lastWeight - firstWeight : null
+
+      const waEntries = m.waistEntries
+      const firstWaist = waEntries[0] ? parseFloat(waEntries[0].waist.toString()) : null
+      const lastWaist = waEntries[waEntries.length - 1]
+        ? parseFloat(waEntries[waEntries.length - 1]!.waist.toString())
+        : null
+      const waistChange =
+        firstWaist !== null && lastWaist !== null ? lastWaist - firstWaist : null
+
       return {
         id: m.id,
         realName: m.realName,
         initial: m.realName[0]?.toUpperCase() ?? "?",
         firstWeight,
         lastWeight,
-        change,
-        entryCount: entries.length,
+        weightChange,
+        weightEntryCount: wEntries.length,
+        firstWaist,
+        lastWaist,
+        waistChange,
+        waistEntryCount: waEntries.length,
         isMe: m.id === session.user.id,
       }
     })
     .sort((a, b) => {
       if (a.lastWeight !== null && b.lastWeight === null) return -1
       if (a.lastWeight === null && b.lastWeight !== null) return 1
-      if (a.change !== null && b.change !== null) return a.change - b.change
+      if (a.weightChange !== null && b.weightChange !== null) return a.weightChange - b.weightChange
       return 0
     })
 
   const memberCount = members.length
+
+  function ChangeCell({ change, count }: { change: number | null; count: number }) {
+    if (change === null || count <= 1) return <span className="text-xs text-[#D4C4A8]">—</span>
+    return (
+      <span
+        className={`text-xs font-semibold ${change < 0 ? "text-green-600" : change > 0 ? "text-red-500" : "text-[#A08060]"}`}
+      >
+        {change < 0 ? "▼" : change > 0 ? "▲" : "—"}{" "}
+        {change !== 0 ? Math.abs(change).toFixed(1) : ""}
+      </span>
+    )
+  }
 
   return (
     <div className="max-w-lg mx-auto">
@@ -101,71 +130,88 @@ export default async function GroupPage() {
           </div>
         </div>
 
-        {/* Member weight table */}
+        {/* Member table */}
         <div className="bg-white border border-[#D4C4A8] rounded-2xl shadow-sm overflow-hidden">
           <div className="px-4 py-3 border-b border-[#EDE3D0] flex items-center justify-between">
-            <p className="text-sm font-semibold text-[#5C3D1E]">น้ำหนักสมาชิกเดือนนี้</p>
+            <p className="text-sm font-semibold text-[#5C3D1E]">สมาชิกเดือนนี้</p>
             <p className="text-xs text-[#A08060]">{monthName}</p>
           </div>
-
-          {/* Table header */}
-          <div className="grid grid-cols-[1fr_auto_auto] gap-2 px-4 py-2 bg-[#F7F0E4] border-b border-[#EDE3D0] text-xs font-semibold text-[#A08060]">
-            <span>ชื่อ</span>
-            <span className="text-right">น้ำหนักล่าสุด</span>
-            <span className="text-right w-14">เปลี่ยนแปลง</span>
-          </div>
-
-          <div className="divide-y divide-[#EDE3D0]">
-            {memberStats.map((m) => (
-              <div
-                key={m.id}
-                className={`grid grid-cols-[1fr_auto_auto] gap-2 items-center px-4 py-3 ${m.isMe ? "bg-[#FDFAF5]" : ""}`}
-              >
-                {/* Avatar + name */}
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white ${m.isMe ? "bg-[#2C1810]" : "bg-[#5C3D1E]"}`}>
-                    {m.initial}
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium text-[#2C1810] truncate">
-                      {m.realName}
-                      {m.isMe && <span className="text-[10px] text-[#A08060] ml-1 font-normal">(คุณ)</span>}
-                    </p>
-                    <p className="text-[10px] text-[#A08060]">
-                      {m.entryCount > 0 ? `${m.entryCount} ครั้ง` : "ยังไม่บันทึก"}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Latest weight */}
-                <div className="text-right">
-                  {m.lastWeight !== null ? (
-                    <span className="text-sm font-bold text-[#5C3D1E]">
-                      {m.lastWeight.toFixed(1)}<span className="text-xs font-normal text-[#A08060]"> กก.</span>
-                    </span>
-                  ) : (
-                    <span className="text-xs text-[#D4C4A8]">—</span>
-                  )}
-                </div>
-
-                {/* Change */}
-                <div className="text-right w-14">
-                  {m.change !== null && m.entryCount > 1 ? (
-                    <span className={`text-xs font-semibold ${m.change < 0 ? "text-green-600" : m.change > 0 ? "text-red-500" : "text-[#A08060]"}`}>
-                      {m.change < 0 ? "▼" : m.change > 0 ? "▲" : "—"}{" "}
-                      {m.change !== 0 ? Math.abs(m.change).toFixed(1) : ""}
-                    </span>
-                  ) : (
-                    <span className="text-xs text-[#D4C4A8]">—</span>
-                  )}
-                </div>
-              </div>
-            ))}
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-[#F7F0E4] border-b border-[#EDE3D0]">
+                  <th className="text-left px-4 py-2.5 font-semibold text-[#A08060] whitespace-nowrap">ชื่อ</th>
+                  <th className="text-right px-3 py-2.5 font-semibold text-[#A08060] whitespace-nowrap">น้ำหนักล่าสุด</th>
+                  <th className="text-right px-3 py-2.5 font-semibold text-[#A08060] whitespace-nowrap">น้ำหนักเปลี่ยน</th>
+                  <th className="text-right px-3 py-2.5 font-semibold text-[#A08060] whitespace-nowrap">รอบเอวล่าสุด</th>
+                  <th className="text-right px-3 py-2.5 font-semibold text-[#A08060] whitespace-nowrap">รอบเอวเปลี่ยน</th>
+                </tr>
+              </thead>
+              <tbody>
+                {memberStats.map((m, i) => (
+                  <tr
+                    key={m.id}
+                    className={`border-b border-[#EDE3D0] last:border-0 ${
+                      m.isMe ? "bg-[#FDFAF5]" : i % 2 === 0 ? "bg-white" : "bg-[#FDFAF5]/40"
+                    }`}
+                  >
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-2.5">
+                        <div
+                          className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white ${
+                            m.isMe ? "bg-[#2C1810]" : "bg-[#5C3D1E]"
+                          }`}
+                        >
+                          {m.initial}
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-[#2C1810] whitespace-nowrap">
+                            {m.realName}
+                            {m.isMe && (
+                              <span className="text-[10px] text-[#A08060] ml-1 font-normal">(คุณ)</span>
+                            )}
+                          </p>
+                          <p className="text-[10px] text-[#A08060]">
+                            {m.weightEntryCount > 0 ? `${m.weightEntryCount} ครั้ง` : "ยังไม่บันทึก"}
+                          </p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-3 py-3 text-right whitespace-nowrap">
+                      {m.lastWeight !== null ? (
+                        <span className="text-sm font-bold text-[#5C3D1E]">
+                          {m.lastWeight.toFixed(1)}
+                          <span className="text-xs font-normal text-[#A08060]"> กก.</span>
+                        </span>
+                      ) : (
+                        <span className="text-xs text-[#D4C4A8]">—</span>
+                      )}
+                    </td>
+                    <td className="px-3 py-3 text-right whitespace-nowrap">
+                      <ChangeCell change={m.weightChange} count={m.weightEntryCount} />
+                    </td>
+                    <td className="px-3 py-3 text-right whitespace-nowrap">
+                      {m.lastWaist !== null ? (
+                        <span className="text-sm font-bold text-[#5C3D1E]">
+                          {m.lastWaist.toFixed(1)}
+                          <span className="text-xs font-normal text-[#A08060]"> ซม.</span>
+                        </span>
+                      ) : (
+                        <span className="text-xs text-[#D4C4A8]">—</span>
+                      )}
+                    </td>
+                    <td className="px-3 py-3 text-right whitespace-nowrap">
+                      <ChangeCell change={m.waistChange} count={m.waistEntryCount} />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
 
         <p className="text-center text-xs text-[#D4C4A8]">
-          ข้อมูลน้ำหนักนับจากต้นเดือนถึงปัจจุบัน • เรียงตามน้ำหนักที่ลดได้มากที่สุด
+          ข้อมูลนับจากต้นเดือนถึงปัจจุบัน • เรียงตามน้ำหนักที่ลดได้มากที่สุด
         </p>
 
         <GroupManageSection

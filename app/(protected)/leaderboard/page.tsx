@@ -22,35 +22,67 @@ export default async function LeaderboardPage() {
   const groups = await prisma.group.findMany({
     include: {
       users: {
-        include: { weightEntries: true },
+        include: {
+          weightEntries: true,
+          waistEntries: true,
+        },
       },
     },
   })
 
-  const groupData = groups.map((g: (typeof groups)[number]) => ({
-    id: g.id,
-    name: g.name,
-    users: g.users.map((u: (typeof g.users)[number]) => ({
-      id: u.id,
-      realName: u.realName,
-      weightEntries: u.weightEntries,
-    })),
-  }))
-
-  // Get all months that have data
-  const allMonthKeys = getAllMonthKeys(groupData)
-
-  // Current month and previous month keys
   const now = new Date()
   const currentMonthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`
   const prevDate = new Date(now.getFullYear(), now.getMonth() - 1, 1)
   const prevMonthKey = `${prevDate.getFullYear()}-${String(prevDate.getMonth() + 1).padStart(2, "0")}`
 
-  // Build leaderboard for each month
+  // --- Weight leaderboard ---
+  const weightGroupData = groups.map((g) => ({
+    id: g.id,
+    name: g.name,
+    users: g.users.map((u) => ({
+      id: u.id,
+      realName: u.realName,
+      weightEntries: u.weightEntries,
+    })),
+  }))
+  const allMonthKeys = getAllMonthKeys(weightGroupData)
   const monthlyLeaderboards = allMonthKeys.map((key) => ({
     monthKey: key,
     label: formatMonthKeyThai(key),
-    leaderboard: buildLeaderboardForMonth(groupData, key),
+    leaderboard: buildLeaderboardForMonth(weightGroupData, key),
+  }))
+
+  // --- Waist leaderboard (map waist → weight-like for reuse) ---
+  const waistGroupData = groups.map((g) => ({
+    id: g.id,
+    name: g.name,
+    users: g.users.map((u) => ({
+      id: u.id,
+      realName: u.realName,
+      weightEntries: u.waistEntries.map((e) => ({
+        id: e.id,
+        userId: e.userId,
+        weight: parseFloat(e.waist.toString()),
+        recordedAt: e.recordedAt.toISOString(),
+        createdAt: e.createdAt.toISOString(),
+      })),
+    })),
+  }))
+
+  const waistMonthKeysSet = new Set<string>()
+  for (const g of groups) {
+    for (const u of g.users) {
+      for (const e of u.waistEntries) {
+        const d = new Date(e.recordedAt)
+        waistMonthKeysSet.add(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`)
+      }
+    }
+  }
+  const waistMonthKeys = [...waistMonthKeysSet].sort()
+  const waistMonthlyLeaderboards = waistMonthKeys.map((key) => ({
+    monthKey: key,
+    label: formatMonthKeyThai(key),
+    leaderboard: buildLeaderboardForMonth(waistGroupData, key),
   }))
 
   return (
@@ -63,6 +95,9 @@ export default async function LeaderboardPage() {
           prevMonthKey={prevMonthKey}
           currentGroupId={currentGroupId}
           lastUpdated={formatThaiDateTime(now)}
+          waistMonthlyLeaderboards={waistMonthlyLeaderboards}
+          waistCurrentMonthKey={currentMonthKey}
+          waistPrevMonthKey={prevMonthKey}
         />
       </div>
     </div>

@@ -1,23 +1,23 @@
-import { auth } from "@/lib/auth"
-import { prisma } from "@/lib/db"
-import GroupBadge from "@/components/shared/GroupBadge"
-import ChangePasswordForm from "./ChangePasswordForm"
-import SignOutButton from "./SignOutButton"
-import { ChevronRight } from "lucide-react"
-import PageHeader from "@/components/shared/PageHeader"
+import { auth } from "@/lib/auth";
+import { prisma } from "@/lib/db";
+import GroupBadge from "@/components/shared/GroupBadge";
+import ChangePasswordForm from "./ChangePasswordForm";
+import SignOutButton from "./SignOutButton";
+import { ChevronRight } from "lucide-react";
+import PageHeader from "@/components/shared/PageHeader";
 
 export default async function ProfilePage() {
-  const session = await auth()
-  if (!session) return null
+  const session = await auth();
+  if (!session) return null;
 
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
     include: { group: true },
-  })
+  });
 
-  if (!user) return null
+  if (!user) return null;
 
-  const initial = user.realName?.[0]?.toUpperCase() ?? "U"
+  const initial = user.realName?.[0]?.toUpperCase() ?? "U";
 
   return (
     <div className="max-w-lg mx-auto">
@@ -28,7 +28,9 @@ export default async function ProfilePage() {
           <div className="w-20 h-20 rounded-full bg-[#5C3D1E] flex items-center justify-center text-white text-3xl font-bold mb-3 shadow-md">
             {initial}
           </div>
-          <h2 className="text-xl font-bold text-[#2C1810] mb-2">{user.realName}</h2>
+          <h2 className="text-xl font-bold text-[#2C1810] mb-2">
+            {user.realName}
+          </h2>
           <GroupBadge name={user.group?.name} />
           {user.role === "ADMIN" && (
             <span className="mt-2 inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-[#5C3D1E] text-white">
@@ -42,11 +44,15 @@ export default async function ProfilePage() {
           <div className="space-y-3 text-sm">
             <div className="flex justify-between">
               <span className="text-[#A08060]">ชื่อผู้ใช้</span>
-              <span className="text-[#2C1810] font-medium">{user.username}</span>
+              <span className="text-[#2C1810] font-medium">
+                {user.username}
+              </span>
             </div>
             <div className="flex justify-between">
               <span className="text-[#A08060]">ชื่อจริง</span>
-              <span className="text-[#2C1810] font-medium">{user.realName}</span>
+              <span className="text-[#2C1810] font-medium">
+                {user.realName}
+              </span>
             </div>
           </div>
         </div>
@@ -61,7 +67,9 @@ export default async function ProfilePage() {
                 href="/admin"
                 className="flex items-center justify-between px-5 py-4 hover:bg-[#FDFAF5] transition-colors"
               >
-                <span className="text-[#2C1810] font-medium">แผงผู้ดูแลระบบ</span>
+                <span className="text-[#2C1810] font-medium">
+                  แผงผู้ดูแลระบบ
+                </span>
                 <ChevronRight size={18} className="text-[#D4C4A8]" />
               </a>
               <div className="border-t border-[#EDE3D0]" />
@@ -70,8 +78,10 @@ export default async function ProfilePage() {
           <SignOutButton />
         </div>
 
-        <p className="text-center text-xs text-[#D4C4A8] mt-8">เวอร์ชัน 1.0.0</p>
+        <p className="text-center text-xs text-[#D4C4A8] mt-8">
+          เวอร์ชัน 2.0.0
+        </p>
       </div>
     </div>
-  )
+  );
 }

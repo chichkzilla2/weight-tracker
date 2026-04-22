@@ -30,13 +30,23 @@ model User {
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
   weightEntries WeightEntry[]
+  waistEntries  WaistEntry[]
 }
 
 model WeightEntry {
   id         String   @id @default(cuid())
   userId     String
-  user       User     @relation(fields: [userId], references: [id])
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   weight     Decimal  @db.Decimal(5, 2)
+  recordedAt DateTime @default(now())
+  createdAt  DateTime @default(now())
+}
+
+model WaistEntry {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  waist      Decimal  @db.Decimal(5, 1)
   recordedAt DateTime @default(now())
   createdAt  DateTime @default(now())
 }

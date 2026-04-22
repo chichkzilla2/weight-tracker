@@ -2,13 +2,13 @@
 
 import { useState, useActionState, useEffect } from "react"
 import { toast } from "sonner"
-import { createUser, deleteUser, createGroup, deleteGroup, changeUserGroup, updateGroupName } from "@/lib/actions/admin"
+import { createUser, deleteUser, createGroup, deleteGroup, changeUserGroup, updateGroupName, changeUserPasswordByAdmin } from "@/lib/actions/admin"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { formatThaiDate } from "@/lib/calculations"
-import { Plus, Trash2, Pencil } from "lucide-react"
-import Modal from "@mui/material/Modal"
+import { Plus, Trash2, Pencil, KeyRound } from "lucide-react"
+import AppModal from "@/components/shared/AppModal"
 
 interface UserData {
   id: string
@@ -18,7 +18,6 @@ interface UserData {
   groupId: string
   groupName: string
   createdAt: string
-  latestWeight: number | null
 }
 
 interface GroupData {
@@ -27,46 +26,34 @@ interface GroupData {
   createdAt: string
 }
 
-interface EntryData {
-  id: string
-  weight: number
-  recordedAt: string
-  userId: string
-  userName: string
-  groupName: string
-}
-
 interface AdminClientProps {
   users: UserData[]
   groups: GroupData[]
-  entries: EntryData[]
 }
 
-type Tab = "users" | "groups" | "entries"
+type Tab = "users" | "groups"
 
 type DialogState =
   | { type: "saveGroups"; changes: { userId: string; userName: string; oldGroupName: string; newGroupName: string }[] }
   | { type: "deleteUser"; userId: string; userName: string }
   | { type: "deleteGroup"; groupId: string; groupName: string }
   | { type: "editGroup"; groupId: string; groupName: string }
+  | { type: "changePassword"; userId: string; userName: string }
   | null
 
 const initialUserState = { error: "", success: false }
 const initialGroupState = { error: "", success: false }
 
-export default function AdminClient({ users, groups, entries }: AdminClientProps) {
+export default function AdminClient({ users, groups }: AdminClientProps) {
   const [tab, setTab] = useState<Tab>("users")
   const [showUserForm, setShowUserForm] = useState(false)
   const [showGroupForm, setShowGroupForm] = useState(false)
   const [editGroupName, setEditGroupName] = useState("")
+  const [newPassword, setNewPassword] = useState("")
+  const [passwordError, setPasswordError] = useState("")
 
-  // User search & filters
   const [userSearch, setUserSearch] = useState("")
   const [userGroupFilter, setUserGroupFilter] = useState("")
-  const [userWeightMin, setUserWeightMin] = useState("")
-  const [userWeightMax, setUserWeightMax] = useState("")
-
-  // Group search
   const [groupSearch, setGroupSearch] = useState("")
   const [dialog, setDialog] = useState<DialogState>(null)
   const [confirming, setConfirming] = useState(false)
@@ -91,8 +78,6 @@ export default function AdminClient({ users, groups, entries }: AdminClientProps
     const q = userSearch.toLowerCase()
     if (q && !u.realName.toLowerCase().includes(q) && !u.username.toLowerCase().includes(q)) return false
     if (userGroupFilter && (u.groupId || "") !== userGroupFilter) return false
-    if (userWeightMin !== "" && (u.latestWeight === null || u.latestWeight < parseFloat(userWeightMin))) return false
-    if (userWeightMax !== "" && (u.latestWeight === null || u.latestWeight > parseFloat(userWeightMax))) return false
     return true
   })
 
@@ -118,11 +103,8 @@ export default function AdminClient({ users, groups, entries }: AdminClientProps
         dialog.changes.map((c) => changeUserGroup(c.userId, userGroupSelections[c.userId] ?? c.userId))
       )
       const failed = results.filter((r) => r.error)
-      if (failed.length > 0) {
-        toast.error(failed[0]?.error ?? "เกิดข้อผิดพลาด")
-      } else {
-        toast.success(`บันทึกการเปลี่ยนกลุ่มเรียบร้อย (${dialog.changes.length} รายการ)`)
-      }
+      if (failed.length > 0) toast.error(failed[0]?.error ?? "เกิดข้อผิดพลาด")
+      else toast.success(`บันทึกการเปลี่ยนกลุ่มเรียบร้อย (${dialog.changes.length} รายการ)`)
     }
 
     if (dialog.type === "deleteUser") {
@@ -139,12 +121,21 @@ export default function AdminClient({ users, groups, entries }: AdminClientProps
 
     if (dialog.type === "editGroup") {
       const result = await updateGroupName(dialog.groupId, editGroupName)
-      if (result.error) {
-        toast.error(result.error)
+      if (result.error) { toast.error(result.error); setConfirming(false); return }
+      toast.success("แก้ไขชื่อกลุ่มเรียบร้อย")
+    }
+
+    if (dialog.type === "changePassword") {
+      if (newPassword.length < 6) {
+        setPasswordError("รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร")
         setConfirming(false)
         return
       }
-      toast.success("แก้ไขชื่อกลุ่มเรียบร้อย")
+      const result = await changeUserPasswordByAdmin(dialog.userId, newPassword)
+      if (result.error) { toast.error(result.error); setConfirming(false); return }
+      toast.success(`เปลี่ยนรหัสผ่านของ ${dialog.userName} เรียบร้อย`)
+      setNewPassword("")
+      setPasswordError("")
     }
 
     setConfirming(false)
@@ -154,17 +145,16 @@ export default function AdminClient({ users, groups, entries }: AdminClientProps
   const tabs = [
     { key: "users" as Tab, label: "จัดการผู้ใช้" },
     { key: "groups" as Tab, label: "จัดการกลุ่ม" },
-    { key: "entries" as Tab, label: "บันทึกน้ำหนัก" },
   ]
   const tabIndex = tabs.findIndex((t) => t.key === tab)
 
   return (
     <div>
       {/* Confirmation Dialog */}
-      <Modal
+      <AppModal
         open={dialog !== null}
         onClose={() => { if (!confirming) setDialog(null) }}
-        slotProps={{ backdrop: { style: { backgroundColor: "rgba(0,0,0,0.55)" } } }}
+        backdropColor="rgba(0,0,0,0.55)"
       >
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl shadow-2xl w-[calc(100%-2rem)] max-w-sm p-5 outline-none">
           {dialog?.type === "saveGroups" && (
@@ -187,7 +177,7 @@ export default function AdminClient({ users, groups, entries }: AdminClientProps
             <>
               <h3 className="font-bold text-[#2C1810] text-base mb-1">ยืนยันการลบผู้ใช้</h3>
               <p className="text-sm text-[#A08060] mb-4">
-                ลบ <span className="font-semibold text-[#2C1810]">{dialog.userName}</span> ออกจากระบบ? ข้อมูลน้ำหนักทั้งหมดจะถูกลบด้วย
+                ลบ <span className="font-semibold text-[#2C1810]">{dialog.userName}</span> ออกจากระบบ? ข้อมูลน้ำหนักและรอบเอวทั้งหมดจะถูกลบด้วย
               </p>
             </>
           )}
@@ -204,18 +194,31 @@ export default function AdminClient({ users, groups, entries }: AdminClientProps
               <h3 className="font-bold text-[#2C1810] text-base mb-1">แก้ไขชื่อกลุ่ม</h3>
               <div className="space-y-1 mb-4">
                 <Label className="text-xs text-[#5C3D1E]">ชื่อกลุ่ม</Label>
+                <Input value={editGroupName} onChange={(e) => setEditGroupName(e.target.value)} autoFocus className="border-[#D4C4A8] rounded-xl text-sm" />
+              </div>
+            </>
+          )}
+          {dialog?.type === "changePassword" && (
+            <>
+              <h3 className="font-bold text-[#2C1810] text-base mb-1">เปลี่ยนรหัสผ่าน</h3>
+              <p className="text-xs text-[#A08060] mb-3">ผู้ใช้: <span className="font-semibold text-[#2C1810]">{dialog.userName}</span></p>
+              <div className="space-y-1 mb-4">
+                <Label className="text-xs text-[#5C3D1E]">รหัสผ่านใหม่ (อย่างน้อย 6 ตัวอักษร)</Label>
                 <Input
-                  value={editGroupName}
-                  onChange={(e) => setEditGroupName(e.target.value)}
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => { setNewPassword(e.target.value); setPasswordError("") }}
                   autoFocus
+                  placeholder="รหัสผ่านใหม่"
                   className="border-[#D4C4A8] rounded-xl text-sm"
                 />
+                {passwordError && <p className="text-red-500 text-xs">{passwordError}</p>}
               </div>
             </>
           )}
           <div className="flex gap-2">
             <button
-              onClick={() => setDialog(null)}
+              onClick={() => { setDialog(null); setNewPassword(""); setPasswordError("") }}
               disabled={confirming}
               className="flex-1 py-2 rounded-xl text-sm font-medium border border-[#D4C4A8] text-[#A08060] hover:bg-[#F7F0E4] transition-colors disabled:opacity-50"
             >
@@ -234,14 +237,14 @@ export default function AdminClient({ users, groups, entries }: AdminClientProps
             </button>
           </div>
         </div>
-      </Modal>
+      </AppModal>
 
       {/* Tab bar */}
       <div className="relative flex bg-[#EDE3D0] rounded-xl p-1 mb-5">
         <div
           className="absolute top-1 bottom-1 left-1 rounded-lg bg-[#5C3D1E] shadow-sm pointer-events-none"
           style={{
-            width: "calc((100% - 8px) / 3)",
+            width: "calc((100% - 8px) / 2)",
             transform: `translateX(${tabIndex * 100}%)`,
             transition: "transform 220ms cubic-bezier(0.4, 0, 0.2, 1)",
           }}
@@ -250,9 +253,7 @@ export default function AdminClient({ users, groups, entries }: AdminClientProps
           <button
             key={t.key}
             onClick={() => setTab(t.key)}
-            className={`relative z-10 flex-1 py-2 rounded-lg text-xs font-medium cursor-pointer transition-colors duration-200 ${
-              tab === t.key ? "text-white" : "text-[#A08060]"
-            }`}
+            className={`relative z-10 flex-1 py-2 rounded-lg text-xs font-medium cursor-pointer transition-colors duration-200 ${tab === t.key ? "text-white" : "text-[#A08060]"}`}
           >
             {t.label}
           </button>
@@ -314,7 +315,7 @@ export default function AdminClient({ users, groups, entries }: AdminClientProps
             </div>
           )}
 
-          {/* Search & filter bar */}
+          {/* Search & filter */}
           <div className="bg-white border border-[#D4C4A8] rounded-2xl shadow-sm p-3 mb-3 space-y-2">
             <input
               value={userSearch}
@@ -322,30 +323,14 @@ export default function AdminClient({ users, groups, entries }: AdminClientProps
               placeholder="ค้นหาชื่อ / username..."
               className="w-full text-sm border border-[#D4C4A8] rounded-xl px-3 py-2 focus:outline-none focus:border-[#5C3D1E]"
             />
-            <div className="flex gap-2">
-              <select
-                value={userGroupFilter}
-                onChange={(e) => setUserGroupFilter(e.target.value)}
-                className="flex-1 text-xs border border-[#D4C4A8] rounded-lg px-2 py-1.5 bg-white text-[#5C3D1E] focus:outline-none focus:border-[#5C3D1E]"
-              >
-                <option value="">ทุกกลุ่ม</option>
-                {groups.map((g) => <option key={g.id} value={g.id}>{g.name}</option>)}
-              </select>
-              <input
-                type="number"
-                value={userWeightMin}
-                onChange={(e) => setUserWeightMin(e.target.value)}
-                placeholder="น้ำหนักต่ำสุด"
-                className="w-24 text-xs border border-[#D4C4A8] rounded-lg px-2 py-1.5 focus:outline-none focus:border-[#5C3D1E]"
-              />
-              <input
-                type="number"
-                value={userWeightMax}
-                onChange={(e) => setUserWeightMax(e.target.value)}
-                placeholder="สูงสุด"
-                className="w-20 text-xs border border-[#D4C4A8] rounded-lg px-2 py-1.5 focus:outline-none focus:border-[#5C3D1E]"
-              />
-            </div>
+            <select
+              value={userGroupFilter}
+              onChange={(e) => setUserGroupFilter(e.target.value)}
+              className="w-full text-xs border border-[#D4C4A8] rounded-lg px-2 py-1.5 bg-white text-[#5C3D1E] focus:outline-none focus:border-[#5C3D1E]"
+            >
+              <option value="">ทุกกลุ่ม</option>
+              {groups.map((g) => <option key={g.id} value={g.id}>{g.name}</option>)}
+            </select>
           </div>
 
           <div className="bg-white border border-[#D4C4A8] rounded-2xl shadow-sm overflow-hidden">
@@ -355,7 +340,6 @@ export default function AdminClient({ users, groups, entries }: AdminClientProps
                   <tr className="bg-[#F7F0E4] border-b border-[#D4C4A8] sticky top-0 z-10">
                     <th className="text-left px-3 py-2.5 font-semibold text-[#5C3D1E]">ชื่อ</th>
                     <th className="text-left px-3 py-2.5 font-semibold text-[#5C3D1E]">กลุ่ม</th>
-                    <th className="text-right px-3 py-2.5 font-semibold text-[#5C3D1E]">น้ำหนัก</th>
                     <th className="text-left px-3 py-2.5 font-semibold text-[#5C3D1E]">บทบาท</th>
                     <th className="px-3 py-2.5" />
                   </tr>
@@ -381,29 +365,34 @@ export default function AdminClient({ users, groups, entries }: AdminClientProps
                           {groups.map((g) => <option key={g.id} value={g.id}>{g.name}</option>)}
                         </select>
                       </td>
-                      <td className="px-3 py-2.5 text-right font-medium text-[#5C3D1E] text-xs">
-                        {u.latestWeight !== null ? `${u.latestWeight.toFixed(1)}` : <span className="text-[#D4C4A8]">—</span>}
-                      </td>
                       <td className="px-3 py-2.5">
                         <span className={`text-xs px-2 py-0.5 rounded-full ${u.role === "ADMIN" ? "bg-[#5C3D1E] text-white" : "bg-[#EDE3D0] text-[#5C3D1E]"}`}>
                           {u.role === "ADMIN" ? "Admin" : "User"}
                         </span>
                       </td>
                       <td className="px-3 py-2.5">
-                        <button
-                          onClick={() => setDialog({ type: "deleteUser", userId: u.id, userName: u.realName })}
-                          className="text-red-600 hover:text-red-900 transition-colors"
-                          title="ลบผู้ใช้"
-                        >
-                          <Trash2 size={14} />
-                        </button>
+                        <div className="flex items-center gap-2 justify-end">
+                          <button
+                            onClick={() => { setNewPassword(""); setPasswordError(""); setDialog({ type: "changePassword", userId: u.id, userName: u.realName }) }}
+                            className="text-[#A08060] hover:text-[#5C3D1E] transition-colors"
+                            title="เปลี่ยนรหัสผ่าน"
+                          >
+                            <KeyRound size={14} />
+                          </button>
+                          <button
+                            onClick={() => setDialog({ type: "deleteUser", userId: u.id, userName: u.realName })}
+                            className="text-red-600 hover:text-red-900 transition-colors"
+                            title="ลบผู้ใช้"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
-            {/* Save button below table */}
             <div className="px-3 py-2.5 border-t border-[#EDE3D0] flex items-center justify-between bg-white">
               <p className="text-xs text-[#A08060]">
                 {pendingGroupChanges.length > 0 ? `${pendingGroupChanges.length} รายการที่รอบันทึก` : "ไม่มีการเปลี่ยนแปลง"}
@@ -458,7 +447,6 @@ export default function AdminClient({ users, groups, entries }: AdminClientProps
             </div>
           )}
 
-
           <div className="bg-white border border-[#D4C4A8] rounded-2xl shadow-sm overflow-hidden">
             <div className="overflow-y-auto max-h-96">
               <table className="w-full text-sm">
@@ -492,37 +480,6 @@ export default function AdminClient({ users, groups, entries }: AdminClientProps
                           </button>
                         </div>
                       </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Entries Tab */}
-      {tab === "entries" && (
-        <div>
-          <p className="text-sm text-[#A08060] mb-3">แสดงล่าสุด {entries.length} รายการ</p>
-          <div className="bg-white border border-[#D4C4A8] rounded-2xl shadow-sm overflow-hidden">
-            <div className="overflow-y-auto max-h-96">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="bg-[#F7F0E4] border-b border-[#D4C4A8] sticky top-0 z-10">
-                    <th className="text-left px-3 py-2.5 font-semibold text-[#5C3D1E]">ชื่อ</th>
-                    <th className="text-left px-3 py-2.5 font-semibold text-[#5C3D1E]">กลุ่ม</th>
-                    <th className="text-right px-3 py-2.5 font-semibold text-[#5C3D1E]">น้ำหนัก</th>
-                    <th className="text-right px-3 py-2.5 font-semibold text-[#5C3D1E]">วันที่</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {entries.map((e, i) => (
-                    <tr key={e.id} className={`border-b border-[#EDE3D0] last:border-0 ${i % 2 === 0 ? "bg-white" : "bg-[#FDFAF5]"}`}>
-                      <td className="px-3 py-2.5 text-[#2C1810] font-medium">{e.userName}</td>
-                      <td className="px-3 py-2.5 text-[#A08060] text-xs">{e.groupName}</td>
-                      <td className="px-3 py-2.5 text-right font-bold text-[#5C3D1E]">{e.weight.toFixed(1)} กก.</td>
-                      <td className="px-3 py-2.5 text-right text-[#A08060] text-xs">{formatThaiDate(new Date(e.recordedAt))}</td>
                     </tr>
                   ))}
                 </tbody>

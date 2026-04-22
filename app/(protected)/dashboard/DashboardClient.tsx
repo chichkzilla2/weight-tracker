@@ -11,6 +11,7 @@ import {
   getUserMonthlyWeights,
 } from "@/lib/calculations";
 import type { SerializedGroupWithUsers } from "@/lib/calculations";
+import DashboardWaistSection from "./DashboardWaistSection";
 
 interface EntryData {
   id: string;
@@ -35,6 +36,7 @@ interface DashboardClientProps {
   allGroups: SerializedGroupWithUsers[];
   userGroupId: string | null;
   userRole: string;
+  allGroupsWaist: SerializedGroupWithUsers[];
 }
 
 type TimeRange = "6" | "12" | "all";
@@ -126,6 +128,7 @@ export default function DashboardClient({
   allGroups,
   userGroupId,
   userRole,
+  allGroupsWaist,
 }: DashboardClientProps) {
   const [selectedGroupIds, setSelectedGroupIds] = useState<string[]>([]);
   const [timeRange, setTimeRange] = useState<TimeRange>("6");
@@ -646,6 +649,19 @@ export default function DashboardClient({
             </div>
           </div>
         )}
+      </div>
+
+      {/* Waist section divider */}
+      <div className="border-t border-[#EDE3D0] pt-20">
+        <h2 className="text-lg font-bold text-[#5C3D1E] mb-5">
+          📏 ข้อมูลรอบเอว
+        </h2>
+        <DashboardWaistSection
+          allGroupsWaist={allGroupsWaist}
+          selectedGroupIds={selectedGroupIds}
+          timeRange={timeRange}
+          userRole={userRole}
+        />
       </div>
     </div>
   );

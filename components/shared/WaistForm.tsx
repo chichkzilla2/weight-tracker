@@ -2,26 +2,26 @@
 
 import { useActionState, useState } from "react"
 import AppModal from "@/components/shared/AppModal"
-import { addWeightEntry } from "@/lib/actions/weight"
+import { addWaistEntry } from "@/lib/actions/waist"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
 const initialState = { error: "", success: false }
 
-export default function WeightForm() {
-  const [state, formAction, isPending] = useActionState(addWeightEntry, initialState)
+export default function WaistForm() {
+  const [state, formAction, isPending] = useActionState(addWaistEntry, initialState)
   const [open, setOpen] = useState(false)
   const [pendingData, setPendingData] = useState<FormData | null>(null)
-  const [weightDisplay, setWeightDisplay] = useState("")
+  const [waistDisplay, setWaistDisplay] = useState("")
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     const fd = new FormData(e.currentTarget)
-    const w = fd.get("weight") as string
+    const w = fd.get("waist") as string
     if (!w) return
     setPendingData(fd)
-    setWeightDisplay(w)
+    setWaistDisplay(w)
     setOpen(true)
   }
 
@@ -37,16 +37,16 @@ export default function WeightForm() {
     <>
       <div className="w-full bg-white border border-[#D4C4A8] rounded-2xl shadow-sm px-5 py-4">
         <form onSubmit={handleSubmit}>
-          <Label htmlFor="weight" className="text-[#5C3D1E] text-sm font-semibold">
-            บันทึกน้ำหนักวันนี้ (กก.)
+          <Label htmlFor="waist" className="text-[#5C3D1E] text-sm font-semibold">
+            บันทึกรอบเอววันนี้ (ซม.)
           </Label>
           <div className="flex gap-2 items-center mt-2">
             <Input
-              id="weight"
-              name="weight"
+              id="waist"
+              name="waist"
               type="number"
               step="0.1"
-              placeholder="เช่น 72.5"
+              placeholder="เช่น 80.5"
               required
               className="flex-1 border-[#D4C4A8] focus:border-[#5C3D1E] rounded-xl text-xl px-5 text-center h-12"
             />
@@ -66,10 +66,10 @@ export default function WeightForm() {
 
       <AppModal open={open} onClose={() => setOpen(false)}>
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl shadow-2xl w-[calc(100%-2rem)] max-w-sm p-5 outline-none">
-          <h3 className="font-bold text-[#2C1810] text-base mb-2">ยืนยันการบันทึกน้ำหนัก</h3>
+          <h3 className="font-bold text-[#2C1810] text-base mb-2">ยืนยันการบันทึกรอบเอว</h3>
           <p className="text-sm text-[#A08060] mb-5">
-            คุณต้องการบันทึกน้ำหนัก{" "}
-            <span className="font-semibold text-[#5C3D1E]">{weightDisplay} กก.</span>{" "}
+            คุณต้องการบันทึกรอบเอว{" "}
+            <span className="font-semibold text-[#5C3D1E]">{waistDisplay} ซม.</span>{" "}
             ใช่หรือไม่?
           </p>
           <div className="flex gap-2">

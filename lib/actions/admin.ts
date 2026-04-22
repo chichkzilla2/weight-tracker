@@ -84,15 +84,30 @@ export async function deleteUser(
   await requireAdmin();
 
   try {
-    await prisma.$transaction([
-      prisma.weightEntry.deleteMany({ where: { userId } }),
-      prisma.user.delete({ where: { id: userId } }),
-    ]);
+    await prisma.user.delete({ where: { id: userId } });
   } catch (err) {
     console.error(err);
     return { error: "ลบผู้ใช้ไม่สำเร็จ", success: false };
   }
 
+  revalidatePath("/admin");
+  revalidatePath("/dashboard");
+  revalidatePath("/leaderboard");
+  return { success: true };
+}
+
+export async function changeUserPasswordByAdmin(
+  userId: string,
+  newPassword: string,
+): Promise<{ error?: string; success: boolean }> {
+  await requireAdmin();
+
+  if (newPassword.length < 6) {
+    return { error: "รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร", success: false };
+  }
+
+  const passwordHash = await bcrypt.hash(newPassword, 12);
+  await prisma.user.update({ where: { id: userId }, data: { passwordHash } });
   revalidatePath("/admin");
   return { success: true };
 }
