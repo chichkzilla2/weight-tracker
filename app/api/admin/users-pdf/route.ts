@@ -43,7 +43,11 @@ function splitTextRuns(text: string) {
   return runs;
 }
 
-function getMixedTextWidth(doc: PDFKit.PDFDocument, text: string, bold = false) {
+function getMixedTextWidth(
+  doc: PDFKit.PDFDocument,
+  text: string,
+  bold = false,
+) {
   return splitTextRuns(text).reduce((width, run) => {
     doc.font(getFontName(run, bold));
     return width + doc.widthOfString(run);
@@ -56,7 +60,7 @@ function drawMixedText(
   x: number,
   y: number,
   options: PDFKit.Mixins.TextOptions = {},
-  bold = false
+  bold = false,
 ) {
   let currentX = x;
 
@@ -71,7 +75,7 @@ function drawCenteredMixedText(
   doc: PDFKit.PDFDocument,
   text: string,
   y: number,
-  bold = false
+  bold = false,
 ) {
   const width = getMixedTextWidth(doc, text, bold);
   drawMixedText(doc, text, (doc.page.width - width) / 2, y, {}, bold);
@@ -81,7 +85,10 @@ function drawTableHeader(doc: PDFKit.PDFDocument, x: number, y: number) {
   doc.font("SarabunBold").fontSize(11);
   doc.text("ลำดับ", x, y, { width: 45 });
   doc.text("ชื่อจริง", x + 55, y, { width: 380 });
-  doc.moveTo(x, y + 20).lineTo(545, y + 20).stroke("#D4C4A8");
+  doc
+    .moveTo(x, y + 20)
+    .lineTo(545, y + 20)
+    .stroke("#D4C4A8");
 }
 
 function ensureSpace(doc: PDFKit.PDFDocument, y: number, needed = 48) {
@@ -97,21 +104,27 @@ async function createPdf(users: UserRow[]) {
 
   doc.on("data", (chunk: Buffer) => chunks.push(chunk));
 
-  const fontDir = path.join(
-    process.cwd(),
-    "node_modules",
-    "@fontsource",
-    "sarabun",
-    "files"
-  );
+  const fontDir = path.join(process.cwd(), "public", "fonts");
 
-  doc.registerFont("Sarabun", path.join(fontDir, "sarabun-thai-400-normal.woff"));
-  doc.registerFont("SarabunBold", path.join(fontDir, "sarabun-thai-700-normal.woff"));
-  doc.registerFont("SarabunLatin", path.join(fontDir, "sarabun-latin-400-normal.woff"));
-  doc.registerFont("SarabunLatinBold", path.join(fontDir, "sarabun-latin-700-normal.woff"));
+  doc.registerFont(
+    "Sarabun",
+    path.join(fontDir, "sarabun-thai-400-normal.woff"),
+  );
+  doc.registerFont(
+    "SarabunBold",
+    path.join(fontDir, "sarabun-thai-700-normal.woff"),
+  );
+  doc.registerFont(
+    "SarabunLatin",
+    path.join(fontDir, "sarabun-latin-400-normal.woff"),
+  );
+  doc.registerFont(
+    "SarabunLatinBold",
+    path.join(fontDir, "sarabun-latin-700-normal.woff"),
+  );
   doc.font("SarabunBold").fontSize(18);
-  drawCenteredMixedText(doc, "รายชื่อสมาชิก", doc.y, true);
-  doc.moveDown(1.4);
+  drawCenteredMixedText(doc, "รายชื่อสมาชิกทั้งหมด", doc.y, true);
+  doc.moveDown(0.6);
   doc.fontSize(11);
   drawCenteredMixedText(doc, `วันที่ ${formatDate(new Date())}`, doc.y);
   doc.moveDown(1.5);
@@ -146,7 +159,10 @@ async function createPdf(users: UserRow[]) {
 
       doc.font("SarabunLatin").text(String(index), 50, y, { width: 45 });
       drawMixedText(doc, user.realName, 105, y, { width: 380 });
-      doc.moveTo(50, y + 20).lineTo(545, y + 20).stroke("#EDE3D0");
+      doc
+        .moveTo(50, y + 20)
+        .lineTo(545, y + 20)
+        .stroke("#EDE3D0");
 
       index += 1;
       y += 24;
