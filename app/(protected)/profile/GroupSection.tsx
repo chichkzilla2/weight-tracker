@@ -48,13 +48,13 @@ export default function GroupSection({ currentGroupId, currentGroupName, groups 
     return (
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-[#EDE3D0] text-[#5C3D1E] border border-[#D4C4A8]">
+          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-[#242832] text-[#F59E0B] border border-[#343A46]">
             {currentGroupName}
           </span>
           <button
             onClick={handleLeave}
             disabled={isPending}
-            className="text-xs text-red-500 hover:text-red-700 disabled:opacity-50 flex items-center gap-1"
+            className="text-xs text-[#D08A8A] hover:text-[#D08A8A] disabled:opacity-50 flex items-center gap-1"
           >
             {isPending ? <Loader2 size={12} className="animate-spin" /> : "ออกจากกลุ่ม"}
           </button>
@@ -64,7 +64,7 @@ export default function GroupSection({ currentGroupId, currentGroupName, groups 
             onChange={(e) => handleChange(e.target.value)}
             defaultValue=""
             disabled={isPending}
-            className="w-full border border-[#D4C4A8] rounded-xl px-3 py-2 text-sm bg-white text-[#1a1a1a] focus:outline-none focus:border-[#5C3D1E] disabled:opacity-50"
+            className="w-full border border-[#343A46] rounded-xl px-3 py-2 text-sm bg-[#171A20] text-[#E7EAF0] focus:outline-none focus:border-[#F59E0B] disabled:opacity-50"
           >
             <option value="">เปลี่ยนไปกลุ่มอื่น...</option>
             {otherGroups.map((g) => (
@@ -78,13 +78,13 @@ export default function GroupSection({ currentGroupId, currentGroupName, groups 
 
   return (
     <div className="space-y-3">
-      <p className="text-xs text-[#A08060]">ยังไม่ได้เข้าร่วมกลุ่ม สามารถเลือกได้ที่นี่</p>
+      <p className="text-xs text-[#A8AFBD]">ยังไม่ได้เข้าร่วมกลุ่ม สามารถเลือกได้ที่นี่</p>
       <div className="flex gap-2">
         <select
           value={selectedGroupId}
           onChange={(e) => setSelectedGroupId(e.target.value)}
           disabled={isPending}
-          className="flex-1 border border-[#D4C4A8] rounded-xl px-3 py-2 text-sm bg-white text-[#1a1a1a] focus:outline-none focus:border-[#5C3D1E] disabled:opacity-50"
+          className="flex-1 border border-[#343A46] rounded-xl px-3 py-2 text-sm bg-[#171A20] text-[#E7EAF0] focus:outline-none focus:border-[#F59E0B] disabled:opacity-50"
         >
           <option value="">เลือกกลุ่ม...</option>
           {groups.map((g) => (
@@ -94,7 +94,7 @@ export default function GroupSection({ currentGroupId, currentGroupName, groups 
         <button
           onClick={handleJoin}
           disabled={isPending || !selectedGroupId}
-          className="px-4 py-2 bg-[#5C3D1E] text-white text-sm rounded-xl hover:bg-[#2C1810] disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1 whitespace-nowrap"
+          className="px-4 py-2 bg-[#F59E0B] text-[#111318] text-sm rounded-xl hover:bg-[#D97706] disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1 whitespace-nowrap"
         >
           {isPending ? <Loader2 size={14} className="animate-spin" /> : "เข้าร่วม"}
         </button>

@@ -30,7 +30,7 @@ export default function BottomNav() {
     <>
       {/* Desktop: left sidebar */}
       <nav
-        className="hidden lg:flex fixed left-0 top-0 h-full w-16 flex-col items-center justify-center gap-12 bg-white border-r border-[#D4C4A8] z-50 overflow-visible"
+        className="hidden lg:flex fixed left-0 top-0 h-full w-16 flex-col items-center justify-center gap-12 bg-[#171A20] border-r border-[#343A46] z-50 overflow-visible"
         onMouseLeave={() => setHoveredIndex(null)}
       >
         {navItems.map((item, index) => {
@@ -48,7 +48,7 @@ export default function BottomNav() {
                 transition: "transform 180ms ease",
                 display: "block",
               }}
-              className={isActive ? "text-[#5C3D1E]" : "text-[#A08060] hover:text-[#5C3D1E]"}
+              className={isActive ? "text-[#F59E0B]" : "text-[#A8AFBD] hover:text-[#F59E0B]"}
             >
               <Icon size={28} />
             </Link>
@@ -58,7 +58,7 @@ export default function BottomNav() {
 
       {/* Mobile: bottom bar */}
       <nav
-        className="lg:hidden fixed bottom-0 left-0 right-0 h-20 flex items-end justify-around pb-3 bg-white border-t border-[#D4C4A8] z-50 overflow-visible"
+        className="lg:hidden fixed bottom-0 left-0 right-0 h-20 flex items-end justify-around pb-3 bg-[#171A20] border-t border-[#343A46] z-50 overflow-visible"
         onMouseLeave={() => setHoveredIndex(null)}
       >
         {navItems.map((item, index) => {
@@ -76,7 +76,7 @@ export default function BottomNav() {
                 transition: "transform 180ms ease",
                 display: "block",
               }}
-              className={isActive ? "text-[#5C3D1E]" : "text-[#A08060] hover:text-[#5C3D1E]"}
+              className={isActive ? "text-[#F59E0B]" : "text-[#A8AFBD] hover:text-[#F59E0B]"}
             >
               <Icon size={28} />
             </Link>

@@ -13,7 +13,7 @@ export default async function HomePage() {
 
   const currentUser = await prisma.user.findUnique({
     where: { id: session.user.id },
-    select: { group: { select: { name: true } } },
+    select: { realName: true, group: { select: { name: true } } },
   });
   const groupName = currentUser?.group?.name ?? null;
 
@@ -79,14 +79,14 @@ export default async function HomePage() {
   return (
     <div className="w-full max-w-2xl mx-auto">
       <PageHeader
-        title={`🏠 ${session.user.realName}`}
+        title={`🏠 ${currentUser?.realName ?? session.user.realName}`}
         subtitle={
           groupName ? (
-            <span className="inline-block bg-[#EDE3D0] border border-[#D4C4A8] text-[#5C3D1E] text-xs font-semibold px-3 py-0.5 rounded-full mt-1">
+            <span className="inline-block bg-[#242832] border border-[#343A46] text-[#F59E0B] text-xs font-semibold px-3 py-0.5 rounded-full mt-1">
               {groupName}
             </span>
           ) : (
-            <span className="inline-block bg-gray-100 border border-gray-200 text-gray-400 text-xs font-semibold px-3 py-0.5 rounded-full mt-1">
+            <span className="inline-block bg-[#242832] border border-[#343A46] text-[#6B7280] text-xs font-semibold px-3 py-0.5 rounded-full mt-1">
               ยังไม่มีกลุ่ม
             </span>
           )
@@ -120,9 +120,9 @@ export default async function HomePage() {
           </div>
         </div>
 
-        <div className="border-t border-[#EDE3D0] mb-5" />
+        <div className="border-t border-[#242832] mb-5" />
 
-        <h2 className="text-base font-bold text-[#5C3D1E] mb-3">ประวัติ</h2>
+        <h2 className="text-base font-bold text-[#F59E0B] mb-3">ประวัติ</h2>
         <HistoryClient
           entries={serializedWeightAsc}
           allEntries={serializedWeightDesc}

@@ -4,7 +4,7 @@ import PageHeader from "@/components/shared/PageHeader";
 const sections = [
   {
     emoji: "🏠",
-    title: "หน้าหลัก — บันทึกน้ำหนักและรอบเอว",
+    title: "หน้าหลัก — บันทึกสุขภาพ",
     color: "bg-orange-50 border-orange-200",
     badge: "ใช้ทุกเดือน",
     badgeColor: "bg-orange-100 text-orange-700",
@@ -19,17 +19,18 @@ const sections = [
   },
   {
     emoji: "👥",
-    title: "กลุ่ม — ดูและจัดการกลุ่มของคุณ",
+    title: "กลุ่ม — จัดการกลุ่มของคุณ",
     color: "bg-purple-50 border-purple-200",
     badge: "ทีมเวิร์ค",
     badgeColor: "bg-purple-100 text-purple-700",
     steps: [
       "กดเมนูกลุ่มที่แถบด้านล่าง",
       "ถ้ายังไม่มีกลุ่ม: เลือกกลุ่มที่ต้องการและกดเข้าร่วม",
+      "หลังจากเลือกกลุ่มแล้ว ผู้ใช้ทั่วไปจะเปลี่ยนกลุ่มเองไม่ได้",
+      "หากต้องการเปลี่ยนกลุ่ม กรุณาติดต่อผู้ดูแลระบบ",
       "ถ้ามีกลุ่มแล้ว: ดูน้ำหนักของสมาชิกทุกคนในเดือนนี้",
-      "เปลี่ยนกลุ่มหรือออกจากกลุ่มได้ที่ด้านล่างของหน้า",
     ],
-    tip: "แต่ละกลุ่มมีสมาชิกได้สูงสุด 10 คน กลุ่มที่เต็มแล้วจะไม่สามารถเข้าร่วมได้",
+    tip: "ก่อนเลือกกลุ่มควรตรวจสอบให้แน่ใจ เพราะหลังจากเลือกแล้วต้องให้ผู้ดูแลระบบช่วยเปลี่ยนให้",
   },
   {
     emoji: "🏆",
@@ -41,22 +42,25 @@ const sections = [
       "กดเมนูอันดับที่แถบด้านล่าง",
       "ด้านบน: อันดับน้ำหนัก — เรียงตาม % น้ำหนักที่ลดได้",
       "ด้านล่าง: อันดับรอบเอว — เรียงตาม % รอบเอวที่ลดได้",
+      "ตารางจะแสดงค่าเริ่มต้น เช่น น้ำหนักเริ่มต้น หรือ รอบเอวเริ่มต้น",
+      "ค่าลดลงคำนวณจากค่าเริ่มต้นเทียบกับค่าล่าสุดของเดือนที่เลือก",
       "สลับดูแต่ละเดือนหรือดูเฉพาะกลุ่มของฉันได้",
     ],
     tip: "กลุ่มที่ลด % ได้มากที่สุดจะอยู่อันดับ 1 ทั้งน้ำหนักและรอบเอว",
   },
   {
     emoji: "📈",
-    title: "Dashboard — ภาพรวมทุกกลุ่ม",
+    title: "Dashboard — ภาพรวม",
     color: "bg-blue-50 border-blue-200",
     badge: "ดูกราฟ",
     badgeColor: "bg-blue-100 text-blue-700",
     steps: [
       "กดเมนู Dashboard ที่แถบด้านล่าง",
-      "เลือกกลุ่มที่ต้องการดูจากแถบเลือก",
-      "ดูกราฟแนวโน้มน้ำหนักของสมาชิกทุกคน",
-      "เลื่อนลงเพื่อดูส่วนรอบเอว — ข้อมูลและกราฟแยกต่างหาก",
-      "เปรียบเทียบความก้าวหน้าระหว่างกลุ่มได้ทั้งน้ำหนักและรอบเอว",
+      "ใช้ตัวกรองแบบเลือกหลายกลุ่ม เพื่อเลือกกลุ่มที่ต้องการดูในกราฟน้ำหนัก",
+      "กราฟน้ำหนักแสดงน้ำหนักรวมล่าสุดของแต่ละกลุ่มที่เลือก",
+      "เลื่อนลงไปส่วนรอบเอว แล้วใช้ตัวกรองอีกชุดเพื่อเลือกกลุ่มของกราฟรอบเอว",
+      "กราฟรอบเอวแสดงรอบเอวรวมล่าสุดของแต่ละกลุ่มที่เลือก",
+      "อ่านข้อความใต้หัวข้อเพื่อดูวิธีคำนวณค่าต่าง ๆ แบบสั้น ๆ",
     ],
     tip: "ใช้ Dashboard เพื่อดูภาพรวมและกระตุ้นให้ทีมลดน้ำหนักและรอบเอวต่อเนื่อง",
   },
@@ -83,6 +87,7 @@ const adminSections = [
     steps: [
       "กดเมนู Admin ที่แถบด้านล่าง",
       "กด + เพิ่มผู้ใช้ใหม่ กรอกชื่อจริง ชื่อผู้ใช้ รหัสผ่าน และเลือกกลุ่ม",
+      "กดไอคอนดินสอข้างชื่อผู้ใช้เพื่อแก้ไขชื่อจริง",
       "กดปุ่มถังขยะหน้าชื่อผู้ใช้เพื่อลบผู้ใช้ออกจากระบบ (ข้อมูลน้ำหนักจะถูกลบด้วย)",
     ],
   },
@@ -103,16 +108,40 @@ const adminSections = [
       "ในตารางรายชื่อผู้ใช้ กด dropdown ในคอลัมน์ กลุ่ม",
       "เลือกกลุ่มที่ต้องการย้ายผู้ใช้ไป",
       "กดปุ่ม บันทึกการเปลี่ยนกลุ่ม แล้วยืนยัน",
+      "ผู้ใช้ทั่วไปเปลี่ยนกลุ่มเองไม่ได้ หากมีคนต้องการเปลี่ยนกลุ่มให้แอดมินย้ายให้จากหน้านี้",
+    ],
+  },
+  {
+    emoji: "📄",
+    title: "ดาวน์โหลดรายชื่อสมาชิก",
+    steps: [
+      "ไปที่เมนูโปรไฟล์",
+      "กดแท็บ ดาวน์โหลดรายชื่อสมาชิก",
+      "ระบบจะดาวน์โหลดไฟล์ PDF ที่มีวันที่ปัจจุบัน รายชื่อสมาชิกทั้งหมด และแยกตามกลุ่ม",
     ],
   },
   {
     emoji: "📊",
-    title: "ดูข้อมูลรายบุคคลใน Dashboard",
+    title: "ดู Dashboard และวิธีคำนวณ",
     steps: [
       "กดเมนู Dashboard ที่แถบด้านล่าง",
+      "กราฟน้ำหนักและกราฟรอบเอวมีตัวกรองกลุ่มแยกกัน เลือกได้หลายกลุ่ม",
+      "กราฟน้ำหนักแสดงน้ำหนักรวมล่าสุดของแต่ละกลุ่ม",
+      "กราฟรอบเอวแสดงรอบเอวรวมล่าสุดของแต่ละกลุ่ม",
+      "ข้อความใต้หัวข้อจะอธิบายวิธีคำนวณ เช่น ค่าเปลี่ยนแปลง = ค่าล่าสุด - ค่าเริ่มต้น",
       "เลื่อนลงมาจะเห็นตาราง น้ำหนักรายบุคคล และ รอบเอวรายบุคคล",
       "ใช้ตัวเลือกเรียงลำดับด้านบนตารางเพื่อเรียงตามคอลัมน์ที่ต้องการ",
       "ค่าสีเขียว = ลดลง, สีแดง = เพิ่มขึ้น",
+    ],
+  },
+  {
+    emoji: "🏆",
+    title: "ดูอันดับและค่าเริ่มต้น",
+    steps: [
+      "หน้าอันดับจะแสดงคอลัมน์ น้ำหนักเริ่มต้น ในอันดับน้ำหนัก",
+      "หน้าอันดับจะแสดงคอลัมน์ รอบเอวเริ่มต้น ในอันดับรอบเอว",
+      "ค่าลดลงคำนวณจากค่าเริ่มต้นเทียบกับค่าล่าสุดของเดือนที่เลือก",
+      "เปอร์เซ็นต์ลดลงคำนวณจากค่าที่ลดลง ÷ ค่าเริ่มต้น",
     ],
   },
   {
@@ -141,7 +170,7 @@ const faqs = [
   },
   {
     q: "เปลี่ยนกลุ่มหรือออกจากกลุ่มได้ไหม?",
-    a: "ได้ กดเมนูกลุ่ม แล้วเลือกเปลี่ยนกลุ่มหรือกดออกจากกลุ่มที่ด้านล่างของหน้า",
+    a: "ผู้ใช้ทั่วไปเปลี่ยนกลุ่มเองไม่ได้ หากต้องการเปลี่ยนกลุ่ม กรุณาติดต่อผู้ดูแลระบบ",
   },
   {
     q: "กลุ่มรับสมาชิกได้กี่คน?",
@@ -171,31 +200,31 @@ export default async function HowToUsePage() {
       <div className="px-4 pb-8 space-y-4">
         {/* Admin-only section — shown before everything else */}
         {isAdmin && (
-          <div className="rounded-2xl border border-red-300 bg-red-50 p-4">
+          <div className="rounded-2xl border border-[#6B3A3D] bg-[#2A1719] p-4">
             <div className="flex items-center gap-2 mb-3">
               <span className="text-2xl">🛡️</span>
-              <h2 className="font-bold text-red-700 text-base">
+              <h2 className="font-bold text-[#D08A8A] text-base">
                 สำหรับผู้ดูแลระบบ (Admin) เท่านั้น
               </h2>
-              <span className="ml-auto text-xs font-semibold px-2 py-0.5 rounded-full bg-red-100 text-red-700 whitespace-nowrap">
+              <span className="ml-auto text-xs font-semibold px-2 py-0.5 rounded-full bg-[#3A2022] text-[#D08A8A] whitespace-nowrap">
                 แอดมิน
               </span>
             </div>
 
             <div className="space-y-4">
               {adminSections.map((s) => (
-                <div key={s.title} className="bg-white/70 rounded-xl p-3">
-                  <p className="font-semibold text-red-700 text-sm flex items-center gap-1.5 mb-2">
+                <div key={s.title} className="bg-[#171A20]/80 rounded-xl p-3">
+                  <p className="font-semibold text-[#D08A8A] text-sm flex items-center gap-1.5 mb-2">
                     <span>{s.emoji}</span>
                     {s.title}
                   </p>
                   <ol className="space-y-1.5">
                     {s.steps.map((step, i) => (
                       <li key={i} className="flex items-start gap-2">
-                        <span className="flex-shrink-0 w-5 h-5 rounded-full bg-red-100 border border-red-200 flex items-center justify-center text-xs font-bold text-red-700">
+                        <span className="flex-shrink-0 w-5 h-5 rounded-full bg-[#3A2022] border border-[#5A3032] flex items-center justify-center text-xs font-bold text-[#D08A8A]">
                           {i + 1}
                         </span>
-                        <span className="text-xs text-red-800 leading-relaxed pt-0.5">
+                        <span className="text-xs text-[#D9A0A0] leading-relaxed pt-0.5">
                           {step}
                         </span>
                       </li>
@@ -208,7 +237,7 @@ export default async function HowToUsePage() {
         )}
 
         {/* Welcome banner */}
-        <div className="bg-[#5C3D1E] text-white rounded-2xl p-4 flex items-center gap-3">
+        <div className="bg-[#F59E0B] text-[#111318] rounded-2xl p-4 flex items-center gap-3">
           <span className="text-3xl">👋</span>
           <div>
             <p className="font-bold text-base">ยินดีต้อนรับ!</p>
@@ -225,7 +254,7 @@ export default async function HowToUsePage() {
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <span className="text-2xl">{s.emoji}</span>
-                <h2 className="font-bold text-[#5C3D1E] text-base">
+                <h2 className="font-bold text-[#F59E0B] text-base">
                   {s.title}
                 </h2>
               </div>
@@ -239,49 +268,49 @@ export default async function HowToUsePage() {
             <ol className="space-y-2 mb-3">
               {s.steps.map((step, i) => (
                 <li key={i} className="flex items-start gap-3">
-                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-white border border-[#D4C4A8] flex items-center justify-center text-xs font-bold text-[#5C3D1E]">
+                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#171A20] border border-[#343A46] flex items-center justify-center text-xs font-bold text-[#F59E0B]">
                     {i + 1}
                   </span>
-                  <span className="text-sm text-[#5C3D1E] leading-relaxed pt-0.5">
+                  <span className="text-sm text-[#F59E0B] leading-relaxed pt-0.5">
                     {step}
                   </span>
                 </li>
               ))}
             </ol>
 
-            <div className="bg-white/70 rounded-xl px-3 py-2 flex items-start gap-2">
+            <div className="bg-[#171A20]/80 rounded-xl px-3 py-2 flex items-start gap-2">
               <span className="text-base mt-0.5">💡</span>
-              <p className="text-xs text-[#A08060] leading-relaxed">{s.tip}</p>
+              <p className="text-xs text-[#A8AFBD] leading-relaxed">{s.tip}</p>
             </div>
           </div>
         ))}
 
         {/* FAQ */}
-        <div className="bg-white border border-[#D4C4A8] rounded-2xl p-4">
-          <h2 className="font-bold text-[#5C3D1E] text-base mb-3 flex items-center gap-2">
+        <div className="bg-[#171A20] border border-[#343A46] rounded-2xl p-4">
+          <h2 className="font-bold text-[#F59E0B] text-base mb-3 flex items-center gap-2">
             <span>❓</span> คำถามที่พบบ่อย
           </h2>
           <div className="space-y-3">
             {faqs.map((f, i) => (
               <div
                 key={i}
-                className="border-b border-[#EDE3D0] last:border-0 pb-3 last:pb-0"
+                className="border-b border-[#242832] last:border-0 pb-3 last:pb-0"
               >
-                <p className="text-sm font-semibold text-[#5C3D1E] mb-1">
+                <p className="text-sm font-semibold text-[#F59E0B] mb-1">
                   Q: {f.q}
                 </p>
-                <p className="text-sm text-[#A08060]">A: {f.a}</p>
+                <p className="text-sm text-[#A8AFBD]">A: {f.a}</p>
               </div>
             ))}
           </div>
         </div>
 
         {/* Contact */}
-        <div className="bg-[#EDE3D0] border border-[#D4C4A8] rounded-2xl p-4 text-center">
-          <p className="text-sm text-[#5C3D1E]">
+        <div className="bg-[#242832] border border-[#343A46] rounded-2xl p-4 text-center">
+          <p className="text-sm text-[#F59E0B]">
             มีปัญหาหรือข้อสงสัยเพิ่มเติม?
           </p>
-          <p className="text-sm font-semibold text-[#5C3D1E] mt-1">
+          <p className="text-sm font-semibold text-[#F59E0B] mt-1">
             ติดต่อผู้ดูแลระบบ (Admin) ได้เลย 🙏
           </p>
         </div>

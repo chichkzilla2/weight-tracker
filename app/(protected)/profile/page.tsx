@@ -3,7 +3,7 @@ import { prisma } from "@/lib/db";
 import GroupBadge from "@/components/shared/GroupBadge";
 import ChangePasswordForm from "./ChangePasswordForm";
 import SignOutButton from "./SignOutButton";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, Download } from "lucide-react";
 import PageHeader from "@/components/shared/PageHeader";
 
 export default async function ProfilePage() {
@@ -25,32 +25,32 @@ export default async function ProfilePage() {
       <div className="px-4 pb-6">
         {/* Avatar & Name */}
         <div className="flex flex-col items-center mb-8">
-          <div className="w-20 h-20 rounded-full bg-[#5C3D1E] flex items-center justify-center text-white text-3xl font-bold mb-3 shadow-md">
+          <div className="w-20 h-20 rounded-full bg-[#F59E0B] flex items-center justify-center text-[#111318] text-3xl font-bold mb-3 shadow-md">
             {initial}
           </div>
-          <h2 className="text-xl font-bold text-[#2C1810] mb-2">
+          <h2 className="text-xl font-bold text-[#E7EAF0] mb-2">
             {user.realName}
           </h2>
           <GroupBadge name={user.group?.name} />
           {user.role === "ADMIN" && (
-            <span className="mt-2 inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-[#5C3D1E] text-white">
+            <span className="mt-2 inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-[#F59E0B] text-[#111318]">
               ผู้ดูแลระบบ
             </span>
           )}
         </div>
 
         {/* Info */}
-        <div className="bg-white border border-[#D4C4A8] rounded-2xl shadow-sm p-4 mb-4">
+        <div className="bg-[#171A20] border border-[#343A46] rounded-2xl shadow-sm p-4 mb-4">
           <div className="space-y-3 text-sm">
             <div className="flex justify-between">
-              <span className="text-[#A08060]">ชื่อผู้ใช้</span>
-              <span className="text-[#2C1810] font-medium">
+              <span className="text-[#A8AFBD]">ชื่อผู้ใช้</span>
+              <span className="text-[#E7EAF0] font-medium">
                 {user.username}
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-[#A08060]">ชื่อจริง</span>
-              <span className="text-[#2C1810] font-medium">
+              <span className="text-[#A8AFBD]">ชื่อจริง</span>
+              <span className="text-[#E7EAF0] font-medium">
                 {user.realName}
               </span>
             </div>
@@ -58,28 +58,38 @@ export default async function ProfilePage() {
         </div>
 
         {/* Menu Items */}
-        <div className="bg-white border border-[#D4C4A8] rounded-2xl shadow-sm overflow-hidden mb-4">
+        <div className="bg-[#171A20] border border-[#343A46] rounded-2xl shadow-sm overflow-hidden mb-4">
           <ChangePasswordForm />
-          <div className="border-t border-[#EDE3D0]" />
+          <div className="border-t border-[#242832]" />
           {user.role === "ADMIN" && (
             <>
               <a
                 href="/admin"
-                className="flex items-center justify-between px-5 py-4 hover:bg-[#FDFAF5] transition-colors"
+                className="flex items-center justify-between px-5 py-4 hover:bg-[#0F1115] transition-colors"
               >
-                <span className="text-[#2C1810] font-medium">
+                <span className="text-[#E7EAF0] font-medium">
                   แผงผู้ดูแลระบบ
                 </span>
-                <ChevronRight size={18} className="text-[#D4C4A8]" />
+                <ChevronRight size={18} className="text-[#343A46]" />
               </a>
-              <div className="border-t border-[#EDE3D0]" />
+              <div className="border-t border-[#242832]" />
+              <a
+                href="/api/admin/users-pdf"
+                className="flex items-center justify-between px-5 py-4 hover:bg-[#0F1115] transition-colors"
+              >
+                <span className="text-[#E7EAF0] font-medium">
+                  ดาวน์โหลดรายชื่อสมาชิก
+                </span>
+                <Download size={18} className="text-[#343A46]" />
+              </a>
+              <div className="border-t border-[#242832]" />
             </>
           )}
           <SignOutButton />
         </div>
 
-        <p className="text-center text-xs text-[#D4C4A8] mt-8">
-          เวอร์ชัน 2.0.0
+        <p className="text-center text-xs text-[#343A46] mt-8">
+          เวอร์ชัน 3.0.0
         </p>
       </div>
     </div>

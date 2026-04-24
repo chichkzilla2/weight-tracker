@@ -112,6 +112,29 @@ export async function changeUserPasswordByAdmin(
   return { success: true };
 }
 
+export async function updateUserRealName(
+  userId: string,
+  realName: string,
+): Promise<{ error?: string; success: boolean }> {
+  await requireAdmin();
+
+  const trimmed = realName.trim();
+  if (!trimmed) return { error: "กรุณากรอกชื่อจริง", success: false };
+
+  await prisma.user.update({
+    where: { id: userId },
+    data: { realName: trimmed },
+  });
+
+  revalidatePath("/");
+  revalidatePath("/admin");
+  revalidatePath("/profile");
+  revalidatePath("/group");
+  revalidatePath("/dashboard");
+  revalidatePath("/leaderboard");
+  return { success: true };
+}
+
 export async function createGroup(
   prevState: { error: string; success: boolean },
   formData: FormData,

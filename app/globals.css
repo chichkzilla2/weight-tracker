@@ -28,35 +28,35 @@
   --radius-xl: calc(var(--radius) * 1.4);
   --radius-2xl: calc(var(--radius) * 1.8);
 
-  /* Custom cream/brown palette */
-  --color-cream-50: #FDFAF5;
-  --color-cream-100: #F7F0E4;
-  --color-cream-200: #EDE3D0;
-  --color-warm-300: #D4C4A8;
-  --color-brown-400: #A08060;
-  --color-brown-700: #5C3D1E;
-  --color-brown-900: #2C1810;
+  /* Custom dark/orange palette */
+  --color-cream-50: #0f1115;
+  --color-cream-100: #1a1d23;
+  --color-cream-200: #242832;
+  --color-warm-300: #343a46;
+  --color-brown-400: #a8afbd;
+  --color-brown-700: #f59e0b;
+  --color-brown-900: #e7eaf0;
 }
 
 :root {
-  --background: #FDFAF5;
-  --foreground: #2C1810;
-  --card: #FFFFFF;
-  --card-foreground: #2C1810;
-  --popover: #FFFFFF;
-  --popover-foreground: #2C1810;
-  --primary: #5C3D1E;
-  --primary-foreground: #FFFFFF;
-  --secondary: #F7F0E4;
-  --secondary-foreground: #2C1810;
-  --muted: #EDE3D0;
-  --muted-foreground: #A08060;
-  --accent: #F7F0E4;
-  --accent-foreground: #2C1810;
-  --destructive: hsl(5, 63%, 48%); /* fallback for Safari < 15.4 */
-  --border: #D4C4A8;
-  --input: #EDE3D0;
-  --ring: #A08060;
+  --background: #0f1115;
+  --foreground: #e7eaf0;
+  --card: #171a20;
+  --card-foreground: #e7eaf0;
+  --popover: #171a20;
+  --popover-foreground: #e7eaf0;
+  --primary: #f59e0b;
+  --primary-foreground: #111318;
+  --secondary: #1a1d23;
+  --secondary-foreground: #e7eaf0;
+  --muted: #242832;
+  --muted-foreground: #a8afbd;
+  --accent: #1a1d23;
+  --accent-foreground: #e7eaf0;
+  --destructive: #c77d7d; /* fallback for Safari < 15.4 */
+  --border: #343a46;
+  --input: #242832;
+  --ring: #f59e0b;
   --radius: 0.75rem;
 }
 
@@ -65,10 +65,99 @@
     @apply border-border;
   }
   body {
-    @apply bg-[#FDFAF5] text-[#2C1810];
-    font-family: var(--font-sans), 'Sarabun', sans-serif;
+    @apply bg-[#0F1115] text-[#E7EAF0];
+    font-family: var(--font-sans), "Sarabun", sans-serif;
+    scrollbar-color: var(--primary) var(--background);
   }
-  h1, h2, h3, h4, h5, h6 {
-    color: #5C3D1E;
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    color: #f59e0b;
   }
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--primary) var(--background);
+  }
+  *::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  *::-webkit-scrollbar-track {
+    background: var(--background);
+  }
+  *::-webkit-scrollbar-thumb {
+    background: var(--primary);
+    border: 2px solid var(--background);
+    border-radius: 999px;
+  }
+  *::-webkit-scrollbar-thumb:hover {
+    background: #d97706;
+  }
+}
+
+html,
+body,
+*,
+.overflow-auto,
+.overflow-x-auto,
+.overflow-y-auto,
+[class*="overflow-auto"],
+[class*="overflow-x-auto"],
+[class*="overflow-y-auto"] {
+  scrollbar-width: thin;
+  scrollbar-color: var(--primary) var(--background);
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar,
+*::-webkit-scrollbar,
+.overflow-auto::-webkit-scrollbar,
+.overflow-x-auto::-webkit-scrollbar,
+.overflow-y-auto::-webkit-scrollbar,
+[class*="overflow-auto"]::-webkit-scrollbar,
+[class*="overflow-x-auto"]::-webkit-scrollbar,
+[class*="overflow-y-auto"]::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+html::-webkit-scrollbar-track,
+body::-webkit-scrollbar-track,
+*::-webkit-scrollbar-track,
+.overflow-auto::-webkit-scrollbar-track,
+.overflow-x-auto::-webkit-scrollbar-track,
+.overflow-y-auto::-webkit-scrollbar-track,
+[class*="overflow-auto"]::-webkit-scrollbar-track,
+[class*="overflow-x-auto"]::-webkit-scrollbar-track,
+[class*="overflow-y-auto"]::-webkit-scrollbar-track {
+  background: var(--background);
+}
+
+html::-webkit-scrollbar-thumb,
+body::-webkit-scrollbar-thumb,
+*::-webkit-scrollbar-thumb,
+.overflow-auto::-webkit-scrollbar-thumb,
+.overflow-x-auto::-webkit-scrollbar-thumb,
+.overflow-y-auto::-webkit-scrollbar-thumb,
+[class*="overflow-auto"]::-webkit-scrollbar-thumb,
+[class*="overflow-x-auto"]::-webkit-scrollbar-thumb,
+[class*="overflow-y-auto"]::-webkit-scrollbar-thumb {
+  background: var(--primary);
+  border: 2px solid var(--background);
+  border-radius: 999px;
+}
+
+html::-webkit-scrollbar-thumb:hover,
+body::-webkit-scrollbar-thumb:hover,
+*::-webkit-scrollbar-thumb:hover,
+.overflow-auto::-webkit-scrollbar-thumb:hover,
+.overflow-x-auto::-webkit-scrollbar-thumb:hover,
+.overflow-y-auto::-webkit-scrollbar-thumb:hover,
+[class*="overflow-auto"]::-webkit-scrollbar-thumb:hover,
+[class*="overflow-x-auto"]::-webkit-scrollbar-thumb:hover,
+[class*="overflow-y-auto"]::-webkit-scrollbar-thumb:hover {
+  background: #d97706;
 }

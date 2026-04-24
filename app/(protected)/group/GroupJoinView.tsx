@@ -25,13 +25,19 @@ export default function GroupJoinView({ groups }: { groups: Group[] }) {
     <div className="max-w-lg mx-auto">
       <PageHeader title="👥 กลุ่ม" subtitle="เลือกกลุ่มที่ต้องการเข้าร่วม" />
       <div className="px-4 pb-6 space-y-3">
-        <div className="bg-[#EDE3D0] border border-[#D4C4A8] rounded-2xl p-4 text-center">
-          <p className="text-sm font-medium text-[#5C3D1E]">คุณยังไม่ได้อยู่ในกลุ่มใด</p>
-          <p className="text-xs text-[#A08060] mt-1">เลือกกลุ่มด้านล่างเพื่อเข้าร่วม</p>
+        <div className="bg-[#1F232B] border border-[#343A46] rounded-2xl p-3">
+          <p className="text-xs text-[#F59E0B]">
+            หากต้องการเปลี่ยนกลุ่มหลังจากเลือกแล้ว กรุณาติดต่อผู้ดูแลระบบ
+          </p>
+        </div>
+
+        <div className="bg-[#242832] border border-[#343A46] rounded-2xl p-4 text-center">
+          <p className="text-sm font-medium text-[#F59E0B]">คุณยังไม่ได้อยู่ในกลุ่มใด</p>
+          <p className="text-xs text-[#A8AFBD] mt-1">เลือกกลุ่มด้านล่างเพื่อเข้าร่วม</p>
         </div>
 
         {groups.length === 0 && (
-          <p className="text-center text-sm text-[#A08060] py-8">ยังไม่มีกลุ่ม กรุณาติดต่อผู้ดูแลระบบ</p>
+          <p className="text-center text-sm text-[#A8AFBD] py-8">ยังไม่มีกลุ่ม กรุณาติดต่อผู้ดูแลระบบ</p>
         )}
 
         {groups.map((g) => {
@@ -39,16 +45,16 @@ export default function GroupJoinView({ groups }: { groups: Group[] }) {
           return (
             <div
               key={g.id}
-              className={`bg-white border rounded-2xl p-4 flex items-center justify-between ${isFull ? "border-gray-200 opacity-60" : "border-[#D4C4A8]"}`}
+              className={`bg-[#171A20] border rounded-2xl p-4 flex items-center justify-between ${isFull ? "border-[#343A46] opacity-60" : "border-[#343A46]"}`}
             >
               <div className="flex-1 min-w-0">
-                <p className="font-semibold text-[#2C1810] text-sm">{g.name}</p>
-                <p className="text-xs text-[#A08060] mt-0.5">
+                <p className="font-semibold text-[#E7EAF0] text-sm">{g.name}</p>
+                <p className="text-xs text-[#A8AFBD] mt-0.5">
                   {g.memberCount}/10 สมาชิก{isFull && " · เต็มแล้ว"}
                 </p>
-                <div className="w-28 bg-[#EDE3D0] rounded-full h-1.5 mt-2">
+                <div className="w-28 bg-[#242832] rounded-full h-1.5 mt-2">
                   <div
-                    className="bg-[#5C3D1E] h-1.5 rounded-full"
+                    className="bg-[#F59E0B] h-1.5 rounded-full"
                     style={{ width: `${(g.memberCount / 10) * 100}%` }}
                   />
                 </div>
@@ -56,7 +62,7 @@ export default function GroupJoinView({ groups }: { groups: Group[] }) {
               <button
                 onClick={() => handleJoin(g.id)}
                 disabled={isFull || isPending}
-                className="ml-4 px-4 py-2 bg-[#5C3D1E] text-white text-xs font-semibold rounded-xl hover:bg-[#2C1810] disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5 whitespace-nowrap"
+                className="ml-4 px-4 py-2 bg-[#F59E0B] text-[#111318] text-xs font-semibold rounded-xl hover:bg-[#D97706] disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5 whitespace-nowrap"
               >
                 {isPending && joiningId === g.id ? (
                   <Loader2 size={12} className="animate-spin" />

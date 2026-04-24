@@ -91,10 +91,10 @@ export default async function GroupPage() {
   const memberCount = members.length
 
   function ChangeCell({ change, count }: { change: number | null; count: number }) {
-    if (change === null || count <= 1) return <span className="text-xs text-[#D4C4A8]">—</span>
+    if (change === null || count <= 1) return <span className="text-xs text-[#343A46]">—</span>
     return (
       <span
-        className={`text-xs font-semibold ${change < 0 ? "text-green-600" : change > 0 ? "text-red-500" : "text-[#A08060]"}`}
+        className={`text-xs font-semibold ${change < 0 ? "text-green-600" : change > 0 ? "text-[#D08A8A]" : "text-[#A8AFBD]"}`}
       >
         {change < 0 ? "▼" : change > 0 ? "▲" : "—"}{" "}
         {change !== 0 ? Math.abs(change).toFixed(1) : ""}
@@ -108,70 +108,75 @@ export default async function GroupPage() {
       <div className="px-4 pb-6 space-y-4">
 
         {/* Group info card */}
-        <div className="bg-white border border-[#D4C4A8] rounded-2xl shadow-sm p-4">
+        <div className="bg-[#171A20] border border-[#343A46] rounded-2xl shadow-sm p-4">
           <div className="flex items-center justify-between mb-3">
             <div>
-              <h2 className="text-base font-bold text-[#5C3D1E]">{user.group.name}</h2>
-              <p className="text-xs text-[#A08060] mt-0.5">ข้อมูลเดือน {monthName}</p>
+              <h2 className="text-base font-bold text-[#F59E0B]">{user.group.name}</h2>
+              <p className="text-xs text-[#A8AFBD] mt-0.5">ข้อมูลเดือน {monthName}</p>
             </div>
             <div className="text-right">
-              <p className="text-2xl font-bold text-[#5C3D1E]">
+              <p className="text-2xl font-bold text-[#F59E0B]">
                 {memberCount}
-                <span className="text-sm font-normal text-[#A08060]">/10</span>
+                <span className="text-sm font-normal text-[#A8AFBD]">/10</span>
               </p>
-              <p className="text-xs text-[#A08060]">สมาชิก</p>
+              <p className="text-xs text-[#A8AFBD]">สมาชิก</p>
             </div>
           </div>
-          <div className="w-full bg-[#EDE3D0] rounded-full h-2">
+          <div className="w-full bg-[#242832] rounded-full h-2">
             <div
-              className="bg-[#5C3D1E] h-2 rounded-full transition-all"
+              className="bg-[#F59E0B] h-2 rounded-full transition-all"
               style={{ width: `${(memberCount / 10) * 100}%` }}
             />
           </div>
         </div>
 
         {/* Member table */}
-        <div className="bg-white border border-[#D4C4A8] rounded-2xl shadow-sm overflow-hidden">
-          <div className="px-4 py-3 border-b border-[#EDE3D0] flex items-center justify-between">
-            <p className="text-sm font-semibold text-[#5C3D1E]">สมาชิกเดือนนี้</p>
-            <p className="text-xs text-[#A08060]">{monthName}</p>
+        <div className="bg-[#171A20] border border-[#343A46] rounded-2xl shadow-sm overflow-hidden">
+          <div className="px-4 py-3 border-b border-[#242832] flex items-center justify-between">
+            <div>
+              <p className="text-sm font-semibold text-[#F59E0B]">สมาชิกเดือนนี้</p>
+              <p className="text-xs text-[#A8AFBD] mt-0.5">
+                ค่าที่เปลี่ยน = ค่าล่าสุดของเดือน - ค่าแรกของเดือน
+              </p>
+            </div>
+            <p className="text-xs text-[#A8AFBD]">{monthName}</p>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="bg-[#F7F0E4] border-b border-[#EDE3D0]">
-                  <th className="text-left px-4 py-2.5 font-semibold text-[#A08060] whitespace-nowrap">ชื่อ</th>
-                  <th className="text-right px-3 py-2.5 font-semibold text-[#A08060] whitespace-nowrap">น้ำหนักล่าสุด</th>
-                  <th className="text-right px-3 py-2.5 font-semibold text-[#A08060] whitespace-nowrap">น้ำหนักเปลี่ยน</th>
-                  <th className="text-right px-3 py-2.5 font-semibold text-[#A08060] whitespace-nowrap">รอบเอวล่าสุด</th>
-                  <th className="text-right px-3 py-2.5 font-semibold text-[#A08060] whitespace-nowrap">รอบเอวเปลี่ยน</th>
+                <tr className="bg-[#1A1D23] border-b border-[#242832]">
+                  <th className="text-left px-4 py-2.5 font-semibold text-[#A8AFBD] whitespace-nowrap">ชื่อ</th>
+                  <th className="text-right px-3 py-2.5 font-semibold text-[#A8AFBD] whitespace-nowrap">น้ำหนักล่าสุด</th>
+                  <th className="text-right px-3 py-2.5 font-semibold text-[#A8AFBD] whitespace-nowrap">น้ำหนักเปลี่ยน</th>
+                  <th className="text-right px-3 py-2.5 font-semibold text-[#A8AFBD] whitespace-nowrap">รอบเอวล่าสุด</th>
+                  <th className="text-right px-3 py-2.5 font-semibold text-[#A8AFBD] whitespace-nowrap">รอบเอวเปลี่ยน</th>
                 </tr>
               </thead>
               <tbody>
                 {memberStats.map((m, i) => (
                   <tr
                     key={m.id}
-                    className={`border-b border-[#EDE3D0] last:border-0 ${
-                      m.isMe ? "bg-[#FDFAF5]" : i % 2 === 0 ? "bg-white" : "bg-[#FDFAF5]/40"
+                    className={`border-b border-[#242832] last:border-0 ${
+                      m.isMe ? "bg-[#0F1115]" : i % 2 === 0 ? "bg-[#171A20]" : "bg-[#0F1115]/40"
                     }`}
                   >
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2.5">
                         <div
-                          className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white ${
-                            m.isMe ? "bg-[#2C1810]" : "bg-[#5C3D1E]"
+                          className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-[#111318] ${
+                            m.isMe ? "bg-[#E7EAF0]" : "bg-[#F59E0B]"
                           }`}
                         >
                           {m.initial}
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-[#2C1810] whitespace-nowrap">
+                          <p className="text-sm font-medium text-[#E7EAF0] whitespace-nowrap">
                             {m.realName}
                             {m.isMe && (
-                              <span className="text-[10px] text-[#A08060] ml-1 font-normal">(คุณ)</span>
+                              <span className="text-[10px] text-[#A8AFBD] ml-1 font-normal">(คุณ)</span>
                             )}
                           </p>
-                          <p className="text-[10px] text-[#A08060]">
+                          <p className="text-[10px] text-[#A8AFBD]">
                             {m.weightEntryCount > 0 ? `${m.weightEntryCount} ครั้ง` : "ยังไม่บันทึก"}
                           </p>
                         </div>
@@ -179,12 +184,12 @@ export default async function GroupPage() {
                     </td>
                     <td className="px-3 py-3 text-right whitespace-nowrap">
                       {m.lastWeight !== null ? (
-                        <span className="text-sm font-bold text-[#5C3D1E]">
+                        <span className="text-sm font-bold text-[#F59E0B]">
                           {m.lastWeight.toFixed(1)}
-                          <span className="text-xs font-normal text-[#A08060]"> กก.</span>
+                          <span className="text-xs font-normal text-[#A8AFBD]"> กก.</span>
                         </span>
                       ) : (
-                        <span className="text-xs text-[#D4C4A8]">—</span>
+                        <span className="text-xs text-[#343A46]">—</span>
                       )}
                     </td>
                     <td className="px-3 py-3 text-right whitespace-nowrap">
@@ -192,12 +197,12 @@ export default async function GroupPage() {
                     </td>
                     <td className="px-3 py-3 text-right whitespace-nowrap">
                       {m.lastWaist !== null ? (
-                        <span className="text-sm font-bold text-[#5C3D1E]">
+                        <span className="text-sm font-bold text-[#F59E0B]">
                           {m.lastWaist.toFixed(1)}
-                          <span className="text-xs font-normal text-[#A08060]"> ซม.</span>
+                          <span className="text-xs font-normal text-[#A8AFBD]"> ซม.</span>
                         </span>
                       ) : (
-                        <span className="text-xs text-[#D4C4A8]">—</span>
+                        <span className="text-xs text-[#343A46]">—</span>
                       )}
                     </td>
                     <td className="px-3 py-3 text-right whitespace-nowrap">
@@ -210,15 +215,17 @@ export default async function GroupPage() {
           </div>
         </div>
 
-        <p className="text-center text-xs text-[#D4C4A8]">
+        <p className="text-center text-xs text-[#343A46]">
           ข้อมูลนับจากต้นเดือนถึงปัจจุบัน • เรียงตามน้ำหนักที่ลดได้มากที่สุด
         </p>
 
-        <GroupManageSection
-          currentGroupId={user.groupId}
-          currentGroupName={user.group.name}
-          groups={allGroups.map((g) => ({ id: g.id, name: g.name }))}
-        />
+        {user.role === "ADMIN" && (
+          <GroupManageSection
+            currentGroupId={user.groupId}
+            currentGroupName={user.group.name}
+            groups={allGroups.map((g) => ({ id: g.id, name: g.name }))}
+          />
+        )}
       </div>
     </div>
   )

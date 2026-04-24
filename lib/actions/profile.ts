@@ -58,6 +58,15 @@ export async function joinGroup(
   const session = await auth();
   if (!session) return { error: "กรุณาเข้าสู่ระบบ", success: false };
 
+  const user = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { groupId: true, role: true },
+  });
+  if (!user) return { error: "ไม่พบผู้ใช้", success: false };
+  if (user.groupId && user.role !== "ADMIN") {
+    return { error: "หากต้องการเปลี่ยนกลุ่มหลังจากเลือกแล้ว กรุณาติดต่อผู้ดูแลระบบ", success: false };
+  }
+
   const group = await prisma.group.findUnique({ where: { id: groupId } });
   if (!group) return { error: "ไม่พบกลุ่ม", success: false };
 
@@ -73,6 +82,7 @@ export async function joinGroup(
     data: { groupId },
   });
   revalidatePath("/profile");
+  revalidatePath("/group");
   revalidatePath("/");
   return { success: true };
 }
@@ -84,11 +94,16 @@ export async function leaveGroup(): Promise<{
   const session = await auth();
   if (!session) return { error: "กรุณาเข้าสู่ระบบ", success: false };
 
+  if (session.user.role !== "ADMIN") {
+    return { error: "หากต้องการเปลี่ยนกลุ่มหลังจากเลือกแล้ว กรุณาติดต่อผู้ดูแลระบบ", success: false };
+  }
+
   await prisma.user.update({
     where: { id: session.user.id },
     data: { groupId: null },
   });
   revalidatePath("/profile");
+  revalidatePath("/group");
   revalidatePath("/");
   return { success: true };
 }

@@ -29,6 +29,7 @@ function LeaderboardTable({
   currentGroupId,
   filterMine,
   colTotal,
+  colStart,
   colLost,
   colPercent,
 }: {
@@ -36,6 +37,7 @@ function LeaderboardTable({
   currentGroupId: string | null
   filterMine: boolean
   colTotal: string
+  colStart: string
   colLost: string
   colPercent: string
 }) {
@@ -44,16 +46,17 @@ function LeaderboardTable({
     : leaderboard
 
   return (
-    <div className="bg-white border border-[#D4C4A8] rounded-2xl shadow-sm overflow-hidden">
+    <div className="bg-[#171A20] border border-[#343A46] rounded-2xl shadow-sm overflow-hidden">
       <div className="overflow-x-auto overflow-y-auto max-h-96">
         <table className="w-full text-base">
           <thead>
-            <tr className="bg-[#F7F0E4] border-b border-[#D4C4A8] sticky top-0 z-10">
-              <th className="text-left px-5 py-4 font-semibold text-[#5C3D1E] whitespace-nowrap">#</th>
-              <th className="text-left px-5 py-4 font-semibold text-[#5C3D1E] whitespace-nowrap">ชื่อกลุ่ม</th>
-              <th className="text-right px-5 py-4 font-semibold text-[#5C3D1E] whitespace-nowrap">{colTotal}</th>
-              <th className="text-right px-5 py-4 font-semibold text-[#5C3D1E] whitespace-nowrap">{colLost}</th>
-              <th className="text-right px-5 py-4 font-semibold text-[#5C3D1E] whitespace-nowrap">{colPercent}</th>
+            <tr className="bg-[#1A1D23] border-b border-[#343A46] sticky top-0 z-10">
+              <th className="text-left px-5 py-4 font-semibold text-[#F59E0B] whitespace-nowrap">#</th>
+              <th className="text-left px-5 py-4 font-semibold text-[#F59E0B] whitespace-nowrap">ชื่อกลุ่ม</th>
+              <th className="text-right px-5 py-4 font-semibold text-[#F59E0B] whitespace-nowrap">{colStart}</th>
+              <th className="text-right px-5 py-4 font-semibold text-[#F59E0B] whitespace-nowrap">{colTotal}</th>
+              <th className="text-right px-5 py-4 font-semibold text-[#F59E0B] whitespace-nowrap">{colLost}</th>
+              <th className="text-right px-5 py-4 font-semibold text-[#F59E0B] whitespace-nowrap">{colPercent}</th>
             </tr>
           </thead>
           <tbody>
@@ -64,18 +67,21 @@ function LeaderboardTable({
               return (
                 <tr
                   key={entry.groupId}
-                  className={`border-b border-[#EDE3D0] last:border-0 ${
-                    isMyGroup ? "bg-[#EDE3D0]" : idx % 2 === 0 ? "bg-white" : "bg-[#FDFAF5]"
+                  className={`border-b border-[#242832] last:border-0 ${
+                    isMyGroup ? "bg-[#242832]" : idx % 2 === 0 ? "bg-[#171A20]" : "bg-[#0F1115]"
                   }`}
                 >
-                  <td className="px-5 py-4 text-[#5C3D1E] font-bold whitespace-nowrap">
+                  <td className="px-5 py-4 text-[#F59E0B] font-bold whitespace-nowrap">
                     {medal ? <span className="text-2xl leading-none">{medal}</span> : `${globalRank + 1}`}
                   </td>
-                  <td className="px-5 py-4 text-[#2C1810] font-medium whitespace-nowrap">
+                  <td className="px-5 py-4 text-[#E7EAF0] font-medium whitespace-nowrap">
                     {entry.groupName}
-                    {isMyGroup && <span className="text-xs text-[#A08060] ml-1">(ของฉัน)</span>}
+                    {isMyGroup && <span className="text-xs text-[#A8AFBD] ml-1">(ของฉัน)</span>}
                   </td>
-                  <td className="px-5 py-4 text-right text-[#2C1810] whitespace-nowrap">
+                  <td className="px-5 py-4 text-right text-[#E7EAF0] whitespace-nowrap">
+                    {entry.startTotal.toFixed(1)}
+                  </td>
+                  <td className="px-5 py-4 text-right text-[#E7EAF0] whitespace-nowrap">
                     {entry.latestTotal.toFixed(1)}
                   </td>
                   <td className="px-5 py-4 text-right text-green-600 font-medium whitespace-nowrap">
@@ -89,7 +95,7 @@ function LeaderboardTable({
             })}
             {displayed.length === 0 && (
               <tr>
-                <td colSpan={5} className="px-4 py-8 text-center text-[#A08060]">ไม่มีข้อมูลเดือนนี้</td>
+                <td colSpan={6} className="px-4 py-8 text-center text-[#A8AFBD]">ไม่มีข้อมูลเดือนนี้</td>
               </tr>
             )}
           </tbody>
@@ -105,6 +111,7 @@ function LeaderboardSection({
   prevMonthKey,
   currentGroupId,
   colTotal,
+  colStart,
   colLost,
   colPercent,
 }: {
@@ -113,6 +120,7 @@ function LeaderboardSection({
   prevMonthKey: string
   currentGroupId: string | null
   colTotal: string
+  colStart: string
   colLost: string
   colPercent: string
 }) {
@@ -133,9 +141,9 @@ function LeaderboardSection({
 
   return (
     <div>
-      <div className="relative flex bg-[#EDE3D0] rounded-xl p-1 mb-3">
+      <div className="relative flex bg-[#242832] rounded-xl p-1 mb-3">
         <div
-          className="absolute top-1 bottom-1 left-1 rounded-lg bg-[#5C3D1E] shadow-sm pointer-events-none"
+          className="absolute top-1 bottom-1 left-1 rounded-lg bg-[#F59E0B] shadow-sm pointer-events-none"
           style={{
             width: "calc((100% - 8px) / 3)",
             transform: `translateX(${monthTabIndex * 100}%)`,
@@ -146,7 +154,7 @@ function LeaderboardSection({
           <button
             key={tab}
             onClick={() => setMonthTab(tab)}
-            className={`relative z-10 flex-1 py-2 rounded-lg text-xs font-medium cursor-pointer transition-colors duration-200 ${monthTab === tab ? "text-white" : "text-[#A08060]"}`}
+            className={`relative z-10 flex-1 py-2 rounded-lg text-xs font-medium cursor-pointer transition-colors duration-200 ${monthTab === tab ? "text-[#111318]" : "text-[#A8AFBD]"}`}
           >
             {i === 0 ? "เดือนนี้" : i === 1 ? "เดือนที่แล้ว" : "ประวัติ"}
           </button>
@@ -154,7 +162,7 @@ function LeaderboardSection({
       </div>
 
       <div className="flex items-center justify-between mb-3">
-        <p className="text-sm font-semibold text-[#5C3D1E]">
+        <p className="text-sm font-semibold text-[#F59E0B]">
           {monthTab === "current" && (currentData?.label ?? "ยังไม่มีข้อมูลเดือนนี้")}
           {monthTab === "prev" && (prevData?.label ?? "ยังไม่มีข้อมูลเดือนที่แล้ว")}
           {monthTab === "history" && historyData?.label}
@@ -163,7 +171,7 @@ function LeaderboardSection({
           <select
             value={selectedHistoryMonth}
             onChange={(e) => setSelectedHistoryMonth(e.target.value)}
-            className="text-xs border border-[#D4C4A8] rounded-lg px-2 py-1 bg-white text-[#5C3D1E] focus:outline-none cursor-pointer"
+            className="text-xs border border-[#343A46] rounded-lg px-2 py-1 bg-[#171A20] text-[#F59E0B] focus:outline-none cursor-pointer"
           >
             {[...monthlyLeaderboards].reverse().map((m) => (
               <option key={m.monthKey} value={m.monthKey}>{m.label}</option>
@@ -172,9 +180,9 @@ function LeaderboardSection({
         )}
       </div>
 
-      <div className="relative flex bg-[#EDE3D0] rounded-xl p-1 mb-4">
+      <div className="relative flex bg-[#242832] rounded-xl p-1 mb-4">
         <div
-          className="absolute top-1 bottom-1 left-1 rounded-lg bg-white shadow-sm pointer-events-none"
+          className="absolute top-1 bottom-1 left-1 rounded-lg bg-[#171A20] shadow-sm pointer-events-none"
           style={{
             width: "calc((100% - 8px) / 2)",
             transform: `translateX(${groupTabIndex * 100}%)`,
@@ -185,7 +193,7 @@ function LeaderboardSection({
           <button
             key={tab}
             onClick={() => setGroupTab(tab)}
-            className={`relative z-10 flex-1 py-2 rounded-lg text-sm font-medium cursor-pointer transition-colors duration-200 ${groupTab === tab ? "text-[#5C3D1E]" : "text-[#A08060]"}`}
+            className={`relative z-10 flex-1 py-2 rounded-lg text-sm font-medium cursor-pointer transition-colors duration-200 ${groupTab === tab ? "text-[#F59E0B]" : "text-[#A8AFBD]"}`}
           >
             {tab === "all" ? "ทุกกลุ่ม" : "กลุ่มของฉัน"}
           </button>
@@ -193,16 +201,22 @@ function LeaderboardSection({
       </div>
 
       {activeData ? (
+        <>
+        <p className="text-xs text-[#A8AFBD] mb-2">
+          คำนวณจากผลรวมค่าเริ่มต้นของสมาชิก เทียบกับค่าล่าสุดของเดือนนั้น แล้วเรียงตามเปอร์เซ็นต์ที่ลดลง
+        </p>
         <LeaderboardTable
           leaderboard={activeData.leaderboard}
           currentGroupId={currentGroupId}
           filterMine={filterMine}
           colTotal={colTotal}
+          colStart={colStart}
           colLost={colLost}
           colPercent={colPercent}
         />
+        </>
       ) : (
-        <div className="bg-white border border-[#D4C4A8] rounded-2xl shadow-sm px-4 py-10 text-center text-[#A08060]">
+        <div className="bg-[#171A20] border border-[#343A46] rounded-2xl shadow-sm px-4 py-10 text-center text-[#A8AFBD]">
           ไม่มีข้อมูลในช่วงเวลานี้
         </div>
       )}
@@ -224,41 +238,43 @@ export default function LeaderboardClient({
     <div className="max-w-4xl mx-auto w-full space-y-8">
       {/* Weight section */}
       <div>
-        <h2 className="text-base font-bold text-[#5C3D1E] mb-3">🏋️ อันดับน้ำหนัก</h2>
+        <h2 className="text-base font-bold text-[#F59E0B] mb-3">🏋️ อันดับน้ำหนัก</h2>
         <LeaderboardSection
           monthlyLeaderboards={monthlyLeaderboards}
           currentMonthKey={currentMonthKey}
           prevMonthKey={prevMonthKey}
           currentGroupId={currentGroupId}
+          colStart="น้ำหนักเริ่มต้น"
           colTotal="น้ำหนักรวม"
           colLost="ลดลง (กก.)"
           colPercent="% ลด"
         />
       </div>
 
-      <div className="border-t border-[#EDE3D0]" />
+      <div className="border-t border-[#242832]" />
 
       {/* Waist section */}
       <div>
-        <h2 className="text-base font-bold text-[#5C3D1E] mb-3">📏 อันดับรอบเอว</h2>
+        <h2 className="text-base font-bold text-[#F59E0B] mb-3">📏 อันดับรอบเอว</h2>
         {waistMonthlyLeaderboards.length > 0 ? (
           <LeaderboardSection
             monthlyLeaderboards={waistMonthlyLeaderboards}
             currentMonthKey={waistCurrentMonthKey}
             prevMonthKey={waistPrevMonthKey}
             currentGroupId={currentGroupId}
+            colStart="รอบเอวเริ่มต้น"
             colTotal="รอบเอวรวม"
             colLost="ลดลง (ซม.)"
             colPercent="% ลด"
           />
         ) : (
-          <div className="bg-white border border-[#D4C4A8] rounded-2xl shadow-sm px-4 py-8 text-center text-[#A08060]">
+          <div className="bg-[#171A20] border border-[#343A46] rounded-2xl shadow-sm px-4 py-8 text-center text-[#A8AFBD]">
             ยังไม่มีข้อมูลรอบเอว
           </div>
         )}
       </div>
 
-      <p className="text-xs text-[#A08060] text-center">บันทึกล่าสุด: {lastUpdated}</p>
+      <p className="text-xs text-[#A8AFBD] text-center">บันทึกล่าสุด: {lastUpdated}</p>
     </div>
   )
 }

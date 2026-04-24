@@ -21,7 +21,7 @@ interface DonutChartProps {
   height?: number
 }
 
-const COLORS = ["#A08060", "#8B6914", "#C4956A", "#6B4F2A", "#D4B896", "#B8935A", "#7A5C3A"]
+const COLORS = ["#F59E0B", "#A8AFBD", "#D97706", "#6B7280", "#FBBF24", "#4B5563", "#92400E"]
 
 interface TooltipPayloadItem {
   name: string
@@ -41,12 +41,12 @@ function CustomTooltip({ active, payload }: CustomTooltipProps) {
   return (
     <div
       style={{
-        background: "#FFFFFF",
-        border: "1px solid #D4C4A8",
+        background: "#171A20",
+        border: "1px solid #343A46",
         borderRadius: "12px",
         padding: "8px 12px",
         fontSize: "13px",
-        color: "#2C1810",
+        color: "#E7EAF0",
       }}
     >
       <p className="font-semibold">{item.name}</p>
@@ -71,7 +71,7 @@ function CustomLegend({ payload }: CustomLegendProps) {
   return (
     <ul className="flex flex-wrap justify-center gap-x-4 gap-y-1 mt-2">
       {payload.map((entry) => (
-        <li key={entry.value} className="flex items-center gap-1.5 text-xs text-[#2C1810]">
+        <li key={entry.value} className="flex items-center gap-1.5 text-xs text-[#E7EAF0]">
           <span
             style={{
               display: "inline-block",
@@ -83,7 +83,7 @@ function CustomLegend({ payload }: CustomLegendProps) {
             }}
           />
           <span>{entry.value}</span>
-          <span className="text-[#A08060]">
+          <span className="text-[#A8AFBD]">
             {entry.payload.kg.toFixed(1)} กก. ({entry.payload.percent.toFixed(1)}%)
           </span>
         </li>
@@ -95,7 +95,7 @@ function CustomLegend({ payload }: CustomLegendProps) {
 export default function DonutChart({ data, height = 300 }: DonutChartProps) {
   if (data.length === 0) {
     return (
-      <div className="flex items-center justify-center h-48 text-[#A08060]">
+      <div className="flex items-center justify-center h-48 text-[#A8AFBD]">
         ไม่มีข้อมูล
       </div>
     )

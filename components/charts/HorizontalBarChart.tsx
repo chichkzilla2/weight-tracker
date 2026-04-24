@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import {
   BarChart,
@@ -11,28 +11,40 @@ import {
   LabelList,
   Cell,
   Legend,
-} from "recharts"
+} from "recharts";
 
 interface ChartDataPoint {
-  month?: string
-  name?: string
-  total?: number
-  value?: number
+  month?: string;
+  name?: string;
+  total?: number;
+  value?: number;
 }
 
 export interface SeriesMeta {
-  key: string
-  label: string
-  color: string
+  key: string;
+  label: string;
+  color: string;
+}
+
+interface EndLabelProps {
+  x?: number | string;
+  y?: number | string;
+  width?: number | string;
+  height?: number | string;
+  value?: string | number | null;
+  index?: number;
+  payload?: ChartDataPoint;
 }
 
 interface HorizontalBarChartProps {
-  data?: ChartDataPoint[]
-  multiData?: Record<string, string | number>[]
-  series?: SeriesMeta[]
-  unit?: string
-  barColors?: string[]
-  height?: number
+  data?: ChartDataPoint[];
+  multiData?: Record<string, string | number>[];
+  series?: SeriesMeta[];
+  unit?: string;
+  barColors?: string[];
+  height?: number;
+  endLabelKey?: "month" | "name" | "total" | "value";
+  hideCategoryAxis?: boolean;
 }
 
 export default function HorizontalBarChart({
@@ -42,18 +54,21 @@ export default function HorizontalBarChart({
   unit = "กก.",
   barColors,
   height,
+  endLabelKey,
+  hideCategoryAxis = false,
 }: HorizontalBarChartProps) {
   // Multi-series mode
   if (multiData && series && series.length > 0) {
     if (multiData.length === 0) {
       return (
-        <div className="flex items-center justify-center h-48 text-[#A08060]">
+        <div className="flex items-center justify-center h-48 text-[#A8AFBD]">
           ไม่มีข้อมูล
         </div>
-      )
+      );
     }
 
-    const computedHeight = height ?? multiData.length * (series.length * 22 + 14) + 40
+    const computedHeight =
+      height ?? multiData.length * (series.length * 22 + 14) + 40;
 
     return (
       <div className="w-full">
@@ -65,10 +80,14 @@ export default function HorizontalBarChart({
             barCategoryGap="20%"
             barGap={3}
           >
-            <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#EDE3D0" />
+            <CartesianGrid
+              strokeDasharray="3 3"
+              horizontal={false}
+              stroke="#242832"
+            />
             <XAxis
               type="number"
-              tick={{ fontSize: 11, fill: "#A08060" }}
+              tick={{ fontSize: 11, fill: "#A8AFBD" }}
               tickLine={false}
               axisLine={false}
               domain={["auto", "auto"]}
@@ -77,7 +96,7 @@ export default function HorizontalBarChart({
             <YAxis
               type="category"
               dataKey="month"
-              tick={{ fontSize: 12, fill: "#5C3D1E" }}
+              tick={{ fontSize: 12, fill: "#F59E0B" }}
               tickLine={false}
               axisLine={false}
               width={50}
@@ -89,17 +108,17 @@ export default function HorizontalBarChart({
                   : [String(value), name]
               }
               contentStyle={{
-                background: "#FFFFFF",
-                border: "1px solid #D4C4A8",
+                background: "#171A20",
+                border: "1px solid #343A46",
                 borderRadius: "12px",
                 fontSize: "13px",
-                color: "#2C1810",
+                color: "#E7EAF0",
               }}
             />
             <Legend
               wrapperStyle={{ fontSize: "12px", paddingTop: "8px" }}
               formatter={(value) => (
-                <span style={{ color: "#2C1810" }}>{value}</span>
+                <span style={{ color: "#E7EAF0" }}>{value}</span>
               )}
             />
             {series.map((s) => (
@@ -115,29 +134,62 @@ export default function HorizontalBarChart({
                   dataKey={s.key}
                   position="right"
                   style={{ fontSize: "10px", fill: s.color, fontWeight: 600 }}
-                  formatter={(v) => (typeof v === "number" ? v.toFixed(1) : String(v))}
+                  formatter={(v) =>
+                    typeof v === "number" ? v.toFixed(1) : String(v)
+                  }
                 />
               </Bar>
             ))}
           </BarChart>
         </ResponsiveContainer>
       </div>
-    )
+    );
   }
 
   // Single-series mode (original behavior)
-  const singleData = data ?? []
+  const singleData = data ?? [];
   if (singleData.length === 0) {
     return (
-      <div className="flex items-center justify-center h-48 text-[#A08060]">
+      <div className="flex items-center justify-center h-48 text-[#A8AFBD]">
         ไม่มีข้อมูล
       </div>
-    )
+    );
   }
 
-  const dataKey = singleData[0]?.value !== undefined ? "value" : "total"
-  const categoryKey = singleData[0]?.name !== undefined ? "name" : "month"
-  const computedHeight = height ?? singleData.length * 44 + 40
+  const dataKey = singleData[0]?.value !== undefined ? "value" : "total";
+  const categoryKey = singleData[0]?.name !== undefined ? "name" : "month";
+  const computedHeight = height ?? singleData.length * 44 + 40;
+  const values = singleData.map((row) => Number(row[dataKey] ?? 0));
+  const xDomain: [number | string, number | string] =
+    values.every((value) => value >= 0) ? [0, "auto"] : ["auto", "auto"];
+  const renderEndLabel = (props: EndLabelProps) => {
+    if (!endLabelKey) return <g />;
+    const row =
+      (typeof props.index === "number" ? singleData[props.index] : undefined) ??
+      props.payload ??
+      singleData.find((item) => item[endLabelKey] === props.value);
+    if (!row) return <g />;
+    const x = Number(props.x ?? 0);
+    const y = Number(props.y ?? 0);
+    const width = Number(props.width ?? 0);
+    const height = Number(props.height ?? 0);
+    const barValue = Number(row[dataKey] ?? 0);
+    const label = row[endLabelKey];
+    const isIncrease = barValue < 0;
+    const displayValue =
+      barValue === 0 ? `0${unit}` : `${barValue.toFixed(1)}${unit}`;
+
+    return (
+      <text
+        x={isIncrease ? x - 6 : x + width + 6}
+        y={y + height / 2 + 4}
+        textAnchor={isIncrease ? "end" : "start"}
+        style={{ fontSize: "11px", fill: "#F59E0B", fontWeight: 600 }}
+      >
+        {label} {displayValue}
+      </text>
+    );
+  };
 
   return (
     <div className="w-full">
@@ -145,24 +197,33 @@ export default function HorizontalBarChart({
         <BarChart
           layout="vertical"
           data={singleData}
-          margin={{ top: 5, right: 60, left: 10, bottom: 5 }}
+          margin={{
+            top: 5,
+            right: endLabelKey ? 170 : 60,
+            left: hideCategoryAxis ? 0 : endLabelKey ? 120 : 10,
+            bottom: 5,
+          }}
         >
-          <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#EDE3D0" />
+          <CartesianGrid
+            strokeDasharray="3 3"
+            horizontal={false}
+            stroke="#242832"
+          />
           <XAxis
             type="number"
-            tick={{ fontSize: 11, fill: "#A08060" }}
+            tick={{ fontSize: 11, fill: "#A8AFBD" }}
             tickLine={false}
             axisLine={false}
-            domain={["auto", "auto"]}
+            domain={xDomain}
             tickFormatter={(v: number) => `${v}${unit}`}
           />
           <YAxis
             type="category"
             dataKey={categoryKey}
-            tick={{ fontSize: 12, fill: "#5C3D1E" }}
+            tick={hideCategoryAxis ? false : { fontSize: 12, fill: "#F59E0B" }}
             tickLine={false}
             axisLine={false}
-            width={50}
+            width={hideCategoryAxis ? 0 : 50}
           />
           <Tooltip
             formatter={(value) =>
@@ -171,14 +232,19 @@ export default function HorizontalBarChart({
                 : [String(value), ""]
             }
             contentStyle={{
-              background: "#FFFFFF",
-              border: "1px solid #D4C4A8",
+              background: "#171A20",
+              border: "1px solid #343A46",
               borderRadius: "12px",
               fontSize: "13px",
-              color: "#2C1810",
+              color: "#E7EAF0",
             }}
           />
-          <Bar dataKey={dataKey} fill="#5C3D1E" radius={[0, 4, 4, 0]} barSize={24}>
+          <Bar
+            dataKey={dataKey}
+            fill="#F59E0B"
+            radius={[0, 4, 4, 0]}
+            barSize={24}
+          >
             {barColors &&
               singleData.map((_entry, index) => (
                 <Cell
@@ -187,13 +253,18 @@ export default function HorizontalBarChart({
                 />
               ))}
             <LabelList
-              dataKey={dataKey}
+              dataKey={endLabelKey ?? dataKey}
               position="right"
-              style={{ fontSize: "11px", fill: "#5C3D1E", fontWeight: 600 }}
+              style={{ fontSize: "11px", fill: "#F59E0B", fontWeight: 600 }}
+              content={
+                endLabelKey
+                  ? (props) => renderEndLabel(props as EndLabelProps)
+                  : undefined
+              }
             />
           </Bar>
         </BarChart>
       </ResponsiveContainer>
     </div>
-  )
+  );
 }

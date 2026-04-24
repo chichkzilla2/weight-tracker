@@ -35,9 +35,9 @@ export default function WaistForm() {
 
   return (
     <>
-      <div className="w-full bg-white border border-[#D4C4A8] rounded-2xl shadow-sm px-5 py-4">
+      <div className="w-full bg-[#171A20] border border-[#343A46] rounded-2xl shadow-sm px-5 py-4">
         <form onSubmit={handleSubmit}>
-          <Label htmlFor="waist" className="text-[#5C3D1E] text-sm font-semibold">
+          <Label htmlFor="waist" className="text-[#F59E0B] text-sm font-semibold">
             บันทึกรอบเอววันนี้ (ซม.)
           </Label>
           <div className="flex gap-2 items-center mt-2">
@@ -48,40 +48,40 @@ export default function WaistForm() {
               step="0.1"
               placeholder="เช่น 80.5"
               required
-              className="flex-1 border-[#D4C4A8] focus:border-[#5C3D1E] rounded-xl text-xl px-5 text-center h-12"
+              className="flex-1 border-[#343A46] focus:border-[#F59E0B] rounded-xl text-xl px-5 text-center h-12"
             />
             <Button
               type="submit"
               disabled={isPending}
-              className="px-6 bg-[#5C3D1E] hover:bg-[#2C1810] text-white rounded-xl font-medium text-base h-12"
+              className="px-6 bg-[#F59E0B] hover:bg-[#D97706] text-[#111318] rounded-xl font-medium text-base h-12"
             >
               {isPending ? "กำลังบันทึก..." : "บันทึก"}
             </Button>
           </div>
           {state.error && (
-            <p className="text-red-500 text-sm mt-2">{state.error}</p>
+            <p className="text-[#D08A8A] text-sm mt-2">{state.error}</p>
           )}
         </form>
       </div>
 
       <AppModal open={open} onClose={() => setOpen(false)}>
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl shadow-2xl w-[calc(100%-2rem)] max-w-sm p-5 outline-none">
-          <h3 className="font-bold text-[#2C1810] text-base mb-2">ยืนยันการบันทึกรอบเอว</h3>
-          <p className="text-sm text-[#A08060] mb-5">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#171A20] rounded-2xl shadow-2xl w-[calc(100%-2rem)] max-w-sm p-5 outline-none">
+          <h3 className="font-bold text-[#E7EAF0] text-base mb-2">ยืนยันการบันทึกรอบเอว</h3>
+          <p className="text-sm text-[#A8AFBD] mb-5">
             คุณต้องการบันทึกรอบเอว{" "}
-            <span className="font-semibold text-[#5C3D1E]">{waistDisplay} ซม.</span>{" "}
+            <span className="font-semibold text-[#F59E0B]">{waistDisplay} ซม.</span>{" "}
             ใช่หรือไม่?
           </p>
           <div className="flex gap-2">
             <button
               onClick={() => setOpen(false)}
-              className="flex-1 py-2.5 rounded-xl border border-[#D4C4A8] text-[#5C3D1E] text-sm font-medium hover:bg-[#EDE3D0] transition-colors"
+              className="flex-1 py-2.5 rounded-xl border border-[#343A46] text-[#F59E0B] text-sm font-medium hover:bg-[#242832] transition-colors"
             >
               ยกเลิก
             </button>
             <button
               onClick={handleConfirm}
-              className="flex-1 py-2.5 rounded-xl bg-[#5C3D1E] text-white text-sm font-medium hover:bg-[#2C1810] transition-colors"
+              className="flex-1 py-2.5 rounded-xl bg-[#F59E0B] text-[#111318] text-sm font-medium hover:bg-[#D97706] transition-colors"
             >
               ยืนยัน
             </button>

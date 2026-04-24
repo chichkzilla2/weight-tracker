@@ -46,13 +46,13 @@ function LoginContent() {
   }
 
   return (
-    <div className="min-h-screen bg-[#FDFAF5] flex flex-col items-center justify-center px-4">
+    <div className="min-h-screen bg-[#0F1115] flex flex-col items-center justify-center px-4">
       <div className="w-full max-w-sm">
         {/* Logo/Title */}
         <div className="text-center mb-8">
           <div className="text-6xl mb-3">🏋️</div>
-          <h1 className="text-2xl font-bold text-[#5C3D1E] mb-2">Weight Tracker</h1>
-          <p className="text-[#A08060] text-sm">บันทึกน้ำหนักเพื่อสุขภาพที่ดีขึ้น</p>
+          <h1 className="text-2xl font-bold text-[#F59E0B] mb-2">Weight Tracker</h1>
+          <p className="text-[#A8AFBD] text-sm">บันทึกน้ำหนักเพื่อสุขภาพที่ดีขึ้น</p>
         </div>
 
         {registered && (
@@ -62,10 +62,10 @@ function LoginContent() {
         )}
 
         {/* Login Card */}
-        <div className="bg-white border border-[#D4C4A8] rounded-2xl shadow-sm p-6">
+        <div className="bg-[#171A20] border border-[#343A46] rounded-2xl shadow-sm p-6">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="username" className="text-[#5C3D1E] font-medium">
+              <Label htmlFor="username" className="text-[#F59E0B] font-medium">
                 ชื่อผู้ใช้
               </Label>
               <Input
@@ -75,12 +75,12 @@ function LoginContent() {
                 placeholder="กรอกชื่อผู้ใช้"
                 required
                 autoComplete="username"
-                className="border-[#D4C4A8] focus:border-[#5C3D1E] rounded-xl"
+                className="border-[#343A46] focus:border-[#F59E0B] rounded-xl"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-[#5C3D1E] font-medium">
+              <Label htmlFor="password" className="text-[#F59E0B] font-medium">
                 รหัสผ่าน
               </Label>
               <Input
@@ -90,20 +90,20 @@ function LoginContent() {
                 placeholder="กรอกรหัสผ่าน"
                 required
                 autoComplete="current-password"
-                className="border-[#D4C4A8] focus:border-[#5C3D1E] rounded-xl"
+                className="border-[#343A46] focus:border-[#F59E0B] rounded-xl"
               />
             </div>
 
             {error && (
-              <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3">
-                <p className="text-red-600 text-sm">{error}</p>
+              <div className="bg-[#2A1719] border border-[#5A3032] rounded-xl px-4 py-3">
+                <p className="text-[#C77D7D] text-sm">{error}</p>
               </div>
             )}
 
             <Button
               type="submit"
               disabled={loading}
-              className="w-full bg-[#5C3D1E] hover:bg-[#2C1810] text-white rounded-xl py-3 font-medium text-base transition-colors"
+              className="w-full bg-[#F59E0B] hover:bg-[#D97706] text-[#111318] rounded-xl py-3 font-medium text-base transition-colors"
             >
               {loading ? (
                 <span className="flex items-center justify-center gap-2">
@@ -114,9 +114,9 @@ function LoginContent() {
             </Button>
           </form>
         </div>
-        <p className="text-center text-sm text-[#A08060] mt-4">
+        <p className="text-center text-sm text-[#A8AFBD] mt-4">
           ยังไม่มีบัญชี?{" "}
-          <Link href="/register" className="text-[#5C3D1E] font-medium hover:underline">
+          <Link href="/register" className="text-[#F59E0B] font-medium hover:underline">
             สมัครสมาชิก
           </Link>
         </p>

@@ -34,7 +34,7 @@ export default async function AdminPage() {
 
   return (
     <div className="max-w-lg mx-auto px-4 py-6">
-      <h1 className="text-xl font-bold text-[#5C3D1E] mb-5">แผงผู้ดูแลระบบ</h1>
+      <h1 className="text-xl font-bold text-[#F59E0B] mb-5">แผงผู้ดูแลระบบ</h1>
       <AdminClient users={serializedUsers} groups={serializedGroups} />
     </div>
   );

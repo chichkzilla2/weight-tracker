@@ -5,6 +5,7 @@ import { prisma } from "./db"
 import { loginSchema } from "./validations"
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
+  trustHost: true,
   providers: [
     Credentials({
       async authorize(credentials) {
@@ -53,6 +54,28 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return session
     },
   },
-  session: { strategy: "jwt" },
+  session: {
+    strategy: "jwt",
+    maxAge: 60 * 60,
+    updateAge: 60 * 60,
+  },
+  jwt: {
+    maxAge: 60 * 60,
+  },
+  cookies: {
+    sessionToken: {
+      name:
+        process.env.NODE_ENV === "production"
+          ? "__Secure-authjs.session-token"
+          : "authjs.session-token",
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+        maxAge: 60 * 60,
+      },
+    },
+  },
   pages: { signIn: "/login" },
 })
