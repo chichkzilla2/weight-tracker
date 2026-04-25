@@ -16,13 +16,18 @@ export default async function GroupPage() {
 
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
-    include: { group: true },
+    select: {
+      id: true,
+      role: true,
+      groupId: true,
+      group: { select: { id: true, name: true } },
+    },
   })
   if (!user) return null
 
   const allGroups = await prisma.group.findMany({
     orderBy: { name: "asc" },
-    include: { _count: { select: { users: true } } },
+    select: { id: true, name: true, _count: { select: { users: true } } },
   })
 
   if (!user.groupId || !user.group) {
@@ -35,14 +40,18 @@ export default async function GroupPage() {
 
   const members = await prisma.user.findMany({
     where: { groupId: user.groupId },
-    include: {
+    select: {
+      id: true,
+      realName: true,
       weightEntries: {
         where: { recordedAt: { gte: monthStart, lte: monthEnd } },
         orderBy: { recordedAt: "asc" },
+        select: { weight: true },
       },
       waistEntries: {
         where: { recordedAt: { gte: monthStart, lte: monthEnd } },
         orderBy: { recordedAt: "asc" },
+        select: { waist: true },
       },
     },
     orderBy: { realName: "asc" },

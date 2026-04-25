@@ -18,42 +18,27 @@ export default async function HomePage() {
   const groupName = currentUser?.group?.name ?? null;
 
   const [
-    latestWeight,
-    latestWaist,
-    weightEntriesAsc,
     weightEntriesDesc,
-    waistEntriesAsc,
     waistEntriesDesc,
   ] = await Promise.all([
-    prisma.weightEntry.findFirst({
-      where: { userId: session.user.id },
-      orderBy: { recordedAt: "desc" },
-    }),
-    prisma.waistEntry.findFirst({
-      where: { userId: session.user.id },
-      orderBy: { recordedAt: "desc" },
-    }),
-    prisma.weightEntry.findMany({
-      where: { userId: session.user.id },
-      orderBy: { recordedAt: "asc" },
-      take: 365,
-    }),
     prisma.weightEntry.findMany({
       where: { userId: session.user.id },
       orderBy: { recordedAt: "desc" },
       take: 365,
-    }),
-    prisma.waistEntry.findMany({
-      where: { userId: session.user.id },
-      orderBy: { recordedAt: "asc" },
-      take: 365,
+      select: { id: true, weight: true, recordedAt: true },
     }),
     prisma.waistEntry.findMany({
       where: { userId: session.user.id },
       orderBy: { recordedAt: "desc" },
       take: 365,
+      select: { id: true, waist: true, recordedAt: true },
     }),
   ]);
+
+  const latestWeight = weightEntriesDesc[0] ?? null;
+  const latestWaist = waistEntriesDesc[0] ?? null;
+  const weightEntriesAsc = [...weightEntriesDesc].reverse();
+  const waistEntriesAsc = [...waistEntriesDesc].reverse();
 
   const serializedWeightAsc = weightEntriesAsc.map((e) => ({
     id: e.id,

@@ -34,13 +34,12 @@ function LoginContent() {
 
       if (result?.error) {
         setError("ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง")
+        setLoading(false)
       } else {
-        router.push("/")
-        router.refresh()
+        router.replace("/")
       }
     } catch {
       setError("เกิดข้อผิดพลาด กรุณาลองใหม่")
-    } finally {
       setLoading(false)
     }
   }

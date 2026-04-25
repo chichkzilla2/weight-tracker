@@ -12,7 +12,12 @@ export default async function ProfilePage() {
 
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
-    include: { group: true },
+    select: {
+      realName: true,
+      username: true,
+      role: true,
+      group: { select: { name: true } },
+    },
   });
 
   if (!user) return null;
@@ -89,7 +94,7 @@ export default async function ProfilePage() {
         </div>
 
         <p className="text-center text-xs text-[#343A46] mt-8">
-          เวอร์ชัน 3.0.1
+          เวอร์ชัน 3.1.0
         </p>
       </div>
     </div>

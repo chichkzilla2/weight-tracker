@@ -11,9 +11,20 @@ export default async function AdminPage() {
   const [users, groups] = await Promise.all([
     prisma.user.findMany({
       orderBy: { createdAt: "asc" },
-      include: { group: true },
+      select: {
+        id: true,
+        username: true,
+        realName: true,
+        role: true,
+        groupId: true,
+        createdAt: true,
+        group: { select: { name: true } },
+      },
     }),
-    prisma.group.findMany({ orderBy: { name: "asc" } }),
+    prisma.group.findMany({
+      orderBy: { name: "asc" },
+      select: { id: true, name: true, createdAt: true },
+    }),
   ]);
 
   const serializedUsers = users.map((u: (typeof users)[number]) => ({

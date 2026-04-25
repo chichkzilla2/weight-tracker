@@ -20,11 +20,19 @@ export default async function LeaderboardPage() {
   const currentGroupId = currentUser?.groupId ?? null
 
   const groups = await prisma.group.findMany({
-    include: {
+    select: {
+      id: true,
+      name: true,
       users: {
-        include: {
-          weightEntries: true,
-          waistEntries: true,
+        select: {
+          id: true,
+          realName: true,
+          weightEntries: {
+            select: { id: true, userId: true, weight: true, recordedAt: true, createdAt: true },
+          },
+          waistEntries: {
+            select: { id: true, userId: true, waist: true, recordedAt: true, createdAt: true },
+          },
         },
       },
     },

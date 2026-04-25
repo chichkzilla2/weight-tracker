@@ -9,11 +9,21 @@ export default async function DashboardPage() {
 
   const groups = await prisma.group.findMany({
     orderBy: { name: "asc" },
-    include: {
+    select: {
+      id: true,
+      name: true,
       users: {
-        include: {
-          weightEntries: { orderBy: { recordedAt: "asc" } },
-          waistEntries: { orderBy: { recordedAt: "asc" } },
+        select: {
+          id: true,
+          realName: true,
+          weightEntries: {
+            orderBy: { recordedAt: "asc" },
+            select: { id: true, userId: true, weight: true, recordedAt: true, createdAt: true },
+          },
+          waistEntries: {
+            orderBy: { recordedAt: "asc" },
+            select: { id: true, userId: true, waist: true, recordedAt: true, createdAt: true },
+          },
         },
       },
     },
