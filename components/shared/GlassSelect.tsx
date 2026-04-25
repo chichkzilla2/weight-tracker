@@ -25,6 +25,10 @@ interface GlassSelectProps {
   size?: "sm" | "default";
 }
 
+const MAX_PANEL_H = 240; // px — matches max-h-60
+const MIN_PANEL_H = 80; // px — minimum useful height
+const MARGIN = 8; // px — gap between trigger and panel
+
 export function GlassSelect({
   name,
   value: controlledValue,
@@ -41,6 +45,8 @@ export function GlassSelect({
   const current = isControlled ? controlledValue : internal;
 
   const [open, setOpen] = useState(false);
+  const [direction, setDirection] = useState<"down" | "up">("down");
+  const [panelMaxH, setPanelMaxH] = useState(MAX_PANEL_H);
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -50,6 +56,24 @@ export function GlassSelect({
     document.addEventListener("mousedown", onOut);
     return () => document.removeEventListener("mousedown", onOut);
   }, []);
+
+  function toggle() {
+    if (disabled) return;
+    if (!open && ref.current) {
+      const rect = ref.current.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom - MARGIN;
+      const spaceAbove = rect.top - MARGIN;
+      const goUp = spaceAbove > spaceBelow && spaceBelow < MAX_PANEL_H;
+      if (goUp) {
+        setDirection("up");
+        setPanelMaxH(Math.max(MIN_PANEL_H, Math.min(MAX_PANEL_H, spaceAbove)));
+      } else {
+        setDirection("down");
+        setPanelMaxH(Math.max(MIN_PANEL_H, Math.min(MAX_PANEL_H, spaceBelow)));
+      }
+    }
+    setOpen((v) => !v);
+  }
 
   function pick(val: string) {
     if (!isControlled) setInternal(val);
@@ -67,7 +91,7 @@ export function GlassSelect({
       {/* Trigger */}
       <button
         type="button"
-        onClick={() => !disabled && setOpen((v) => !v)}
+        onClick={toggle}
         disabled={disabled}
         className={cn(
           "flex w-full items-center justify-between gap-2 rounded-xl border bg-[#171A20]/70 transition-colors focus:outline-none disabled:cursor-not-allowed disabled:opacity-50",
@@ -78,9 +102,7 @@ export function GlassSelect({
           !disabled && "cursor-pointer",
         )}
       >
-        <span className="flex-1 truncate text-left">
-          {selected?.label ?? ""}
-        </span>
+        <span className="flex-1 truncate text-left">{selected?.label ?? ""}</span>
         <ChevronDown
           size={isSmall ? 12 : 14}
           className={cn(
@@ -90,9 +112,15 @@ export function GlassSelect({
         />
       </button>
 
-      {/* Dropdown panel */}
+      {/* Dropdown panel — flips up when near bottom of viewport */}
       {open && (
-        <div className="absolute left-0 right-0 z-50 mt-1 max-h-60 overflow-y-auto rounded-xl border border-[#F59E0B]/15 bg-[#1C1F26]/95 p-1.5 shadow-xl backdrop-blur-xl space-y-0.5">
+        <div
+          style={{ maxHeight: panelMaxH }}
+          className={cn(
+            "absolute left-0 right-0 z-50 overflow-y-auto rounded-xl border border-[#F59E0B]/15 bg-[#1C1F26]/95 p-1.5 shadow-xl backdrop-blur-xl space-y-0.5",
+            direction === "up" ? "bottom-full mb-1" : "top-full mt-1",
+          )}
+        >
           {options.map((opt) => {
             const isSel = opt.value === current;
             return (
