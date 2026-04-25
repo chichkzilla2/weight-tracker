@@ -54,7 +54,7 @@ function LeaderboardTable({
   return (
     <div className="glass-card rounded-2xl overflow-hidden">
       <div className="overflow-x-auto overflow-y-auto max-h-96">
-        <table className="w-full text-base">
+        <table className="responsive-table w-full text-base">
           <thead>
             <tr className="bg-[#000000] border-b border-white/10 sticky top-0 z-10">
               <th className="text-left px-5 py-4 font-semibold text-[#F59E0B] whitespace-nowrap">
@@ -95,14 +95,14 @@ function LeaderboardTable({
                         : "bg-[#0F1115]/55"
                   }`}
                 >
-                  <td className="px-5 py-4 text-[#F59E0B] font-bold whitespace-nowrap">
+                  <td data-label="ลำดับที่" className="rank-card-row px-5 py-4 text-[#F59E0B] font-bold whitespace-nowrap">
                     {medal ? (
                       <span className="text-2xl leading-none">{medal}</span>
                     ) : (
                       `${globalRank + 1}`
                     )}
                   </td>
-                  <td className="px-5 py-4 text-[#E7EAF0] font-medium whitespace-nowrap">
+                  <td data-label="ชื่อกลุ่ม" className="px-5 py-4 text-[#E7EAF0] font-medium whitespace-nowrap">
                     {entry.groupName}
                     {isMyGroup && (
                       <span className="text-xs text-[#A8AFBD] ml-1">
@@ -110,17 +110,17 @@ function LeaderboardTable({
                       </span>
                     )}
                   </td>
-                  <td className="px-5 py-4 text-right text-[#E7EAF0] whitespace-nowrap">
+                  <td data-label={colStart} className="px-5 py-4 text-right text-[#E7EAF0] whitespace-nowrap">
                     {entry.startTotal.toFixed(1)}
                   </td>
-                  <td className="px-5 py-4 text-right text-[#E7EAF0] whitespace-nowrap">
+                  <td data-label={colTotal} className="px-5 py-4 text-right text-[#E7EAF0] whitespace-nowrap">
                     {entry.latestTotal.toFixed(1)}
                   </td>
-                  <td className="px-5 py-4 text-right text-green-600 font-medium whitespace-nowrap">
+                  <td data-label={colLost} className="px-5 py-4 text-right text-green-600 font-medium whitespace-nowrap">
                     {entry.lostKg > 0 ? "-" : ""}
                     {Math.abs(entry.lostKg).toFixed(1)}
                   </td>
-                  <td className="px-5 py-4 text-right text-green-600 font-bold whitespace-nowrap">
+                  <td data-label={colPercent} className="px-5 py-4 text-right text-green-600 font-bold whitespace-nowrap">
                     {entry.lostPercent > 0 ? "-" : ""}
                     {Math.abs(entry.lostPercent).toFixed(1)}%
                   </td>
@@ -130,6 +130,7 @@ function LeaderboardTable({
             {displayed.length === 0 && (
               <tr>
                 <td
+                  data-label=""
                   colSpan={6}
                   className="px-4 py-8 text-center text-[#A8AFBD]"
                 >

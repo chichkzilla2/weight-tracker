@@ -96,7 +96,7 @@ export default async function ProfilePage() {
         </div>
 
         <p className="text-center text-xs text-[#343A46] mt-8">
-          เวอร์ชัน 3.3.4
+          เวอร์ชัน 3.4.0
         </p>
       </div>
     </div>

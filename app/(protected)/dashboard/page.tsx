@@ -38,6 +38,8 @@ export default async function DashboardPage() {
     users: g.users.map((u) => ({
       id: u.id,
       realName: combineName(u.firstName, u.lastName, u.realName),
+      firstName: u.firstName,
+      lastName: u.lastName,
       weightEntries: u.weightEntries.map((e) => ({
         id: e.id,
         userId: e.userId,
@@ -55,6 +57,8 @@ export default async function DashboardPage() {
     users: g.users.map((u) => ({
       id: u.id,
       realName: combineName(u.firstName, u.lastName, u.realName),
+      firstName: u.firstName,
+      lastName: u.lastName,
       weightEntries: u.waistEntries.map((e) => ({
         id: e.id,
         userId: e.userId,

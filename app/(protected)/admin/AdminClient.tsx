@@ -8,6 +8,7 @@ import {
   useTransition,
 } from "react";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 import {
   createUser,
   deleteUser,
@@ -64,6 +65,7 @@ interface AdminClientProps {
 }
 
 type Tab = "users" | "groups";
+type DetailUser = UserData;
 
 type DialogState =
   | {
@@ -86,6 +88,7 @@ const initialUserState = { error: "", success: false };
 const initialGroupState = { error: "", success: false };
 
 export default function AdminClient({ users, groups }: AdminClientProps) {
+  const router = useRouter();
   const [tab, setTab] = useState<Tab>("users");
   const [activeTab, setActiveTab] = useState<Tab>("users");
   const [tabPending, startTabTransition] = useTransition();
@@ -102,6 +105,13 @@ export default function AdminClient({ users, groups }: AdminClientProps) {
   const [groupSearch, setGroupSearch] = useState("");
   const [dialog, setDialog] = useState<DialogState>(null);
   const [confirming, setConfirming] = useState(false);
+  const [detailUser, setDetailUser] = useState<DetailUser | null>(null);
+  const [detailFirstName, setDetailFirstName] = useState("");
+  const [detailLastName, setDetailLastName] = useState("");
+  const [detailGroupId, setDetailGroupId] = useState("");
+  const [detailPassword, setDetailPassword] = useState("");
+  const [showDetailPassword, setShowDetailPassword] = useState(false);
+  const [detailSaving, setDetailSaving] = useState(false);
 
   const [userGroupSelections, setUserGroupSelections] = useState<
     Record<string, string>
@@ -170,6 +180,91 @@ export default function AdminClient({ users, groups }: AdminClientProps) {
         })),
     [users, groups, userGroupSelections],
   );
+
+  const detailChanged =
+    !!detailUser &&
+    (detailFirstName.trim() !== detailUser.firstName ||
+      detailLastName.trim() !== detailUser.lastName ||
+      detailGroupId !== (detailUser.groupId ?? "") ||
+      detailPassword.length > 0);
+
+  function openUserDetail(user: UserData) {
+    setDetailUser(user);
+    setDetailFirstName(user.firstName);
+    setDetailLastName(user.lastName);
+    setDetailGroupId(user.groupId ?? "");
+    setDetailPassword("");
+    setShowDetailPassword(false);
+    setPasswordError("");
+  }
+
+  async function handleSaveUserDetail() {
+    if (!detailUser || !detailChanged) return;
+    setDetailSaving(true);
+
+    const nameChanged =
+      detailFirstName.trim() !== detailUser.firstName ||
+      detailLastName.trim() !== detailUser.lastName;
+    const groupChanged = detailGroupId !== (detailUser.groupId ?? "");
+
+    if (nameChanged) {
+      const result = await updateUserRealName(
+        detailUser.id,
+        detailFirstName,
+        detailLastName,
+      );
+      if (result.error) {
+        toast.error(result.error);
+        setDetailSaving(false);
+        return;
+      }
+    }
+
+    if (groupChanged) {
+      const result = await changeUserGroup(detailUser.id, detailGroupId);
+      if (result.error) {
+        toast.error(result.error);
+        setDetailSaving(false);
+        return;
+      }
+    }
+
+    if (detailPassword.length > 0) {
+      if (detailPassword.length < 6) {
+        setPasswordError("รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร");
+        setDetailSaving(false);
+        return;
+      }
+      const result = await changeUserPasswordByAdmin(
+        detailUser.id,
+        detailPassword,
+      );
+      if (result.error) {
+        toast.error(result.error);
+        setDetailSaving(false);
+        return;
+      }
+    }
+
+    const nextGroupName =
+      groups.find((g) => g.id === detailGroupId)?.name ?? "ไม่มีกลุ่ม";
+    setDetailUser({
+      ...detailUser,
+      realName: [detailFirstName.trim(), detailLastName.trim()]
+        .filter(Boolean)
+        .join(" "),
+      firstName: detailFirstName.trim(),
+      lastName: detailLastName.trim(),
+      groupId: detailGroupId,
+      groupName: nextGroupName,
+    });
+    toast.success("บันทึกข้อมูลผู้ใช้เรียบร้อย");
+    setDetailPassword("");
+    setShowDetailPassword(false);
+    setPasswordError("");
+    setDetailSaving(false);
+    router.refresh();
+  }
 
   async function handleConfirm() {
     if (!dialog) return;
@@ -271,6 +366,133 @@ export default function AdminClient({ users, groups }: AdminClientProps) {
 
   return (
     <div>
+      {/* User Detail Dialog */}
+      <AppModal
+        open={detailUser !== null}
+        onClose={() => {
+          if (!detailSaving) setDetailUser(null);
+        }}
+        backdropColor="rgba(0,0,0,0.55)"
+      >
+        {detailUser && (
+          <div className="fixed bottom-0 left-0 right-0 rounded-t-2xl bg-[rgb(23,26,32)] shadow-2xl w-full max-h-[65vh] overflow-y-auto p-5 outline-none border border-white/10 animate-in slide-in-from-bottom-6 duration-200 sm:slide-in-from-bottom-0 sm:zoom-in-95 sm:absolute sm:top-1/2 sm:left-1/2 sm:bottom-auto sm:right-auto sm:max-h-[90vh] sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-2xl sm:w-[calc(100%-2rem)] sm:max-w-md">
+            <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-full bg-[#F59E0B]/15 text-[#F59E0B]">
+              <Info size={23} />
+            </div>
+            <div className="mb-6 text-center">
+              <h3 className="font-bold text-[#E7EAF0] text-lg">รายละเอียดผู้ใช้</h3>
+              <p className="text-xs text-[#A8AFBD] mt-1">{detailUser.realName}</p>
+            </div>
+
+            <div className="mb-6 space-y-4">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <div className="rounded-xl border border-white/10 bg-[#0F1115]/55 px-3 py-2">
+                  <p className="text-[11px] text-[#A8AFBD]">user_id</p>
+                  <p className="text-xs font-medium text-[#E7EAF0] break-all">{detailUser.id}</p>
+                </div>
+                <div className="rounded-xl border border-white/10 bg-[#0F1115]/55 px-3 py-2">
+                  <p className="text-[11px] text-[#A8AFBD]">role</p>
+                  <p className="text-xs font-medium text-[#E7EAF0]">{detailUser.role}</p>
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <Label className="text-xs text-[#F59E0B]">ชื่อจริง (first name)</Label>
+                <Input
+                  value={detailFirstName}
+                  onChange={(e) => setDetailFirstName(e.target.value)}
+                  className="border-white/10 rounded-xl text-sm"
+                />
+              </div>
+
+              {detailUser.lastName && (
+                <div className="space-y-1">
+                  <Label className="text-xs text-[#F59E0B]">นามสกุล (last name)</Label>
+                  <Input
+                    value={detailLastName}
+                    onChange={(e) => setDetailLastName(e.target.value)}
+                    className="border-white/10 rounded-xl text-sm"
+                  />
+                </div>
+              )}
+
+              <div className="space-y-1">
+                <Label className="text-xs text-[#F59E0B]">กลุ่ม</Label>
+                <GlassSelect
+                  value={detailGroupId}
+                  onChange={setDetailGroupId}
+                  options={[
+                    { value: "", label: "ไม่มีกลุ่ม" },
+                    ...groups.map((g) => {
+                      const remaining = GROUP_CAPACITY - g.memberCount;
+                      const isFull = remaining === 0;
+                      const isCurrentGroup = g.id === (detailUser.groupId || "");
+                      return {
+                        value: g.id,
+                        label: `${g.name} ${isFull ? "(เต็มแล้ว)" : `(ว่าง ${remaining} ที่)`}`,
+                        disabled: isFull && !isCurrentGroup,
+                      };
+                    }),
+                  ]}
+                />
+              </div>
+
+              {showDetailPassword && (
+                <div className="space-y-1">
+                  <Label className="text-xs text-[#F59E0B]">รหัสผ่าน</Label>
+                  <Input
+                    type="password"
+                    value={detailPassword}
+                    onChange={(e) => {
+                      setDetailPassword(e.target.value);
+                      setPasswordError("");
+                    }}
+                    placeholder="กรอกรหัสผ่านใหม่"
+                    className="border-white/10 rounded-xl text-sm"
+                  />
+                  {passwordError && <p className="text-[#D08A8A] text-xs">{passwordError}</p>}
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-3">
+              <div className="flex justify-center">
+                <button
+                  onClick={() => setShowDetailPassword((v) => !v)}
+                  disabled={detailSaving}
+                  className="px-4 py-2 rounded-xl text-sm font-medium border border-white/10 text-[#F59E0B] hover:bg-[#1A1D23]/70 transition-colors disabled:opacity-50"
+                >
+                  แก้รหัสผ่าน
+                </button>
+              </div>
+              <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+<button
+                onClick={() => {
+                  setDetailUser(null);
+                  setDialog({
+                    type: "deleteUser",
+                    userId: detailUser.id,
+                    userName: detailUser.realName,
+                  });
+                }}
+                disabled={detailSaving}
+                className="px-4 py-2 rounded-xl text-sm font-medium bg-[#7A3434] hover:bg-[#5F2727] text-white transition-colors disabled:opacity-50"
+              >
+                ลบ
+              </button>
+              <button
+                onClick={handleSaveUserDetail}
+                disabled={!detailChanged || detailSaving}
+                className="px-4 py-2 rounded-xl text-sm font-medium bg-[#F59E0B] hover:bg-[#D97706] text-[#111318] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                {detailSaving ? "กำลังบันทึก..." : "บันทึก"}
+              </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </AppModal>
+
       {/* Confirmation Dialog */}
       <AppModal
         open={dialog !== null}
@@ -279,7 +501,7 @@ export default function AdminClient({ users, groups }: AdminClientProps) {
         }}
         backdropColor="rgba(0,0,0,0.55)"
       >
-        <div className="fixed bottom-0 left-0 right-0 glass-panel glass-glow rounded-t-2xl shadow-2xl w-full max-h-[90vh] overflow-y-auto p-5 outline-none border border-white/10 animate-in slide-in-from-bottom-6 duration-200 sm:slide-in-from-bottom-0 sm:zoom-in-95 sm:absolute sm:top-1/2 sm:left-1/2 sm:bottom-auto sm:right-auto sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-2xl sm:w-[calc(100%-2rem)] sm:max-w-sm">
+        <div className="fixed bottom-0 left-0 right-0 rounded-t-2xl bg-[rgb(23,26,32)] shadow-2xl w-full max-h-[65vh] overflow-y-auto p-5 outline-none border border-white/10 animate-in slide-in-from-bottom-6 duration-200 sm:slide-in-from-bottom-0 sm:zoom-in-95 sm:absolute sm:top-1/2 sm:left-1/2 sm:bottom-auto sm:right-auto sm:max-h-[90vh] sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-2xl sm:w-[calc(100%-2rem)] sm:max-w-sm">
           <div
             className={`mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-full ${dialogIconClass}`}
           >
@@ -628,19 +850,18 @@ export default function AdminClient({ users, groups }: AdminClientProps) {
 
               <div className="glass-card rounded-2xl overflow-clip">
                 <div className="overflow-auto max-h-96">
-                  <table className="w-full min-w-[560px] text-sm">
+                  <table className="responsive-table w-full min-w-[420px] text-sm">
                     <thead>
                       <tr className="z-50">
                         <th className="sticky top-0 z-20 bg-[#000000] text-left px-3 py-2.5 font-semibold text-[#F59E0B] whitespace-nowrap border-b border-white/10">
-                          ชื่อ-นามสกุล
+                          ชื่อ
                         </th>
                         <th className="sticky top-0 z-20 bg-[#000000] text-left px-3 py-2.5 font-semibold text-[#F59E0B] border-b border-white/10">
                           กลุ่ม
                         </th>
-                        <th className="sticky top-0 z-20 bg-[#000000] text-left px-3 py-2.5 font-semibold text-[#F59E0B] border-b border-white/10">
-                          บทบาท
+                        <th className="sticky top-0 z-20 bg-[#000000] text-right px-3 py-2.5 font-semibold text-[#F59E0B] border-b border-white/10">
+                          รายละเอียด
                         </th>
-                        <th className="sticky top-0 z-20 bg-[#000000] px-3 py-2.5 border-b border-white/10" />
                       </tr>
                     </thead>
                     <tbody>
@@ -649,125 +870,32 @@ export default function AdminClient({ users, groups }: AdminClientProps) {
                           key={u.id}
                           className={`border-b border-white/10 last:border-0 ${i % 2 === 0 ? "bg-[#171A20]/70" : "bg-[#0F1115]/55"}`}
                         >
-                          <td className="px-3 py-2.5 whitespace-nowrap">
+                          <td data-label="ชื่อ" className="px-3 py-2.5 whitespace-nowrap">
                             <p className="font-medium text-[#E7EAF0] whitespace-nowrap">
                               {u.realName}
                             </p>
-                            <p className="text-xs text-[#A8AFBD]">
+                            <p className="mobile-card-hidden text-xs text-[#A8AFBD]">
                               {u.username}
                             </p>
                           </td>
-                          <td className="px-3 py-2.5">
-                            <GlassSelect
-                              size="sm"
-                              value={
-                                userGroupSelections[u.id] ?? u.groupId ?? ""
-                              }
-                              highlight={
-                                (userGroupSelections[u.id] ??
-                                  u.groupId ??
-                                  "") !== (u.groupId ?? "")
-                              }
-                              onChange={(val) =>
-                                setUserGroupSelections((prev) => ({
-                                  ...prev,
-                                  [u.id]: val,
-                                }))
-                              }
-                              options={[
-                                { value: "", label: "ไม่มีกลุ่ม" },
-                                ...groups.map((g) => {
-                                  const remaining =
-                                    GROUP_CAPACITY - g.memberCount;
-                                  const isFull = remaining === 0;
-                                  const isCurrentGroup =
-                                    g.id === (u.groupId || "");
-                                  return {
-                                    value: g.id,
-                                    label: `${g.name} ${isFull ? "(เต็มแล้ว)" : `(ว่าง ${remaining} ที่)`}`,
-                                    disabled: isFull && !isCurrentGroup,
-                                  };
-                                }),
-                              ]}
-                            />
+                          <td data-label="user_id" className="responsive-card-only px-3 py-2.5 text-[#E7EAF0] whitespace-nowrap">
+                            {u.username}
                           </td>
-                          <td className="px-3 py-2.5">
-                            <span
-                              className={`text-xs px-2 py-0.5 rounded-full ${u.role === "ADMIN" ? "bg-[#F59E0B] text-[#111318]" : "bg-[#242832]/65 text-[#F59E0B]"}`}
+                          <td data-label="กลุ่ม" className="px-3 py-2.5 text-[#E7EAF0] whitespace-nowrap">
+                            {u.groupName}
+                          </td>
+                          <td data-label="รายละเอียด" className="px-3 py-2.5 text-right">
+                            <button
+                              onClick={() => openUserDetail(u)}
+                              className="rounded-lg border border-[#F59E0B]/25 px-3 py-1.5 text-xs font-medium text-[#F59E0B] hover:bg-[#F59E0B]/10 transition-colors"
                             >
-                              {u.role === "ADMIN" ? "Admin" : "User"}
-                            </span>
-                          </td>
-                          <td className="px-3 py-2.5">
-                            <div className="flex items-center gap-2 justify-end">
-                              <button
-                                onClick={() => {
-                                  setEditFirstName(u.firstName);
-                                  setEditLastName(u.lastName);
-                                  setDialog({
-                                    type: "editUserName",
-                                    userId: u.id,
-                                    userName: u.realName,
-                                  });
-                                }}
-                                className="text-[#A8AFBD] hover:text-[#F59E0B] transition-colors"
-                                title="แก้ไขชื่อ"
-                              >
-                                <Pencil size={14} />
-                              </button>
-                              <button
-                                onClick={() => {
-                                  setNewPassword("");
-                                  setPasswordError("");
-                                  setDialog({
-                                    type: "changePassword",
-                                    userId: u.id,
-                                    userName: u.realName,
-                                  });
-                                }}
-                                className="text-[#A8AFBD] hover:text-[#F59E0B] transition-colors"
-                                title="เปลี่ยนรหัสผ่าน"
-                              >
-                                <KeyRound size={14} />
-                              </button>
-                              <button
-                                onClick={() =>
-                                  setDialog({
-                                    type: "deleteUser",
-                                    userId: u.id,
-                                    userName: u.realName,
-                                  })
-                                }
-                                className="text-[#C77D7D] hover:text-[#E2B0B0] transition-colors"
-                                title="ลบผู้ใช้"
-                              >
-                                <Trash2 size={14} />
-                              </button>
-                            </div>
+                              รายละเอียด
+                            </button>
                           </td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
-                </div>
-                <div className="px-3 py-2.5 border-t border-white/10 flex items-center justify-between bg-[#171A20]/70">
-                  <p className="text-xs text-[#A8AFBD]">
-                    {pendingGroupChanges.length > 0
-                      ? `${pendingGroupChanges.length} รายการที่รอบันทึก`
-                      : "ไม่มีการเปลี่ยนแปลง"}
-                  </p>
-                  <button
-                    disabled={pendingGroupChanges.length === 0}
-                    onClick={() =>
-                      setDialog({
-                        type: "saveGroups",
-                        changes: pendingGroupChanges,
-                      })
-                    }
-                    className="text-xs px-4 py-1.5 bg-[#F59E0B] text-[#111318] rounded-lg hover:bg-[#D97706] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                  >
-                    บันทึก
-                  </button>
                 </div>
               </div>
             </div>
@@ -828,7 +956,7 @@ export default function AdminClient({ users, groups }: AdminClientProps) {
 
               <div className="glass-card rounded-2xl overflow-clip">
                 <div className="overflow-y-auto max-h-96">
-                  <table className="w-full text-sm">
+                  <table className="responsive-table w-full text-sm">
                     <thead>
                       <tr>
                         <th className="sticky top-0 z-20 bg-[#1A1D23] text-left px-4 py-2.5 font-semibold text-[#F59E0B] border-b border-white/10">
@@ -846,13 +974,13 @@ export default function AdminClient({ users, groups }: AdminClientProps) {
                           key={g.id}
                           className={`border-b border-white/10 last:border-0 ${i % 2 === 0 ? "bg-[#171A20]/70" : "bg-[#0F1115]/55"}`}
                         >
-                          <td className="px-4 py-2.5 font-medium text-[#E7EAF0]">
+                          <td data-label="ชื่อกลุ่ม" className="px-4 py-2.5 font-medium text-[#E7EAF0]">
                             {g.name}
                           </td>
-                          <td className="px-4 py-2.5 text-xs text-[#A8AFBD]">
+                          <td data-label="สร้างเมื่อ" className="px-4 py-2.5 text-xs text-[#A8AFBD]">
                             {formatThaiDate(new Date(g.createdAt))}
                           </td>
-                          <td className="px-4 py-2.5">
+                          <td data-label="จัดการ" className="px-4 py-2.5">
                             <div className="flex items-center gap-3 justify-end">
                               <button
                                 onClick={() => {

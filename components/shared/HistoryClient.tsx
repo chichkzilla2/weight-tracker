@@ -263,7 +263,7 @@ export default function HistoryClient({
 
       <div className="glass-card rounded-2xl overflow-hidden mb-5">
         <div className="overflow-x-auto overflow-y-auto max-h-80">
-          <table className="w-full text-sm">
+          <table className="responsive-table w-full text-sm">
             <thead>
               <tr className="bg-[#000000] border-b border-white/10 sticky top-0 z-10">
                 <th className="text-left px-4 py-3 font-semibold text-[#F59E0B] whitespace-nowrap">
@@ -289,19 +289,19 @@ export default function HistoryClient({
                   key={row.monthKey}
                   className={`border-b border-white/10 last:border-0 ${i % 2 === 0 ? "bg-[#171A20]/70" : "bg-[#0F1115]/55"}`}
                 >
-                  <td className="px-4 py-3 text-[#E7EAF0] whitespace-nowrap">
+                  <td data-label="เดือน" className="px-4 py-3 text-[#E7EAF0] whitespace-nowrap">
                     {THAI_MONTHS[i]}
                   </td>
-                  <td className="px-4 py-3 text-right text-[#E7EAF0] whitespace-nowrap">
+                  <td data-label="น้ำหนัก" className="px-4 py-3 text-right text-[#E7EAF0] whitespace-nowrap">
                     {row.weight !== null ? `${row.weight.toFixed(1)} กก.` : "—"}
                   </td>
-                  <td className="px-4 py-3 text-right whitespace-nowrap">
+                  <td data-label="น้ำหนักเปลี่ยน" className="px-4 py-3 text-right whitespace-nowrap">
                     {changeCell(row.weightChange, "")}
                   </td>
-                  <td className="px-4 py-3 text-right text-[#E7EAF0] whitespace-nowrap">
+                  <td data-label="รอบเอว" className="px-4 py-3 text-right text-[#E7EAF0] whitespace-nowrap">
                     {row.waist !== null ? `${row.waist.toFixed(1)} ซม.` : "—"}
                   </td>
-                  <td className="px-4 py-3 text-right whitespace-nowrap">
+                  <td data-label="รอบเอวเปลี่ยน" className="px-4 py-3 text-right whitespace-nowrap">
                     {changeCell(row.waistChange, "")}
                   </td>
                 </tr>
@@ -476,7 +476,7 @@ export default function HistoryClient({
         <div className="glass-card rounded-2xl overflow-hidden mb-5">
           <div className="overflow-x-auto overflow-y-auto max-h-96">
             {entryTab === "weight" ? (
-              <table className="w-full text-sm">
+              <table className="responsive-table w-full text-sm">
                 <thead>
                   <tr className="bg-[#000000] border-b border-white/10 sticky top-0 z-10">
                     <th className="text-left px-4 py-3 font-semibold text-[#F59E0B] whitespace-nowrap">
@@ -495,6 +495,7 @@ export default function HistoryClient({
                   {weightEntriesWithChange.length === 0 ? (
                     <tr>
                       <td
+                        data-label=""
                         colSpan={4}
                         className="px-4 py-8 text-center text-[#A8AFBD]"
                       >
@@ -507,16 +508,16 @@ export default function HistoryClient({
                         key={e.id}
                         className={`border-b border-white/10 last:border-0 ${i % 2 === 0 ? "bg-[#171A20]/70" : "bg-[#0F1115]/55"}`}
                       >
-                        <td className="px-4 py-3 text-[#E7EAF0] whitespace-nowrap">
+                        <td data-label="วันที่" className="px-4 py-3 text-[#E7EAF0] whitespace-nowrap">
                           {formatThaiDateTime(new Date(e.recordedAt))}
                         </td>
-                        <td className="px-4 py-3 text-right font-medium text-[#E7EAF0] whitespace-nowrap">
+                        <td data-label="น้ำหนัก (กก.)" className="px-4 py-3 text-right font-medium text-[#E7EAF0] whitespace-nowrap">
                           {e.weight.toFixed(1)}
                         </td>
-                        <td className="px-4 py-3 text-right whitespace-nowrap">
+                        <td data-label="เปลี่ยนแปลง" className="px-4 py-3 text-right whitespace-nowrap">
                           {changeCell(e.change, "")}
                         </td>
-                        <td className="px-4 py-3 text-right whitespace-nowrap">
+                        <td data-label="จัดการ" className="px-4 py-3 text-right whitespace-nowrap">
                           <button
                             onClick={() => handleDeleteWeight(e)}
                             disabled={isPending}
@@ -531,7 +532,7 @@ export default function HistoryClient({
                 </tbody>
               </table>
             ) : (
-              <table className="w-full text-sm">
+              <table className="responsive-table w-full text-sm">
                 <thead>
                   <tr className="bg-[#000000] border-b border-white/10 sticky top-0 z-10">
                     <th className="text-left px-4 py-3 font-semibold text-[#F59E0B] whitespace-nowrap">
@@ -550,6 +551,7 @@ export default function HistoryClient({
                   {waistEntriesWithChange.length === 0 ? (
                     <tr>
                       <td
+                        data-label=""
                         colSpan={4}
                         className="px-4 py-8 text-center text-[#A8AFBD]"
                       >
@@ -562,16 +564,16 @@ export default function HistoryClient({
                         key={e.id}
                         className={`border-b border-white/10 last:border-0 ${i % 2 === 0 ? "bg-[#171A20]/70" : "bg-[#0F1115]/55"}`}
                       >
-                        <td className="px-4 py-3 text-[#E7EAF0] whitespace-nowrap">
+                        <td data-label="วันที่" className="px-4 py-3 text-[#E7EAF0] whitespace-nowrap">
                           {formatThaiDateTime(new Date(e.recordedAt))}
                         </td>
-                        <td className="px-4 py-3 text-right font-medium text-[#E7EAF0] whitespace-nowrap">
+                        <td data-label="รอบเอว (ซม.)" className="px-4 py-3 text-right font-medium text-[#E7EAF0] whitespace-nowrap">
                           {e.waist.toFixed(1)}
                         </td>
-                        <td className="px-4 py-3 text-right whitespace-nowrap">
+                        <td data-label="เปลี่ยนแปลง" className="px-4 py-3 text-right whitespace-nowrap">
                           {changeCell(e.change, "")}
                         </td>
-                        <td className="px-4 py-3 text-right whitespace-nowrap">
+                        <td data-label="จัดการ" className="px-4 py-3 text-right whitespace-nowrap">
                           <button
                             onClick={() => handleDeleteWaist(e)}
                             disabled={isPending}
@@ -597,7 +599,7 @@ export default function HistoryClient({
           if (!isPending) setDeleteTarget(null);
         }}
       >
-        <div className="fixed bottom-0 left-0 right-0 glass-panel glass-glow rounded-t-2xl shadow-2xl w-full max-h-[90vh] overflow-y-auto p-5 outline-none border border-white/10 animate-in slide-in-from-bottom-6 duration-200 sm:slide-in-from-bottom-0 sm:zoom-in-95 sm:absolute sm:top-1/2 sm:left-1/2 sm:bottom-auto sm:right-auto sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-2xl sm:w-[calc(100%-2rem)] sm:max-w-sm">
+        <div className="fixed bottom-0 left-0 right-0 rounded-t-2xl bg-[rgb(23,26,32)] shadow-2xl w-full max-h-[65vh] overflow-y-auto p-5 outline-none border border-white/10 animate-in slide-in-from-bottom-6 duration-200 sm:slide-in-from-bottom-0 sm:zoom-in-95 sm:absolute sm:top-1/2 sm:left-1/2 sm:bottom-auto sm:right-auto sm:max-h-[90vh] sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-2xl sm:w-[calc(100%-2rem)] sm:max-w-sm">
           <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-full bg-[#8A3F3F]/20 text-[#D08A8A]">
             <Trash2 size={23} />
           </div>

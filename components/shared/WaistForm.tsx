@@ -66,7 +66,7 @@ export default function WaistForm() {
       </div>
 
       <AppModal open={open} onClose={() => setOpen(false)}>
-        <div className="fixed bottom-0 left-0 right-0 glass-panel glass-glow rounded-t-2xl shadow-2xl w-full max-h-[90vh] overflow-y-auto p-5 outline-none border border-white/10 animate-in slide-in-from-bottom-6 duration-200 sm:slide-in-from-bottom-0 sm:zoom-in-95 sm:absolute sm:top-1/2 sm:left-1/2 sm:bottom-auto sm:right-auto sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-2xl sm:w-[calc(100%-2rem)] sm:max-w-sm">
+        <div className="fixed bottom-0 left-0 right-0 rounded-t-2xl bg-[rgb(23,26,32)] shadow-2xl w-full max-h-[65vh] overflow-y-auto p-5 outline-none border border-white/10 animate-in slide-in-from-bottom-6 duration-200 sm:slide-in-from-bottom-0 sm:zoom-in-95 sm:absolute sm:top-1/2 sm:left-1/2 sm:bottom-auto sm:right-auto sm:max-h-[90vh] sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-2xl sm:w-[calc(100%-2rem)] sm:max-w-sm">
           <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-full bg-[#F59E0B]/15 text-[#F59E0B]">
             <CheckCircle2 size={24} />
           </div>

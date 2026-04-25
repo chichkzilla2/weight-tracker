@@ -31,7 +31,7 @@ function DialogOverlay({
     <DialogPrimitive.Backdrop
       data-slot="dialog-overlay"
       className={cn(
-        "fixed inset-0 isolate z-50 bg-black/45 duration-100 supports-backdrop-filter:backdrop-blur-sm data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0",
+        "fixed inset-0 isolate z-50 bg-black/60 duration-100 data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0",
         className
       )}
       {...props}
@@ -53,7 +53,7 @@ function DialogContent({
       <DialogPrimitive.Popup
         data-slot="dialog-content"
         className={cn(
-          "glass-panel glass-glow fixed bottom-0 left-0 z-50 grid max-h-[90vh] w-full gap-4 overflow-y-auto rounded-t-xl bg-popover/70 p-4 text-sm text-popover-foreground ring-1 ring-foreground/10 duration-100 outline-none sm:top-1/2 sm:left-1/2 sm:bottom-auto sm:max-w-sm sm:max-w-[calc(100%-2rem)] sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-xl data-open:animate-in data-open:fade-in-0 data-open:slide-in-from-bottom-6 sm:data-open:slide-in-from-bottom-0 sm:data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
+          "fixed bottom-0 left-0 z-50 grid max-h-[65vh] w-full gap-4 overflow-y-auto rounded-t-xl border border-white/10 bg-[rgb(23,26,32)] p-4 text-sm text-popover-foreground shadow-2xl ring-1 ring-foreground/10 duration-100 outline-none sm:top-1/2 sm:left-1/2 sm:bottom-auto sm:max-h-[90vh] sm:max-w-sm sm:max-w-[calc(100%-2rem)] sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-xl data-open:animate-in data-open:fade-in-0 data-open:slide-in-from-bottom-6 sm:data-open:slide-in-from-bottom-0 sm:data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
           className
         )}
         {...props}
@@ -102,7 +102,7 @@ function DialogFooter({
     <div
       data-slot="dialog-footer"
       className={cn(
-        "-mx-4 -mb-4 glass-soft flex flex-col-reverse gap-2 rounded-b-xl border-t bg-muted/30 p-4 sm:flex-row sm:justify-end",
+        "-mx-4 -mb-4 flex flex-col-reverse gap-2 rounded-b-xl border-t border-white/10 bg-[#21130d] p-4 sm:flex-row sm:justify-end",
         className
       )}
       {...props}

@@ -31,6 +31,7 @@ const SORT_COLS: {
 interface Props {
   allGroupsWaist: SerializedGroupWithUsers[];
   userRole: string;
+  individualSearch: string;
 }
 
 const BAR_COLORS = ["#F59E0B", "#A8AFBD"];
@@ -57,6 +58,7 @@ function getGroupLatestTotal(users: SerializedGroupWithUsers["users"]) {
 export default function DashboardWaistSection({
   allGroupsWaist,
   userRole,
+  individualSearch,
 }: Props) {
   const [sort, setSort] = useState<{ col: SortCol; dir: SortDir } | null>({
     col: "change",
@@ -176,6 +178,10 @@ export default function DashboardWaistSection({
             latestWaist: null,
             change: null,
             percentChange: null,
+            searchText: [u.firstName, u.lastName, u.realName]
+              .filter(Boolean)
+              .join(" ")
+              .toLowerCase(),
           };
         const sorted = [...u.weightEntries].sort(
           (a, b) =>
@@ -191,14 +197,24 @@ export default function DashboardWaistSection({
           latestWaist: latest,
           change,
           percentChange: parseFloat(((change / first) * 100).toFixed(2)),
+          searchText: [u.firstName, u.lastName, u.realName]
+            .filter(Boolean)
+            .join(" ")
+            .toLowerCase(),
         };
       }),
     );
   }, [allGroupsWaist, userRole]);
 
+  const filteredIndividualStats = useMemo(() => {
+    const q = individualSearch.trim().toLowerCase();
+    if (!q) return individualStats;
+    return individualStats.filter((row) => row.searchText.includes(q));
+  }, [individualSearch, individualStats]);
+
   const sortedStats = useMemo(() => {
-    if (!sort) return individualStats;
-    return [...individualStats].sort((a, b) => {
+    if (!sort) return filteredIndividualStats;
+    return [...filteredIndividualStats].sort((a, b) => {
       const aVal =
         sort.col === "firstWaist"
           ? a.firstWaist
@@ -229,7 +245,7 @@ export default function DashboardWaistSection({
       const diff = aVal - bVal;
       return sort.dir === "asc" ? diff : -diff;
     });
-  }, [individualStats, sort]);
+  }, [filteredIndividualStats, sort]);
 
   const summaryCards = [
     {
@@ -377,7 +393,7 @@ export default function DashboardWaistSection({
           </div>
           <div className="glass-card rounded-2xl overflow-hidden">
             <div className="overflow-x-auto overflow-y-auto max-h-96">
-              <table className="w-full text-base">
+              <table className="responsive-table w-full text-base">
                 <thead>
                   <tr className="bg-[#000000] border-b border-white/10 sticky top-0 z-10">
                     <th className="text-left px-5 py-4 font-semibold text-[#F59E0B] whitespace-nowrap">
@@ -406,23 +422,24 @@ export default function DashboardWaistSection({
                       key={row.id}
                       className={`border-b border-white/10 last:border-0 ${idx % 2 === 0 ? "bg-[#171A20]/70" : "bg-[#0F1115]/55"}`}
                     >
-                      <td className="px-5 py-4 text-[#F59E0B] font-bold whitespace-nowrap">
+                      <td data-label="ลำดับที่" className="rank-card-row px-5 py-4 text-[#F59E0B] font-bold whitespace-nowrap">
                         {idx + 1}
                       </td>
-                      <td className="px-5 py-4 text-[#E7EAF0] font-medium whitespace-nowrap">
+                      <td data-label="ชื่อ" className="px-5 py-4 text-[#E7EAF0] font-medium whitespace-nowrap">
                         {row.name}
                       </td>
-                      <td className="px-5 py-4 text-right text-[#E7EAF0] whitespace-nowrap">
+                      <td data-label="รอบเอวเริ่มต้น" className="px-5 py-4 text-right text-[#E7EAF0] whitespace-nowrap">
                         {row.firstWaist !== null
                           ? row.firstWaist.toFixed(1)
                           : "—"}
                       </td>
-                      <td className="px-5 py-4 text-right text-[#E7EAF0] whitespace-nowrap">
+                      <td data-label="รอบเอวล่าสุด" className="px-5 py-4 text-right text-[#E7EAF0] whitespace-nowrap">
                         {row.latestWaist !== null
                           ? row.latestWaist.toFixed(1)
                           : "—"}
                       </td>
                       <td
+                        data-label="เปลี่ยนแปลง (ซม.)"
                         className={`px-5 py-4 text-right font-medium whitespace-nowrap ${row.change === null ? "text-[#A8AFBD]" : row.change < 0 ? "text-green-600" : row.change > 0 ? "text-[#D08A8A]" : "text-[#E7EAF0]"}`}
                       >
                         {row.change !== null
@@ -430,6 +447,7 @@ export default function DashboardWaistSection({
                           : "—"}
                       </td>
                       <td
+                        data-label="% เปลี่ยนแปลง"
                         className={`px-5 py-4 text-right font-bold whitespace-nowrap ${row.percentChange === null ? "text-[#A8AFBD]" : row.percentChange < 0 ? "text-green-600" : row.percentChange > 0 ? "text-[#D08A8A]" : "text-[#E7EAF0]"}`}
                       >
                         {row.percentChange !== null

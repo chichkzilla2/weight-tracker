@@ -23,6 +23,8 @@ export interface SerializedWeightEntry {
 export interface SerializedUserWithEntries {
   id: string
   realName: string
+  firstName?: string | null
+  lastName?: string | null
   weightEntries: SerializedWeightEntry[]
 }
 

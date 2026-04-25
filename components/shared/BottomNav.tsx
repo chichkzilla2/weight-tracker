@@ -65,7 +65,7 @@ export default function BottomNav() {
 
       {/* Mobile: floating pill bottom bar */}
       <nav
-        className="lg:hidden fixed left-3 right-3 bottom-[calc(env(safe-area-inset-bottom)+15px)] h-16 flex items-center justify-around rounded-4xl bg-[#1C1F26]/50 backdrop-blur-md border border-[#F59E0B]/20 shadow-xl z-50 overflow-visible"
+        className="lg:hidden fixed left-4 right-4 bottom-[calc(env(safe-area-inset-bottom)+18px)] h-16 flex items-center justify-around rounded-[1.75rem] bg-[#151820]/90 backdrop-blur-xl border border-[#F59E0B]/25 shadow-2xl shadow-black/40 z-50 overflow-visible"
         onMouseLeave={() => setHoveredIndex(null)}
       >
         {navItems.map((item, index) => {

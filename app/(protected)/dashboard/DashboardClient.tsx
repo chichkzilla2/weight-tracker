@@ -16,6 +16,8 @@ interface EntryData {
 interface UserData {
   id: string;
   realName: string;
+  firstName?: string | null;
+  lastName?: string | null;
   weightEntries: EntryData[];
 }
 
@@ -110,6 +112,7 @@ export default function DashboardClient({
     string[]
   >(() => groups.map((g) => g.id));
   const [weightDropdownOpen, setWeightDropdownOpen] = useState(false);
+  const [individualSearch, setIndividualSearch] = useState("");
   const weightFilterRef = useRef<HTMLDivElement>(null);
 
   const filteredGroups = useMemo(() => {
@@ -219,6 +222,7 @@ export default function DashboardClient({
       latestWeight: number | null;
       change: number | null;
       percentChange: number | null;
+      searchText: string;
     }> = [];
 
     for (const group of allGroups) {
@@ -231,6 +235,10 @@ export default function DashboardClient({
             latestWeight: null,
             change: null,
             percentChange: null,
+            searchText: [user.firstName, user.lastName, user.realName]
+              .filter(Boolean)
+              .join(" ")
+              .toLowerCase(),
           });
           continue;
         }
@@ -251,6 +259,10 @@ export default function DashboardClient({
           latestWeight,
           change,
           percentChange,
+          searchText: [user.firstName, user.lastName, user.realName]
+            .filter(Boolean)
+            .join(" ")
+            .toLowerCase(),
         });
       }
     }
@@ -263,9 +275,15 @@ export default function DashboardClient({
     dir: "asc",
   });
 
+  const filteredIndividualStats = useMemo(() => {
+    const q = individualSearch.trim().toLowerCase();
+    if (!q) return individualStats;
+    return individualStats.filter((row) => row.searchText.includes(q));
+  }, [individualSearch, individualStats]);
+
   const sortedStats = useMemo(() => {
-    if (!sort) return individualStats;
-    return [...individualStats].sort((a, b) => {
+    if (!sort) return filteredIndividualStats;
+    return [...filteredIndividualStats].sort((a, b) => {
       const aVal = a[sort.col];
       const bVal = b[sort.col];
       if (aVal === null && bVal === null) return 0;
@@ -278,7 +296,7 @@ export default function DashboardClient({
       const diff = (aVal as number) - (bVal as number);
       return sort.dir === "asc" ? diff : -diff;
     });
-  }, [individualStats, sort]);
+  }, [filteredIndividualStats, sort]);
 
   function handleSortChange(col: SortCol, value: string) {
     if (value === "none") setSort(null);
@@ -435,6 +453,12 @@ export default function DashboardClient({
               น้ำหนักที่เปลี่ยนแปลง = น้ำหนักล่าสุด - น้ำหนักเริ่มต้น
               และเปอร์เซ็นต์คิดจากน้ำหนักเริ่มต้น
             </p>
+            <input
+              value={individualSearch}
+              onChange={(e) => setIndividualSearch(e.target.value)}
+              placeholder="ค้นหาชื่อจริง / นามสกุล..."
+              className="mb-3 w-full rounded-xl border border-white/10 px-3 py-2 text-sm text-[#E7EAF0] focus:outline-none focus:border-[#F59E0B]"
+            />
 
             {/* Sort controls */}
             <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-2 mb-3">
@@ -459,7 +483,7 @@ export default function DashboardClient({
 
             <div className="glass-card rounded-2xl overflow-hidden">
               <div className="overflow-x-auto overflow-y-auto max-h-96">
-                <table className="w-full text-base">
+                <table className="responsive-table w-full text-base">
                   <thead>
                     <tr className="bg-[#000000] border-b border-white/10 sticky top-0 z-10">
                       <th className="text-left px-5 py-4 font-semibold text-[#F59E0B] whitespace-nowrap">
@@ -490,23 +514,24 @@ export default function DashboardClient({
                           idx % 2 === 0 ? "bg-[#171A20]/70" : "bg-[#0F1115]/55"
                         }`}
                       >
-                        <td className="px-5 py-4 text-[#F59E0B] font-bold whitespace-nowrap">
+                        <td data-label="ลำดับที่" className="rank-card-row px-5 py-4 text-[#F59E0B] font-bold whitespace-nowrap">
                           {idx + 1}
                         </td>
-                        <td className="px-5 py-4 text-[#E7EAF0] font-medium whitespace-nowrap">
+                        <td data-label="ชื่อ" className="px-5 py-4 text-[#E7EAF0] font-medium whitespace-nowrap">
                           {row.name}
                         </td>
-                        <td className="px-5 py-4 text-right text-[#E7EAF0] whitespace-nowrap">
+                        <td data-label="น้ำหนักเริ่มต้น" className="px-5 py-4 text-right text-[#E7EAF0] whitespace-nowrap">
                           {row.firstWeight !== null
                             ? `${row.firstWeight.toFixed(1)}`
                             : "—"}
                         </td>
-                        <td className="px-5 py-4 text-right text-[#E7EAF0] whitespace-nowrap">
+                        <td data-label="น้ำหนักล่าสุด" className="px-5 py-4 text-right text-[#E7EAF0] whitespace-nowrap">
                           {row.latestWeight !== null
                             ? `${row.latestWeight.toFixed(1)}`
                             : "—"}
                         </td>
                         <td
+                          data-label="เปลี่ยนแปลง (กก.)"
                           className={`px-5 py-4 text-right font-medium whitespace-nowrap ${
                             row.change === null
                               ? "text-[#A8AFBD]"
@@ -522,6 +547,7 @@ export default function DashboardClient({
                             : "—"}
                         </td>
                         <td
+                          data-label="% เปลี่ยนแปลง"
                           className={`px-5 py-4 text-right font-bold whitespace-nowrap ${
                             row.percentChange === null
                               ? "text-[#A8AFBD]"
@@ -554,6 +580,7 @@ export default function DashboardClient({
         <DashboardWaistSection
           allGroupsWaist={allGroupsWaist}
           userRole={userRole}
+          individualSearch={individualSearch}
         />
       </div>
     </div>

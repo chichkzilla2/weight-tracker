@@ -168,7 +168,7 @@ function LoginContent() {
       </div>
 
       <AppModal open={nameDialogOpen} onClose={() => {}} backdropColor="rgba(0,0,0,0.68)">
-        <div className="fixed bottom-0 left-0 right-0 w-full rounded-t-2xl glass-panel glass-glow max-h-[90vh] overflow-y-auto p-5 shadow-2xl outline-none border border-white/10 animate-in slide-in-from-bottom-6 duration-200 sm:slide-in-from-bottom-0 sm:zoom-in-95 sm:absolute sm:top-1/2 sm:left-1/2 sm:bottom-auto sm:right-auto sm:w-[calc(100%-2rem)] sm:max-w-sm sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-2xl">
+        <div className="fixed bottom-0 left-0 right-0 w-full rounded-t-2xl bg-[rgb(23,26,32)] max-h-[65vh] overflow-y-auto p-5 shadow-2xl outline-none border border-white/10 animate-in slide-in-from-bottom-6 duration-200 sm:slide-in-from-bottom-0 sm:zoom-in-95 sm:absolute sm:top-1/2 sm:left-1/2 sm:bottom-auto sm:right-auto sm:max-h-[90vh] sm:w-[calc(100%-2rem)] sm:max-w-sm sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-2xl">
           <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-full bg-[#F59E0B]/15 text-[#F59E0B]">
             <UserRound size={23} />
           </div>

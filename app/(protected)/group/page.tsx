@@ -187,7 +187,7 @@ export default async function GroupPage() {
             <p className="text-xs text-[#A8AFBD]">{monthName}</p>
           </div>
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="responsive-table w-full text-sm">
               <thead>
                 <tr className="bg-[#000000] border-b border-white/10">
                   <th className="text-left px-4 py-2.5 font-semibold text-[#A8AFBD] whitespace-nowrap">
@@ -219,10 +219,10 @@ export default async function GroupPage() {
                           : "bg-[#0F1115]/35"
                     }`}
                   >
-                    <td className="px-4 py-3">
+                    <td data-label="ชื่อ" className="px-4 py-3">
                       <div className="flex items-center gap-2.5">
                         <div
-                          className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-[#111318] ${
+                          className={`mobile-card-hidden flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-[#111318] ${
                             m.isMe ? "bg-[#E7EAF0]" : "bg-[#F59E0B]"
                           }`}
                         >
@@ -237,7 +237,7 @@ export default async function GroupPage() {
                               </span>
                             )}
                           </p>
-                          <p className="text-[10px] text-[#A8AFBD]">
+                          <p className="mobile-card-hidden text-[10px] text-[#A8AFBD]">
                             {m.weightEntryCount > 0
                               ? `${m.weightEntryCount} ครั้ง`
                               : "ยังไม่บันทึก"}
@@ -245,7 +245,7 @@ export default async function GroupPage() {
                         </div>
                       </div>
                     </td>
-                    <td className="px-3 py-3 text-right whitespace-nowrap">
+                    <td data-label="น้ำหนักล่าสุด" className="px-3 py-3 text-right whitespace-nowrap">
                       {m.lastWeight !== null ? (
                         <span className="text-sm font-bold text-[#F59E0B]">
                           {m.lastWeight.toFixed(1)}
@@ -258,13 +258,13 @@ export default async function GroupPage() {
                         <span className="text-xs text-[#343A46]">—</span>
                       )}
                     </td>
-                    <td className="px-3 py-3 text-right whitespace-nowrap">
+                    <td data-label="น้ำหนักเปลี่ยน" className="px-3 py-3 text-right whitespace-nowrap">
                       <ChangeCell
                         change={m.weightChange}
                         count={m.weightEntryCount}
                       />
                     </td>
-                    <td className="px-3 py-3 text-right whitespace-nowrap">
+                    <td data-label="รอบเอวล่าสุด" className="px-3 py-3 text-right whitespace-nowrap">
                       {m.lastWaist !== null ? (
                         <span className="text-sm font-bold text-[#F59E0B]">
                           {m.lastWaist.toFixed(1)}
@@ -277,7 +277,7 @@ export default async function GroupPage() {
                         <span className="text-xs text-[#343A46]">—</span>
                       )}
                     </td>
-                    <td className="px-3 py-3 text-right whitespace-nowrap">
+                    <td data-label="รอบเอวเปลี่ยน" className="px-3 py-3 text-right whitespace-nowrap">
                       <ChangeCell
                         change={m.waistChange}
                         count={m.waistEntryCount}

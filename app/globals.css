@@ -181,6 +181,20 @@
       inset 0 1px 0 rgba(255, 255, 255, 0.08);
   }
 
+  [data-slot="dialog-content"],
+  [class*="fixed bottom-0"][class*="rounded-t-2xl"] {
+    background: rgb(23, 26, 32) !important;
+    background-color: rgb(23, 26, 32) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  [data-slot="dialog-content"] *,
+  [class*="fixed bottom-0"][class*="rounded-t-2xl"] * {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
   [class*="bg-[#0F1115]"],
   [class*="bg-[#171A20]"],
   [class*="bg-[#1A1D23]"],
@@ -213,6 +227,8 @@
   table {
     border-collapse: separate;
     border-spacing: 0;
+    position: relative;
+    isolation: isolate;
   }
 
   thead {
@@ -223,21 +239,41 @@
 
   thead tr,
   th {
-    background:
-      linear-gradient(145deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.018) 48%, rgba(245, 158, 11, 0.035)),
-      #171a20 !important;
-    background-color: #171a20 !important;
-    box-shadow:
-      inset 0 -1px 0 rgba(245, 158, 11, 0.22),
-      0 8px 18px rgba(0, 0, 0, 0.28);
+    background: #21130d !important;
+    background-color: #21130d !important;
+    box-shadow: none !important;
+    opacity: 1;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
   }
 
   th {
     position: sticky;
     top: 0;
     z-index: 31;
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
+    background-clip: padding-box;
+  }
+
+  td {
+    position: relative;
+    z-index: 1;
+  }
+
+  @media (max-width: 767px) {
+    .glass-card:has(table) {
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+    }
+
+    table {
+      transform: none;
+      contain: paint;
+    }
+
+    thead,
+    th {
+      transform: translateZ(0);
+    }
   }
 
   input,
@@ -246,6 +282,130 @@
     background-color: rgba(10, 12, 16, 0.42);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
+  }
+
+  .responsive-card-only {
+    display: none !important;
+  }
+
+  @media (max-width: 1023px) {
+    .responsive-table {
+      display: block;
+      width: 100%;
+      min-width: 0 !important;
+    }
+
+    .responsive-table thead {
+      display: none;
+    }
+
+    .responsive-table tbody {
+      display: grid;
+      gap: 0.75rem;
+      padding-bottom: 1rem;
+    }
+
+    .responsive-table tr {
+      display: block;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.12) !important;
+      border-radius: 1rem;
+      background:
+        linear-gradient(145deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.018) 48%, rgba(245, 158, 11, 0.025)),
+        var(--glass) !important;
+      box-shadow:
+        0 12px 28px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(14px) saturate(135%);
+      -webkit-backdrop-filter: blur(14px) saturate(135%);
+    }
+
+    .responsive-table td {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 1rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 0.65rem 0.85rem !important;
+      text-align: right !important;
+      white-space: normal !important;
+      font-size: 0.82rem;
+    }
+
+    .responsive-table td:last-child {
+      border-bottom: 0;
+    }
+
+    .responsive-table td::before {
+      content: attr(data-label);
+      flex: 0 0 auto;
+      max-width: 48%;
+      color: #f59e0b;
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-align: left;
+      line-height: 1.35;
+    }
+
+    .responsive-table td > * {
+      min-width: 0;
+    }
+
+    .responsive-table td.responsive-card-only {
+      display: flex !important;
+    }
+
+    .responsive-table td.rank-card-row {
+      justify-content: center;
+      gap: 0.35rem;
+      text-align: center !important;
+      color: #f59e0b;
+      font-weight: 700;
+    }
+
+    .responsive-table td.rank-card-row::before {
+      max-width: none;
+      color: #f59e0b;
+      font-size: 0.82rem;
+    }
+
+    .mobile-card-hidden {
+      display: none !important;
+    }
+
+    .responsive-table td[data-label=""]::before {
+      display: none;
+    }
+
+    .responsive-table td[data-label=""] {
+      justify-content: flex-end;
+    }
+  }
+
+  @media (max-width: 639px) {
+    [data-slot="dialog-content"],
+    [class*="fixed bottom-0"][class*="rounded-t-2xl"] {
+      display: flex !important;
+      flex-direction: column !important;
+      min-height: 60vh !important;
+      max-height: 85vh !important;
+      overflow: hidden !important;
+    }
+
+    [data-slot="dialog-content"] > :first-child,
+    [data-slot="dialog-content"] > :nth-child(2),
+    [data-slot="dialog-content"] > :last-child,
+    [class*="fixed bottom-0"][class*="rounded-t-2xl"] > :first-child,
+    [class*="fixed bottom-0"][class*="rounded-t-2xl"] > :nth-child(2),
+    [class*="fixed bottom-0"][class*="rounded-t-2xl"] > :last-child {
+      flex-shrink: 0;
+    }
+
+    [data-slot="dialog-content"] > :nth-child(3),
+    [class*="fixed bottom-0"][class*="rounded-t-2xl"] > :nth-child(3) {
+      min-height: 0;
+      overflow-y: auto;
+    }
   }
 }
 
