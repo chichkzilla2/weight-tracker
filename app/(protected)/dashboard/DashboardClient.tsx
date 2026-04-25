@@ -341,14 +341,12 @@ export default function DashboardClient({
             ภาพรวมทั้งหมด
           </h2>
           <p className="text-xs text-[#A8AFBD] mb-3">
-            สรุปจากผลรวมน้ำหนักเริ่มต้นของสมาชิก เทียบกับน้ำหนักล่าสุด และคิดเปอร์เซ็นต์จากน้ำหนักเริ่มต้น
+            สรุปจากผลรวมน้ำหนักเริ่มต้นของสมาชิก เทียบกับน้ำหนักล่าสุด
+            และคิดเปอร์เซ็นต์จากน้ำหนักเริ่มต้น
           </p>
           <div className="grid grid-cols-2 gap-3">
             {summaryCards.map((card) => (
-              <div
-                key={card.label}
-                className="bg-[#171A20] border border-[#343A46] rounded-2xl shadow-sm p-4"
-              >
+              <div key={card.label} className="glass-card rounded-2xl p-4">
                 <p className="text-xs text-[#A8AFBD] mb-1">{card.label}</p>
                 <p
                   className={`text-2xl font-bold ${
@@ -372,14 +370,14 @@ export default function DashboardClient({
             <button
               type="button"
               onClick={() => setWeightDropdownOpen((v) => !v)}
-              className="w-full border border-[#343A46] rounded-xl px-3 py-2 bg-[#171A20] text-left text-sm text-[#F59E0B]"
+              className="w-full border border-white/10 rounded-xl px-3 py-2 bg-[#171A20]/70 text-left text-sm text-[#F59E0B]"
             >
               {selectedWeightGroupIds.length === groups.length
                 ? "ทุกกลุ่ม"
                 : `เลือก ${selectedWeightGroupIds.length} กลุ่ม`}
             </button>
             {weightDropdownOpen && (
-              <div className="absolute z-20 mt-1 w-full bg-[#171A20] border border-[#343A46] rounded-xl shadow-lg p-2 space-y-1">
+              <div className="absolute z-20 mt-1 w-full glass-card rounded-xl shadow-lg p-2 space-y-1">
                 <label className="flex items-center gap-2 px-2 py-1.5 text-sm text-[#F59E0B] cursor-pointer">
                   <input
                     type="checkbox"
@@ -408,7 +406,7 @@ export default function DashboardClient({
         </div>
 
         {/* Weight group percentage chart — affected by group filter */}
-        <div className="bg-[#171A20] border border-[#343A46] rounded-2xl shadow-sm p-4">
+        <div className="glass-card rounded-2xl p-4">
           <h3 className="font-semibold text-[#F59E0B] mb-3 text-sm">
             น้ำหนักรวมตามกลุ่ม
           </h3>
@@ -433,7 +431,8 @@ export default function DashboardClient({
               น้ำหนักรายบุคคล
             </h2>
             <p className="text-xs text-[#A8AFBD] mb-3">
-              น้ำหนักที่เปลี่ยนแปลง = น้ำหนักล่าสุด - น้ำหนักเริ่มต้น และเปอร์เซ็นต์คิดจากน้ำหนักเริ่มต้น
+              น้ำหนักที่เปลี่ยนแปลง = น้ำหนักล่าสุด - น้ำหนักเริ่มต้น
+              และเปอร์เซ็นต์คิดจากน้ำหนักเริ่มต้น
             </p>
 
             {/* Sort controls */}
@@ -446,7 +445,7 @@ export default function DashboardClient({
                   <select
                     value={sort?.col === col.key ? sort.dir : "none"}
                     onChange={(e) => handleSortChange(col.key, e.target.value)}
-                    className="text-xs border border-[#343A46] rounded-lg pl-2 py-1.5 bg-[#171A20] text-[#F59E0B] focus:outline-none cursor-pointer"
+                    className="text-xs border border-white/10 rounded-lg pl-2 py-1.5 bg-[#171A20]/70 text-[#F59E0B] focus:outline-none cursor-pointer"
                   >
                     <option value="none">ไม่เรียง</option>
                     <option value="asc">{col.optAsc ?? "น้อยไปมาก"}</option>
@@ -456,11 +455,11 @@ export default function DashboardClient({
               ))}
             </div>
 
-            <div className="bg-[#171A20] border border-[#343A46] rounded-2xl shadow-sm overflow-hidden">
+            <div className="glass-card rounded-2xl overflow-hidden">
               <div className="overflow-x-auto overflow-y-auto max-h-96">
                 <table className="w-full text-base">
                   <thead>
-                    <tr className="bg-[#1A1D23] border-b border-[#343A46] sticky top-0 z-10">
+                    <tr className="bg-[#000000] border-b border-white/10 sticky top-0 z-10">
                       <th className="text-left px-5 py-4 font-semibold text-[#F59E0B] whitespace-nowrap">
                         #
                       </th>
@@ -485,8 +484,8 @@ export default function DashboardClient({
                     {sortedStats.map((row, idx) => (
                       <tr
                         key={row.id}
-                        className={`border-b border-[#242832] last:border-0 ${
-                          idx % 2 === 0 ? "bg-[#171A20]" : "bg-[#0F1115]"
+                        className={`border-b border-white/10 last:border-0 ${
+                          idx % 2 === 0 ? "bg-[#171A20]/70" : "bg-[#0F1115]/55"
                         }`}
                       >
                         <td className="px-5 py-4 text-[#F59E0B] font-bold whitespace-nowrap">
@@ -546,7 +545,7 @@ export default function DashboardClient({
       </div>
 
       {/* Waist section divider */}
-      <div className="border-t border-[#242832] pt-20">
+      <div className="border-t border-white/10 pt-20">
         <h2 className="text-lg font-bold text-[#F59E0B] mb-5">
           📏 ข้อมูลรอบเอว
         </h2>

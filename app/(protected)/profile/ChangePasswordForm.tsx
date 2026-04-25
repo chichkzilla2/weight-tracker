@@ -17,7 +17,7 @@ export default function ChangePasswordForm() {
     <div>
       <button
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center justify-between w-full px-5 py-4 hover:bg-[#0F1115] transition-colors"
+        className="flex items-center justify-between w-full px-5 py-4 hover:bg-[#0F1115]/55 transition-colors"
       >
         <span className="text-[#E7EAF0] font-medium">เปลี่ยนรหัสผ่าน</span>
         {open ? (
@@ -28,7 +28,7 @@ export default function ChangePasswordForm() {
       </button>
 
       {open && (
-        <div className="px-5 pb-4 border-t border-[#242832]">
+        <div className="px-5 pb-4 border-t border-white/10">
           <form action={formAction} className="space-y-3 mt-3">
             <div className="space-y-1">
               <Label className="text-sm text-[#F59E0B]">รหัสผ่านปัจจุบัน</Label>
@@ -37,7 +37,7 @@ export default function ChangePasswordForm() {
                 type="password"
                 placeholder="รหัสผ่านปัจจุบัน"
                 required
-                className="border-[#343A46] rounded-xl text-sm"
+                className="border-white/10 rounded-xl text-sm"
               />
             </div>
             <div className="space-y-1">
@@ -47,7 +47,7 @@ export default function ChangePasswordForm() {
                 type="password"
                 placeholder="อย่างน้อย 6 ตัวอักษร"
                 required
-                className="border-[#343A46] rounded-xl text-sm"
+                className="border-white/10 rounded-xl text-sm"
               />
             </div>
             <div className="space-y-1">
@@ -57,7 +57,7 @@ export default function ChangePasswordForm() {
                 type="password"
                 placeholder="ยืนยันรหัสผ่านใหม่"
                 required
-                className="border-[#343A46] rounded-xl text-sm"
+                className="border-white/10 rounded-xl text-sm"
               />
             </div>
 

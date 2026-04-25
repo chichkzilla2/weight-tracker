@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useMemo, useState, useTransition } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import AppModal from "@/components/shared/AppModal";
 import {
@@ -13,6 +13,7 @@ import {
 import { deleteWeightEntry } from "@/lib/actions/weight";
 import { deleteWaistEntry } from "@/lib/actions/waist";
 import { Trash2 } from "lucide-react";
+import { HistoryTabSkeleton } from "@/components/shared/TableSkeleton";
 
 interface WeightEntryData {
   id: string;
@@ -52,6 +53,7 @@ export default function HistoryClient({
   const currentCEYear = new Date().getFullYear();
   const [ceYear, setCeYear] = useState(currentCEYear);
   const [entryTab, setEntryTab] = useState<EntryTab>("weight");
+  const [activeEntryTab, setActiveEntryTab] = useState<EntryTab>("weight");
   const [deleteTarget, setDeleteTarget] = useState<{
     id: string;
     value: number;
@@ -60,51 +62,72 @@ export default function HistoryClient({
     type: EntryTab;
   } | null>(null);
   const [isPending, startTransition] = useTransition();
+  const [tabPending, startTabTransition] = useTransition();
 
   // --- Monthly summary ---
-  const yearWeightEntries = entries.filter(
-    (e) => new Date(e.recordedAt).getFullYear() === ceYear,
+  const yearWeightEntries = useMemo(
+    () =>
+      entries.filter((e) => new Date(e.recordedAt).getFullYear() === ceYear),
+    [entries, ceYear],
   );
-  const yearWaistEntries = waistEntries.filter(
-    (e) => new Date(e.recordedAt).getFullYear() === ceYear,
+  const yearWaistEntries = useMemo(
+    () =>
+      waistEntries.filter(
+        (e) => new Date(e.recordedAt).getFullYear() === ceYear,
+      ),
+    [waistEntries, ceYear],
   );
 
-  const weightMonthlyMap = new Map<string, number>();
-  for (const e of yearWeightEntries) {
-    const key = String(new Date(e.recordedAt).getMonth() + 1).padStart(2, "0");
-    weightMonthlyMap.set(key, e.weight);
-  }
+  const rows: MonthRow[] = useMemo(() => {
+    const weightMonthlyMap = new Map<string, number>();
+    for (const e of yearWeightEntries) {
+      const key = String(new Date(e.recordedAt).getMonth() + 1).padStart(
+        2,
+        "0",
+      );
+      weightMonthlyMap.set(key, e.weight);
+    }
 
-  const waistMonthlyMap = new Map<string, number>();
-  for (const e of yearWaistEntries) {
-    const key = String(new Date(e.recordedAt).getMonth() + 1).padStart(2, "0");
-    waistMonthlyMap.set(key, e.waist);
-  }
+    const waistMonthlyMap = new Map<string, number>();
+    for (const e of yearWaistEntries) {
+      const key = String(new Date(e.recordedAt).getMonth() + 1).padStart(
+        2,
+        "0",
+      );
+      waistMonthlyMap.set(key, e.waist);
+    }
 
-  const rows: MonthRow[] = THAI_MONTHS_SHORT.map((_, idx) => {
-    const monthKey = String(idx + 1).padStart(2, "0");
-    return {
-      monthKey,
-      weight: weightMonthlyMap.get(monthKey) ?? null,
-      weightChange: null,
-      waist: waistMonthlyMap.get(monthKey) ?? null,
-      waistChange: null,
-    };
-  });
+    const monthlyRows: MonthRow[] = THAI_MONTHS_SHORT.map((_, idx) => {
+      const monthKey = String(idx + 1).padStart(2, "0");
+      return {
+        monthKey,
+        weight: weightMonthlyMap.get(monthKey) ?? null,
+        weightChange: null,
+        waist: waistMonthlyMap.get(monthKey) ?? null,
+        waistChange: null,
+      };
+    });
 
-  for (let i = 1; i < rows.length; i++) {
-    const curr = rows[i]!;
-    const prev = rows[i - 1]!;
-    if (curr.weight !== null && prev.weight !== null)
-      curr.weightChange = parseFloat((curr.weight - prev.weight).toFixed(1));
-    if (curr.waist !== null && prev.waist !== null)
-      curr.waistChange = parseFloat((curr.waist - prev.waist).toFixed(1));
-  }
+    for (let i = 1; i < monthlyRows.length; i++) {
+      const curr = monthlyRows[i]!;
+      const prev = monthlyRows[i - 1]!;
+      if (curr.weight !== null && prev.weight !== null)
+        curr.weightChange = parseFloat((curr.weight - prev.weight).toFixed(1));
+      if (curr.waist !== null && prev.waist !== null)
+        curr.waistChange = parseFloat((curr.waist - prev.waist).toFixed(1));
+    }
+
+    return monthlyRows;
+  }, [yearWeightEntries, yearWaistEntries]);
 
   // --- Weight summary ---
-  const allWeightSorted = [...entries].sort(
-    (a, b) =>
-      new Date(a.recordedAt).getTime() - new Date(b.recordedAt).getTime(),
+  const allWeightSorted = useMemo(
+    () =>
+      [...entries].sort(
+        (a, b) =>
+          new Date(a.recordedAt).getTime() - new Date(b.recordedAt).getTime(),
+      ),
+    [entries],
   );
   const firstWeight = allWeightSorted[0];
   const lastWeight = allWeightSorted[allWeightSorted.length - 1];
@@ -114,9 +137,13 @@ export default function HistoryClient({
       : 0;
 
   // --- Waist summary ---
-  const allWaistSorted = [...waistEntries].sort(
-    (a, b) =>
-      new Date(a.recordedAt).getTime() - new Date(b.recordedAt).getTime(),
+  const allWaistSorted = useMemo(
+    () =>
+      [...waistEntries].sort(
+        (a, b) =>
+          new Date(a.recordedAt).getTime() - new Date(b.recordedAt).getTime(),
+      ),
+    [waistEntries],
   );
   const firstWaist = allWaistSorted[0];
   const lastWaist = allWaistSorted[allWaistSorted.length - 1];
@@ -126,27 +153,35 @@ export default function HistoryClient({
       : 0;
 
   // --- All-entries with change ---
-  const weightEntriesWithChange = allEntries.map((e, idx) => {
-    const older = allEntries[idx + 1];
-    return {
-      ...e,
-      change:
-        older !== undefined
-          ? parseFloat((e.weight - older.weight).toFixed(1))
-          : null,
-    };
-  });
+  const weightEntriesWithChange = useMemo(
+    () =>
+      allEntries.map((e, idx) => {
+        const older = allEntries[idx + 1];
+        return {
+          ...e,
+          change:
+            older !== undefined
+              ? parseFloat((e.weight - older.weight).toFixed(1))
+              : null,
+        };
+      }),
+    [allEntries],
+  );
 
-  const waistEntriesWithChange = allWaistEntries.map((e, idx) => {
-    const older = allWaistEntries[idx + 1];
-    return {
-      ...e,
-      change:
-        older !== undefined
-          ? parseFloat((e.waist - older.waist).toFixed(1))
-          : null,
-    };
-  });
+  const waistEntriesWithChange = useMemo(
+    () =>
+      allWaistEntries.map((e, idx) => {
+        const older = allWaistEntries[idx + 1];
+        return {
+          ...e,
+          change:
+            older !== undefined
+              ? parseFloat((e.waist - older.waist).toFixed(1))
+              : null,
+        };
+      }),
+    [allWaistEntries],
+  );
 
   // --- Delete handlers ---
   function handleDeleteWeight(e: WeightEntryData) {
@@ -226,11 +261,11 @@ export default function HistoryClient({
         และคำนวณการเปลี่ยนแปลงเทียบกับเดือนก่อนหน้า
       </div>
 
-      <div className="bg-[#171A20] border border-[#343A46] rounded-2xl shadow-sm overflow-hidden mb-5">
+      <div className="glass-card rounded-2xl overflow-hidden mb-5">
         <div className="overflow-x-auto overflow-y-auto max-h-80">
           <table className="w-full text-sm">
             <thead>
-              <tr className="bg-[#1A1D23] border-b border-[#343A46] sticky top-0 z-10">
+              <tr className="bg-[#000000] border-b border-white/10 sticky top-0 z-10">
                 <th className="text-left px-4 py-3 font-semibold text-[#F59E0B] whitespace-nowrap">
                   เดือน
                 </th>
@@ -252,7 +287,7 @@ export default function HistoryClient({
               {rows.map((row, i) => (
                 <tr
                   key={row.monthKey}
-                  className={`border-b border-[#242832] last:border-0 ${i % 2 === 0 ? "bg-[#171A20]" : "bg-[#0F1115]"}`}
+                  className={`border-b border-white/10 last:border-0 ${i % 2 === 0 ? "bg-[#171A20]/70" : "bg-[#0F1115]/55"}`}
                 >
                   <td className="px-4 py-3 text-[#E7EAF0] whitespace-nowrap">
                     {THAI_MONTHS[i]}
@@ -277,7 +312,7 @@ export default function HistoryClient({
       </div>
       {/* Summary */}
       {firstWeight && lastWeight && (
-        <div className="bg-[#171A20] border border-[#343A46] rounded-2xl shadow-sm p-5 space-y-3 mb-5">
+        <div className="glass-card rounded-2xl p-5 space-y-3 mb-5">
           <h3 className="font-bold text-[#F59E0B] text-base mb-3">
             สรุปผล — น้ำหนัก
           </h3>
@@ -342,7 +377,7 @@ export default function HistoryClient({
       )}
 
       {firstWaist && lastWaist && (
-        <div className="bg-[#171A20] border border-[#343A46] rounded-2xl shadow-sm p-5 space-y-3 mb-5">
+        <div className="glass-card rounded-2xl p-5 space-y-3 mb-5">
           <h3 className="font-bold text-[#F59E0B] text-base mb-3">
             สรุปผล — รอบเอว
           </h3>
@@ -411,140 +446,149 @@ export default function HistoryClient({
       </p>
 
       {/* Tab switcher */}
-      <div className="relative flex bg-[#242832] rounded-xl p-1 mb-3">
+      <div className="relative flex bg-[#242832]/65 rounded-xl p-1 mb-3">
         <div
           className="absolute top-1 bottom-1 left-1 rounded-lg bg-[#F59E0B] shadow-sm pointer-events-none transition-transform duration-200"
           style={{
             width: "calc((100% - 8px) / 2)",
-            transform: `translateX(${entryTab === "waist" ? "100%" : "0%"})`,
+            transform: `translateX(${activeEntryTab === "waist" ? "100%" : "0%"})`,
           }}
         />
         {(["weight", "waist"] as EntryTab[]).map((t) => (
           <button
             key={t}
-            onClick={() => setEntryTab(t)}
-            className={`relative z-10 flex-1 py-2 rounded-lg text-sm font-medium cursor-pointer transition-colors duration-200 ${entryTab === t ? "text-[#111318]" : "text-[#A8AFBD]"}`}
+            onClick={() => {
+              setActiveEntryTab(t);
+              startTabTransition(() => setEntryTab(t));
+            }}
+            className={`relative z-10 flex-1 py-2 rounded-lg text-sm font-medium cursor-pointer transition-colors duration-200 ${activeEntryTab === t ? "text-[#111318]" : "text-[#A8AFBD]"}`}
           >
             {t === "weight" ? "น้ำหนัก" : "รอบเอว"}
           </button>
         ))}
       </div>
 
-      <div className="bg-[#171A20] border border-[#343A46] rounded-2xl shadow-sm overflow-hidden mb-5">
-        <div className="overflow-x-auto overflow-y-auto max-h-96">
-          {entryTab === "weight" ? (
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="bg-[#1A1D23] border-b border-[#343A46] sticky top-0 z-10">
-                  <th className="text-left px-4 py-3 font-semibold text-[#F59E0B] whitespace-nowrap">
-                    วันที่
-                  </th>
-                  <th className="text-right px-4 py-3 font-semibold text-[#F59E0B] whitespace-nowrap">
-                    น้ำหนัก (กก.)
-                  </th>
-                  <th className="text-right px-4 py-3 font-semibold text-[#F59E0B] whitespace-nowrap">
-                    เปลี่ยนแปลง
-                  </th>
-                  <th className="px-4 py-3" />
-                </tr>
-              </thead>
-              <tbody>
-                {weightEntriesWithChange.length === 0 ? (
-                  <tr>
-                    <td
-                      colSpan={4}
-                      className="px-4 py-8 text-center text-[#A8AFBD]"
-                    >
-                      ยังไม่มีข้อมูล
-                    </td>
-                  </tr>
-                ) : (
-                  weightEntriesWithChange.map((e, i) => (
-                    <tr
-                      key={e.id}
-                      className={`border-b border-[#242832] last:border-0 ${i % 2 === 0 ? "bg-[#171A20]" : "bg-[#0F1115]"}`}
-                    >
-                      <td className="px-4 py-3 text-[#E7EAF0] whitespace-nowrap">
-                        {formatThaiDateTime(new Date(e.recordedAt))}
-                      </td>
-                      <td className="px-4 py-3 text-right font-medium text-[#E7EAF0] whitespace-nowrap">
-                        {e.weight.toFixed(1)}
-                      </td>
-                      <td className="px-4 py-3 text-right whitespace-nowrap">
-                        {changeCell(e.change, "")}
-                      </td>
-                      <td className="px-4 py-3 text-right whitespace-nowrap">
-                        <button
-                          onClick={() => handleDeleteWeight(e)}
-                          disabled={isPending}
-                          className="px-3 py-1 rounded-lg bg-[#8A3F3F] hover:bg-[#7A3434] text-white text-xs font-medium transition-colors disabled:opacity-40"
-                        >
-                          ลบข้อมูล
-                        </button>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          ) : (
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="bg-[#1A1D23] border-b border-[#343A46] sticky top-0 z-10">
-                  <th className="text-left px-4 py-3 font-semibold text-[#F59E0B] whitespace-nowrap">
-                    วันที่
-                  </th>
-                  <th className="text-right px-4 py-3 font-semibold text-[#F59E0B] whitespace-nowrap">
-                    รอบเอว (ซม.)
-                  </th>
-                  <th className="text-right px-4 py-3 font-semibold text-[#F59E0B] whitespace-nowrap">
-                    เปลี่ยนแปลง
-                  </th>
-                  <th className="px-4 py-3" />
-                </tr>
-              </thead>
-              <tbody>
-                {waistEntriesWithChange.length === 0 ? (
-                  <tr>
-                    <td
-                      colSpan={4}
-                      className="px-4 py-8 text-center text-[#A8AFBD]"
-                    >
-                      ยังไม่มีข้อมูล
-                    </td>
-                  </tr>
-                ) : (
-                  waistEntriesWithChange.map((e, i) => (
-                    <tr
-                      key={e.id}
-                      className={`border-b border-[#242832] last:border-0 ${i % 2 === 0 ? "bg-[#171A20]" : "bg-[#0F1115]"}`}
-                    >
-                      <td className="px-4 py-3 text-[#E7EAF0] whitespace-nowrap">
-                        {formatThaiDateTime(new Date(e.recordedAt))}
-                      </td>
-                      <td className="px-4 py-3 text-right font-medium text-[#E7EAF0] whitespace-nowrap">
-                        {e.waist.toFixed(1)}
-                      </td>
-                      <td className="px-4 py-3 text-right whitespace-nowrap">
-                        {changeCell(e.change, "")}
-                      </td>
-                      <td className="px-4 py-3 text-right whitespace-nowrap">
-                        <button
-                          onClick={() => handleDeleteWaist(e)}
-                          disabled={isPending}
-                          className="px-3 py-1 rounded-lg bg-[#8A3F3F] hover:bg-[#7A3434] text-white text-xs font-medium transition-colors disabled:opacity-40"
-                        >
-                          ลบข้อมูล
-                        </button>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          )}
+      {tabPending || activeEntryTab !== entryTab ? (
+        <div className="mb-5">
+          <HistoryTabSkeleton />
         </div>
-      </div>
+      ) : (
+        <div className="glass-card rounded-2xl overflow-hidden mb-5">
+          <div className="overflow-x-auto overflow-y-auto max-h-96">
+            {entryTab === "weight" ? (
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-[#000000] border-b border-white/10 sticky top-0 z-10">
+                    <th className="text-left px-4 py-3 font-semibold text-[#F59E0B] whitespace-nowrap">
+                      วันที่
+                    </th>
+                    <th className="text-right px-4 py-3 font-semibold text-[#F59E0B] whitespace-nowrap">
+                      น้ำหนัก (กก.)
+                    </th>
+                    <th className="text-right px-4 py-3 font-semibold text-[#F59E0B] whitespace-nowrap">
+                      เปลี่ยนแปลง
+                    </th>
+                    <th className="px-4 py-3" />
+                  </tr>
+                </thead>
+                <tbody>
+                  {weightEntriesWithChange.length === 0 ? (
+                    <tr>
+                      <td
+                        colSpan={4}
+                        className="px-4 py-8 text-center text-[#A8AFBD]"
+                      >
+                        ยังไม่มีข้อมูล
+                      </td>
+                    </tr>
+                  ) : (
+                    weightEntriesWithChange.map((e, i) => (
+                      <tr
+                        key={e.id}
+                        className={`border-b border-white/10 last:border-0 ${i % 2 === 0 ? "bg-[#171A20]/70" : "bg-[#0F1115]/55"}`}
+                      >
+                        <td className="px-4 py-3 text-[#E7EAF0] whitespace-nowrap">
+                          {formatThaiDateTime(new Date(e.recordedAt))}
+                        </td>
+                        <td className="px-4 py-3 text-right font-medium text-[#E7EAF0] whitespace-nowrap">
+                          {e.weight.toFixed(1)}
+                        </td>
+                        <td className="px-4 py-3 text-right whitespace-nowrap">
+                          {changeCell(e.change, "")}
+                        </td>
+                        <td className="px-4 py-3 text-right whitespace-nowrap">
+                          <button
+                            onClick={() => handleDeleteWeight(e)}
+                            disabled={isPending}
+                            className="px-3 py-1 rounded-lg bg-[#8A3F3F] hover:bg-[#7A3434] text-white text-xs font-medium transition-colors disabled:opacity-40"
+                          >
+                            ลบข้อมูล
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            ) : (
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-[#000000] border-b border-white/10 sticky top-0 z-10">
+                    <th className="text-left px-4 py-3 font-semibold text-[#F59E0B] whitespace-nowrap">
+                      วันที่
+                    </th>
+                    <th className="text-right px-4 py-3 font-semibold text-[#F59E0B] whitespace-nowrap">
+                      รอบเอว (ซม.)
+                    </th>
+                    <th className="text-right px-4 py-3 font-semibold text-[#F59E0B] whitespace-nowrap">
+                      เปลี่ยนแปลง
+                    </th>
+                    <th className="px-4 py-3" />
+                  </tr>
+                </thead>
+                <tbody>
+                  {waistEntriesWithChange.length === 0 ? (
+                    <tr>
+                      <td
+                        colSpan={4}
+                        className="px-4 py-8 text-center text-[#A8AFBD]"
+                      >
+                        ยังไม่มีข้อมูล
+                      </td>
+                    </tr>
+                  ) : (
+                    waistEntriesWithChange.map((e, i) => (
+                      <tr
+                        key={e.id}
+                        className={`border-b border-white/10 last:border-0 ${i % 2 === 0 ? "bg-[#171A20]/70" : "bg-[#0F1115]/55"}`}
+                      >
+                        <td className="px-4 py-3 text-[#E7EAF0] whitespace-nowrap">
+                          {formatThaiDateTime(new Date(e.recordedAt))}
+                        </td>
+                        <td className="px-4 py-3 text-right font-medium text-[#E7EAF0] whitespace-nowrap">
+                          {e.waist.toFixed(1)}
+                        </td>
+                        <td className="px-4 py-3 text-right whitespace-nowrap">
+                          {changeCell(e.change, "")}
+                        </td>
+                        <td className="px-4 py-3 text-right whitespace-nowrap">
+                          <button
+                            onClick={() => handleDeleteWaist(e)}
+                            disabled={isPending}
+                            className="px-3 py-1 rounded-lg bg-[#8A3F3F] hover:bg-[#7A3434] text-white text-xs font-medium transition-colors disabled:opacity-40"
+                          >
+                            ลบข้อมูล
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Delete confirm modal */}
       <AppModal
@@ -553,7 +597,7 @@ export default function HistoryClient({
           if (!isPending) setDeleteTarget(null);
         }}
       >
-        <div className="fixed bottom-0 left-0 right-0 bg-[#171A20] rounded-t-2xl shadow-2xl w-full max-h-[90vh] overflow-y-auto p-5 outline-none border border-[#343A46] animate-in slide-in-from-bottom-6 duration-200 sm:slide-in-from-bottom-0 sm:zoom-in-95 sm:absolute sm:top-1/2 sm:left-1/2 sm:bottom-auto sm:right-auto sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-2xl sm:w-[calc(100%-2rem)] sm:max-w-sm">
+        <div className="fixed bottom-0 left-0 right-0 glass-panel glass-glow rounded-t-2xl shadow-2xl w-full max-h-[90vh] overflow-y-auto p-5 outline-none border border-white/10 animate-in slide-in-from-bottom-6 duration-200 sm:slide-in-from-bottom-0 sm:zoom-in-95 sm:absolute sm:top-1/2 sm:left-1/2 sm:bottom-auto sm:right-auto sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-2xl sm:w-[calc(100%-2rem)] sm:max-w-sm">
           <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-full bg-[#8A3F3F]/20 text-[#D08A8A]">
             <Trash2 size={23} />
           </div>
@@ -579,7 +623,7 @@ export default function HistoryClient({
             <button
               onClick={() => setDeleteTarget(null)}
               disabled={isPending}
-              className="flex-1 py-2.5 rounded-xl border border-[#343A46] text-[#F59E0B] text-sm font-medium hover:bg-[#242832] transition-colors disabled:opacity-40"
+              className="flex-1 py-2.5 rounded-xl border border-white/10 text-[#F59E0B] text-sm font-medium hover:bg-[#242832]/65 transition-colors disabled:opacity-40"
             >
               ยกเลิก
             </button>

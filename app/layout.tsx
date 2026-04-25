@@ -27,7 +27,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="th" className={`${sarabun.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col bg-[#0F1115]">
+      <body className="min-h-full flex flex-col">
         {children}
         <Toaster position="bottom-right" richColors />
       </body>

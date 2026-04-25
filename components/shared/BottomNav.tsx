@@ -1,9 +1,9 @@
-"use client"
+"use client";
 
-import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { Home, Trophy, BarChart2, User, BookOpen, Users } from "lucide-react"
-import { useState } from "react"
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { Home, Trophy, BarChart2, User, BookOpen, Users } from "lucide-react";
+import { useState } from "react";
 
 const navItems = [
   { href: "/", label: "หน้าหลัก", icon: Home },
@@ -12,19 +12,19 @@ const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: BarChart2 },
   { href: "/profile", label: "โปรไฟล์", icon: User },
   { href: "/how-to-use", label: "วิธีใช้", icon: BookOpen },
-]
+];
 
 function getScale(index: number, hoveredIndex: number | null): number {
-  if (hoveredIndex === null) return 1
-  const dist = Math.abs(index - hoveredIndex)
-  if (dist === 0) return 1.5
-  if (dist === 1) return 1.2
-  return 1
+  if (hoveredIndex === null) return 1;
+  const dist = Math.abs(index - hoveredIndex);
+  if (dist === 0) return 1.5;
+  if (dist === 1) return 1.2;
+  return 1;
 }
 
 export default function BottomNav() {
-  const pathname = usePathname()
-  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
+  const pathname = usePathname();
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
   return (
     <>
@@ -34,9 +34,12 @@ export default function BottomNav() {
         onMouseLeave={() => setHoveredIndex(null)}
       >
         {navItems.map((item, index) => {
-          const isActive = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href)
-          const Icon = item.icon
-          const scale = getScale(index, hoveredIndex)
+          const isActive =
+            item.href === "/"
+              ? pathname === "/"
+              : pathname.startsWith(item.href);
+          const Icon = item.icon;
+          const scale = getScale(index, hoveredIndex);
           return (
             <Link
               key={item.href}
@@ -48,23 +51,30 @@ export default function BottomNav() {
                 transition: "transform 180ms ease",
                 display: "block",
               }}
-              className={isActive ? "text-[#F59E0B]" : "text-[#A8AFBD] hover:text-[#F59E0B]"}
+              className={
+                isActive
+                  ? "text-[#F59E0B]"
+                  : "text-[#A8AFBD] hover:text-[#F59E0B]"
+              }
             >
               <Icon size={28} />
             </Link>
-          )
+          );
         })}
       </nav>
 
-      {/* Mobile: bottom bar */}
+      {/* Mobile: floating pill bottom bar */}
       <nav
-        className="lg:hidden fixed bottom-0 left-0 right-0 h-20 flex items-end justify-around pb-3 bg-[#171A20] border-t border-[#343A46] z-50 overflow-visible"
+        className="lg:hidden fixed left-3 right-3 bottom-[calc(env(safe-area-inset-bottom)+15px)] h-16 flex items-center justify-around rounded-4xl bg-[#1C1F26]/50 backdrop-blur-md border border-[#F59E0B]/20 shadow-xl z-50 overflow-visible"
         onMouseLeave={() => setHoveredIndex(null)}
       >
         {navItems.map((item, index) => {
-          const isActive = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href)
-          const Icon = item.icon
-          const scale = getScale(index, hoveredIndex)
+          const isActive =
+            item.href === "/"
+              ? pathname === "/"
+              : pathname.startsWith(item.href);
+          const Icon = item.icon;
+          const scale = getScale(index, hoveredIndex);
           return (
             <Link
               key={item.href}
@@ -76,13 +86,17 @@ export default function BottomNav() {
                 transition: "transform 180ms ease",
                 display: "block",
               }}
-              className={isActive ? "text-[#F59E0B]" : "text-[#A8AFBD] hover:text-[#F59E0B]"}
+              className={
+                isActive
+                  ? "text-[#F59E0B]"
+                  : "text-[#A8AFBD] hover:text-[#F59E0B]"
+              }
             >
               <Icon size={28} />
             </Link>
-          )
+          );
         })}
       </nav>
     </>
-  )
+  );
 }

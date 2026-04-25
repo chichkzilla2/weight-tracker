@@ -35,7 +35,7 @@ export default function GroupManageSection({ currentGroupId, currentGroupName, g
   }
 
   return (
-    <div className="bg-[#171A20] border border-[#343A46] rounded-2xl shadow-sm p-4 space-y-3">
+    <div className="glass-card rounded-2xl p-4 space-y-3">
       <p className="text-sm font-semibold text-[#F59E0B]">จัดการกลุ่ม</p>
 
       {otherGroups.length > 0 && (
@@ -45,7 +45,7 @@ export default function GroupManageSection({ currentGroupId, currentGroupName, g
             onChange={(e) => handleChange(e.target.value)}
             defaultValue=""
             disabled={isPending}
-            className="w-full border border-[#343A46] rounded-xl px-3 py-2 text-sm bg-[#171A20] text-[#E7EAF0] focus:outline-none focus:border-[#F59E0B] disabled:opacity-50"
+            className="w-full border border-white/10 rounded-xl px-3 py-2 text-sm bg-[#171A20]/70 text-[#E7EAF0] focus:outline-none focus:border-[#F59E0B] disabled:opacity-50"
           >
             <option value="">เลือกกลุ่ม...</option>
             {otherGroups.map((g) => (
@@ -55,7 +55,7 @@ export default function GroupManageSection({ currentGroupId, currentGroupName, g
         </div>
       )}
 
-      <div className="border-t border-[#242832] pt-3">
+      <div className="border-t border-white/10 pt-3">
         <button
           onClick={handleLeave}
           disabled={isPending}

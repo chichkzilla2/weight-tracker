@@ -61,8 +61,8 @@ export default function DashboardWaistSection({
     col: "change",
     dir: "asc",
   });
-  const [selectedWaistGroupIds, setSelectedWaistGroupIds] = useState<string[]>(() =>
-    allGroupsWaist.map((g) => g.id),
+  const [selectedWaistGroupIds, setSelectedWaistGroupIds] = useState<string[]>(
+    () => allGroupsWaist.map((g) => g.id),
   );
   const [waistDropdownOpen, setWaistDropdownOpen] = useState(false);
   const waistFilterRef = useRef<HTMLDivElement>(null);
@@ -100,7 +100,9 @@ export default function DashboardWaistSection({
 
   function toggleAllGroups() {
     setSelectedWaistGroupIds((prev) =>
-      prev.length === allGroupsWaist.length ? [] : allGroupsWaist.map((g) => g.id),
+      prev.length === allGroupsWaist.length
+        ? []
+        : allGroupsWaist.map((g) => g.id),
     );
   }
 
@@ -269,14 +271,12 @@ export default function DashboardWaistSection({
       <div>
         <h2 className="text-lg font-bold text-[#F59E0B] mb-3">ภาพรวมรอบเอว</h2>
         <p className="text-xs text-[#A8AFBD] mb-3">
-          สรุปจากผลรวมรอบเอวเริ่มต้นของสมาชิก เทียบกับรอบเอวล่าสุด และคิดเปอร์เซ็นต์จากรอบเอวเริ่มต้น
+          สรุปจากผลรวมรอบเอวเริ่มต้นของสมาชิก เทียบกับรอบเอวล่าสุด
+          และคิดเปอร์เซ็นต์จากรอบเอวเริ่มต้น
         </p>
         <div className="grid grid-cols-2 gap-3">
           {summaryCards.map((card) => (
-            <div
-              key={card.label}
-              className="bg-[#171A20] border border-[#343A46] rounded-2xl shadow-sm p-4"
-            >
+            <div key={card.label} className="glass-card rounded-2xl p-4">
               <p className="text-xs text-[#A8AFBD] mb-1">{card.label}</p>
               <p
                 className={`text-2xl font-bold ${card.highlight ? "text-green-600" : (card as { negative?: boolean }).negative ? "text-[#D08A8A]" : "text-[#F59E0B]"}`}
@@ -292,14 +292,14 @@ export default function DashboardWaistSection({
         <button
           type="button"
           onClick={() => setWaistDropdownOpen((v) => !v)}
-          className="w-full border border-[#343A46] rounded-xl px-3 py-2 bg-[#171A20] text-left text-sm text-[#F59E0B]"
+          className="w-full border border-white/10 rounded-xl px-3 py-2 bg-[#171A20]/70 text-left text-sm text-[#F59E0B]"
         >
           {selectedWaistGroupIds.length === allGroupsWaist.length
             ? "ทุกกลุ่ม"
             : `เลือก ${selectedWaistGroupIds.length} กลุ่ม`}
         </button>
         {waistDropdownOpen && (
-          <div className="absolute z-20 mt-1 w-full bg-[#171A20] border border-[#343A46] rounded-xl shadow-lg p-2 space-y-1">
+          <div className="absolute z-20 mt-1 w-full glass-card rounded-xl shadow-lg p-2 space-y-1">
             <label className="flex items-center gap-2 px-2 py-1.5 text-sm text-[#F59E0B] cursor-pointer">
               <input
                 type="checkbox"
@@ -309,7 +309,10 @@ export default function DashboardWaistSection({
               ทุกกลุ่ม
             </label>
             {allGroupsWaist.map((g) => (
-              <label key={g.id} className="flex items-center gap-2 px-2 py-1.5 text-sm text-[#F59E0B] cursor-pointer">
+              <label
+                key={g.id}
+                className="flex items-center gap-2 px-2 py-1.5 text-sm text-[#F59E0B] cursor-pointer"
+              >
                 <input
                   type="checkbox"
                   checked={selectedWaistGroupIds.includes(g.id)}
@@ -322,7 +325,7 @@ export default function DashboardWaistSection({
         )}
       </div>
 
-      <div className="bg-[#171A20] border border-[#343A46] rounded-2xl shadow-sm p-4">
+      <div className="glass-card rounded-2xl p-4">
         <h3 className="font-semibold text-[#F59E0B] mb-3 text-sm">
           รอบเอวรวมตามกลุ่ม
         </h3>
@@ -334,7 +337,9 @@ export default function DashboardWaistSection({
           unit=" ซม."
           endLabelKey="name"
           hideCategoryAxis
-          barColors={groupTotalData.map((_, index) => BAR_COLORS[index % BAR_COLORS.length]!)}
+          barColors={groupTotalData.map(
+            (_, index) => BAR_COLORS[index % BAR_COLORS.length]!,
+          )}
         />
       </div>
 
@@ -344,7 +349,8 @@ export default function DashboardWaistSection({
             รอบเอวรายบุคคล
           </h2>
           <p className="text-xs text-[#A8AFBD] mb-3">
-            รอบเอวที่เปลี่ยนแปลง = รอบเอวล่าสุด - รอบเอวเริ่มต้น และเปอร์เซ็นต์คิดจากรอบเอวเริ่มต้น
+            รอบเอวที่เปลี่ยนแปลง = รอบเอวล่าสุด - รอบเอวเริ่มต้น
+            และเปอร์เซ็นต์คิดจากรอบเอวเริ่มต้น
           </p>
           <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-2 mb-3">
             {SORT_COLS.map((col) => (
@@ -359,7 +365,7 @@ export default function DashboardWaistSection({
                     if (v === "none") setSort(null);
                     else setSort({ col: col.key, dir: v as SortDir });
                   }}
-                  className="text-xs border border-[#343A46] rounded-lg px-2 py-1.5 bg-[#171A20] text-[#F59E0B] focus:outline-none cursor-pointer"
+                  className="text-xs border border-white/10 rounded-lg px-2 py-1.5 bg-[#171A20]/70 text-[#F59E0B] focus:outline-none cursor-pointer"
                 >
                   <option value="none">ไม่เรียง</option>
                   <option value="asc">{col.optAsc ?? "น้อยไปมาก"}</option>
@@ -368,11 +374,11 @@ export default function DashboardWaistSection({
               </div>
             ))}
           </div>
-          <div className="bg-[#171A20] border border-[#343A46] rounded-2xl shadow-sm overflow-hidden">
+          <div className="glass-card rounded-2xl overflow-hidden">
             <div className="overflow-x-auto overflow-y-auto max-h-96">
               <table className="w-full text-base">
                 <thead>
-                  <tr className="bg-[#1A1D23] border-b border-[#343A46] sticky top-0 z-10">
+                  <tr className="bg-[#000000] border-b border-white/10 sticky top-0 z-10">
                     <th className="text-left px-5 py-4 font-semibold text-[#F59E0B] whitespace-nowrap">
                       #
                     </th>
@@ -397,7 +403,7 @@ export default function DashboardWaistSection({
                   {sortedStats.map((row, idx) => (
                     <tr
                       key={row.id}
-                      className={`border-b border-[#242832] last:border-0 ${idx % 2 === 0 ? "bg-[#171A20]" : "bg-[#0F1115]"}`}
+                      className={`border-b border-white/10 last:border-0 ${idx % 2 === 0 ? "bg-[#171A20]/70" : "bg-[#0F1115]/55"}`}
                     >
                       <td className="px-5 py-4 text-[#F59E0B] font-bold whitespace-nowrap">
                         {idx + 1}

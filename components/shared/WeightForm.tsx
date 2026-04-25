@@ -36,7 +36,7 @@ export default function WeightForm() {
 
   return (
     <>
-      <div className="w-full bg-[#171A20] border border-[#343A46] rounded-2xl shadow-sm px-5 py-4">
+      <div className="w-full glass-card rounded-2xl px-5 py-4">
         <form onSubmit={handleSubmit}>
           <Label htmlFor="weight" className="text-[#F59E0B] text-sm font-semibold">
             บันทึกน้ำหนักวันนี้ (กก.)
@@ -49,7 +49,7 @@ export default function WeightForm() {
               step="0.1"
               placeholder="เช่น 72.5"
               required
-              className="flex-1 border-[#343A46] focus:border-[#F59E0B] rounded-xl text-xl px-5 text-center h-12"
+              className="flex-1 border-white/10 focus:border-[#F59E0B] rounded-xl text-xl px-5 text-center h-12"
             />
             <Button
               type="submit"
@@ -66,7 +66,7 @@ export default function WeightForm() {
       </div>
 
       <AppModal open={open} onClose={() => setOpen(false)}>
-        <div className="fixed bottom-0 left-0 right-0 bg-[#171A20] rounded-t-2xl shadow-2xl w-full max-h-[90vh] overflow-y-auto p-5 outline-none border border-[#343A46] animate-in slide-in-from-bottom-6 duration-200 sm:slide-in-from-bottom-0 sm:zoom-in-95 sm:absolute sm:top-1/2 sm:left-1/2 sm:bottom-auto sm:right-auto sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-2xl sm:w-[calc(100%-2rem)] sm:max-w-sm">
+        <div className="fixed bottom-0 left-0 right-0 glass-panel glass-glow rounded-t-2xl shadow-2xl w-full max-h-[90vh] overflow-y-auto p-5 outline-none border border-white/10 animate-in slide-in-from-bottom-6 duration-200 sm:slide-in-from-bottom-0 sm:zoom-in-95 sm:absolute sm:top-1/2 sm:left-1/2 sm:bottom-auto sm:right-auto sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-2xl sm:w-[calc(100%-2rem)] sm:max-w-sm">
           <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-full bg-[#F59E0B]/15 text-[#F59E0B]">
             <CheckCircle2 size={24} />
           </div>
@@ -83,7 +83,7 @@ export default function WeightForm() {
           <div className="flex gap-2 pt-1">
             <button
               onClick={() => setOpen(false)}
-              className="flex-1 py-2.5 rounded-xl border border-[#343A46] text-[#F59E0B] text-sm font-medium hover:bg-[#242832] transition-colors"
+              className="flex-1 py-2.5 rounded-xl border border-white/10 text-[#F59E0B] text-sm font-medium hover:bg-[#242832]/65 transition-colors"
             >
               ยกเลิก
             </button>

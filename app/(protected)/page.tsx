@@ -76,11 +76,11 @@ export default async function HomePage() {
         title={`🏠 ${displayName}`}
         subtitle={
           groupName ? (
-            <span className="inline-block bg-[#242832] border border-[#343A46] text-[#F59E0B] text-xs font-semibold px-3 py-0.5 rounded-full mt-1">
+            <span className="inline-block bg-[#242832]/65 border border-white/10 text-[#F59E0B] text-xs font-semibold px-3 py-0.5 rounded-full mt-1">
               {groupName}
             </span>
           ) : (
-            <span className="inline-block bg-[#242832] border border-[#343A46] text-[#6B7280] text-xs font-semibold px-3 py-0.5 rounded-full mt-1">
+            <span className="inline-block bg-[#242832]/65 border border-white/10 text-[#6B7280] text-xs font-semibold px-3 py-0.5 rounded-full mt-1">
               ยังไม่มีกลุ่ม
             </span>
           )
@@ -114,7 +114,7 @@ export default async function HomePage() {
           </div>
         </div>
 
-        <div className="border-t border-[#242832] mb-5" />
+        <div className="border-t border-white/10 mb-5" />
 
         <h2 className="text-base font-bold text-[#F59E0B] mb-3">ประวัติ</h2>
         <HistoryClient

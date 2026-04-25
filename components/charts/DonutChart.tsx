@@ -41,8 +41,8 @@ function CustomTooltip({ active, payload }: CustomTooltipProps) {
   return (
     <div
       style={{
-        background: "#171A20",
-        border: "1px solid #343A46",
+        background: "rgba(23, 26, 32, 0.86)",
+        border: "1px solid rgba(255,255,255,0.12)",
         borderRadius: "12px",
         padding: "8px 12px",
         fontSize: "13px",

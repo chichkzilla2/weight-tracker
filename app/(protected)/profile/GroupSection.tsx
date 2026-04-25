@@ -48,7 +48,7 @@ export default function GroupSection({ currentGroupId, currentGroupName, groups 
     return (
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-[#242832] text-[#F59E0B] border border-[#343A46]">
+          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-[#242832]/65 text-[#F59E0B] border border-white/10">
             {currentGroupName}
           </span>
           <button
@@ -64,7 +64,7 @@ export default function GroupSection({ currentGroupId, currentGroupName, groups 
             onChange={(e) => handleChange(e.target.value)}
             defaultValue=""
             disabled={isPending}
-            className="w-full border border-[#343A46] rounded-xl px-3 py-2 text-sm bg-[#171A20] text-[#E7EAF0] focus:outline-none focus:border-[#F59E0B] disabled:opacity-50"
+            className="w-full border border-white/10 rounded-xl px-3 py-2 text-sm bg-[#171A20]/70 text-[#E7EAF0] focus:outline-none focus:border-[#F59E0B] disabled:opacity-50"
           >
             <option value="">เปลี่ยนไปกลุ่มอื่น...</option>
             {otherGroups.map((g) => (
@@ -84,7 +84,7 @@ export default function GroupSection({ currentGroupId, currentGroupName, groups 
           value={selectedGroupId}
           onChange={(e) => setSelectedGroupId(e.target.value)}
           disabled={isPending}
-          className="flex-1 border border-[#343A46] rounded-xl px-3 py-2 text-sm bg-[#171A20] text-[#E7EAF0] focus:outline-none focus:border-[#F59E0B] disabled:opacity-50"
+          className="flex-1 border border-white/10 rounded-xl px-3 py-2 text-sm bg-[#171A20]/70 text-[#E7EAF0] focus:outline-none focus:border-[#F59E0B] disabled:opacity-50"
         >
           <option value="">เลือกกลุ่ม...</option>
           {groups.map((g) => (

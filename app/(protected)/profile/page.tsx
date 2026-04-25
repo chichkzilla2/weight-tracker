@@ -49,7 +49,7 @@ export default async function ProfilePage() {
         </div>
 
         {/* Info */}
-        <div className="bg-[#171A20] border border-[#343A46] rounded-2xl shadow-sm p-4 mb-4">
+        <div className="glass-card rounded-2xl p-4 mb-4">
           <div className="space-y-3 text-sm">
             <div className="flex justify-between">
               <span className="text-[#A8AFBD]">ชื่อผู้ใช้</span>
@@ -65,38 +65,38 @@ export default async function ProfilePage() {
         </div>
 
         {/* Menu Items */}
-        <div className="bg-[#171A20] border border-[#343A46] rounded-2xl shadow-sm overflow-hidden mb-4">
+        <div className="glass-card rounded-2xl overflow-hidden mb-4">
           <ChangePasswordForm />
-          <div className="border-t border-[#242832]" />
+          <div className="border-t border-white/10" />
           {user.role === "ADMIN" && (
             <>
               <a
                 href="/admin"
-                className="flex items-center justify-between px-5 py-4 hover:bg-[#0F1115] transition-colors"
+                className="flex items-center justify-between px-5 py-4 hover:bg-[#0F1115]/55 transition-colors"
               >
                 <span className="text-[#E7EAF0] font-medium">
                   แผงผู้ดูแลระบบ
                 </span>
                 <ChevronRight size={18} className="text-[#343A46]" />
               </a>
-              <div className="border-t border-[#242832]" />
+              <div className="border-t border-white/10" />
               <a
                 href="/api/admin/users-pdf"
-                className="flex items-center justify-between px-5 py-4 hover:bg-[#0F1115] transition-colors"
+                className="flex items-center justify-between px-5 py-4 hover:bg-[#0F1115]/55 transition-colors"
               >
                 <span className="text-[#E7EAF0] font-medium">
                   ดาวน์โหลดรายชื่อสมาชิก
                 </span>
                 <Download size={18} className="text-[#343A46]" />
               </a>
-              <div className="border-t border-[#242832]" />
+              <div className="border-t border-white/10" />
             </>
           )}
           <SignOutButton />
         </div>
 
         <p className="text-center text-xs text-[#343A46] mt-8">
-          เวอร์ชัน 3.2.0
+          เวอร์ชัน 3.3.0
         </p>
       </div>
     </div>

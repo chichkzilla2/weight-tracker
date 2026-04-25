@@ -250,7 +250,7 @@ export default async function HowToUsePage() {
 
         {/* Section cards */}
         {sections.map((s) => (
-          <div key={s.title} className="bg-[#171A20] border border-[#343A46] rounded-2xl p-4">
+          <div key={s.title} className="glass-card rounded-2xl p-4">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <span className="text-2xl">{s.emoji}</span>
@@ -259,7 +259,7 @@ export default async function HowToUsePage() {
                 </h2>
               </div>
               <span
-                className="text-xs font-semibold px-2 py-0.5 rounded-full bg-[#242832] text-[#F59E0B] border border-[#343A46]"
+                className="text-xs font-semibold px-2 py-0.5 rounded-full bg-[#242832]/65 text-[#F59E0B] border border-white/10"
               >
                 {s.badge}
               </span>
@@ -268,7 +268,7 @@ export default async function HowToUsePage() {
             <ol className="space-y-2 mb-3">
               {s.steps.map((step, i) => (
                 <li key={i} className="flex items-start gap-3">
-                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#171A20] border border-[#343A46] flex items-center justify-center text-xs font-bold text-[#F59E0B]">
+                  <span className="flex-shrink-0 w-6 h-6 rounded-full glass-card flex items-center justify-center text-xs font-bold text-[#F59E0B]">
                     {i + 1}
                   </span>
                   <span className="text-sm text-[#A8AFBD] leading-relaxed pt-0.5">
@@ -286,7 +286,7 @@ export default async function HowToUsePage() {
         ))}
 
         {/* FAQ */}
-        <div className="bg-[#171A20] border border-[#343A46] rounded-2xl p-4">
+        <div className="glass-card rounded-2xl p-4">
           <h2 className="font-bold text-[#F59E0B] text-base mb-3 flex items-center gap-2">
             <span>❓</span> คำถามที่พบบ่อย
           </h2>
@@ -294,7 +294,7 @@ export default async function HowToUsePage() {
             {faqs.map((f, i) => (
               <div
                 key={i}
-                className="border-b border-[#242832] last:border-0 pb-3 last:pb-0"
+                className="border-b border-white/10 last:border-0 pb-3 last:pb-0"
               >
                 <p className="text-sm font-semibold text-[#F59E0B] mb-1">
                   Q: {f.q}
@@ -306,7 +306,7 @@ export default async function HowToUsePage() {
         </div>
 
         {/* Contact */}
-        <div className="bg-[#242832] border border-[#343A46] rounded-2xl p-4 text-center">
+        <div className="bg-[#242832]/65 border border-white/10 rounded-2xl p-4 text-center">
           <p className="text-sm text-[#F59E0B]">
             มีปัญหาหรือข้อสงสัยเพิ่มเติม?
           </p>

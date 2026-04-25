@@ -52,7 +52,7 @@ export default function RegisterForm({ groups }: Props) {
   }
 
   return (
-    <div className="min-h-screen bg-[#0F1115] flex flex-col items-center justify-center px-4">
+    <div className="min-h-screen flex flex-col items-center justify-center px-4">
       <div className="w-full max-w-sm">
         {/* Logo/Title */}
         <div className="text-center mb-8">
@@ -62,7 +62,7 @@ export default function RegisterForm({ groups }: Props) {
         </div>
 
         {/* Register Card */}
-        <div className="bg-[#171A20] border border-[#343A46] rounded-2xl shadow-sm p-6">
+        <div className="glass-card rounded-2xl p-6">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="firstName" className="text-[#F59E0B] font-medium">
@@ -75,7 +75,7 @@ export default function RegisterForm({ groups }: Props) {
                 placeholder="กรอกชื่อจริง"
                 required
                 autoComplete="given-name"
-                className="border-[#343A46] focus:border-[#F59E0B] rounded-xl"
+                className="border-white/10 focus:border-[#F59E0B] rounded-xl"
               />
             </div>
 
@@ -90,7 +90,7 @@ export default function RegisterForm({ groups }: Props) {
                 placeholder="กรอกนามสกุล"
                 required
                 autoComplete="family-name"
-                className="border-[#343A46] focus:border-[#F59E0B] rounded-xl"
+                className="border-white/10 focus:border-[#F59E0B] rounded-xl"
               />
             </div>
 
@@ -105,7 +105,7 @@ export default function RegisterForm({ groups }: Props) {
                 placeholder="กรอกชื่อผู้ใช้"
                 required
                 autoComplete="username"
-                className="border-[#343A46] focus:border-[#F59E0B] rounded-xl"
+                className="border-white/10 focus:border-[#F59E0B] rounded-xl"
               />
               <p className="text-xs text-[#A8AFBD]">ชื่อผู้ใช้ขั้นต่ำ 3 ตัวอักษร</p>
             </div>
@@ -121,7 +121,7 @@ export default function RegisterForm({ groups }: Props) {
                 placeholder="กรอกรหัสผ่าน"
                 required
                 autoComplete="new-password"
-                className="border-[#343A46] focus:border-[#F59E0B] rounded-xl"
+                className="border-white/10 focus:border-[#F59E0B] rounded-xl"
               />
               <p className="text-xs text-[#A8AFBD]">รหัสผ่านขั้นต่ำ 6 ตัวอักษร</p>
             </div>
@@ -137,7 +137,7 @@ export default function RegisterForm({ groups }: Props) {
                 placeholder="กรอกรหัสผ่านอีกครั้ง"
                 required
                 autoComplete="new-password"
-                className="border-[#343A46] focus:border-[#F59E0B] rounded-xl"
+                className="border-white/10 focus:border-[#F59E0B] rounded-xl"
               />
             </div>
 
@@ -149,7 +149,7 @@ export default function RegisterForm({ groups }: Props) {
                 id="groupId"
                 name="groupId"
                 defaultValue=""
-                className="w-full border border-[#343A46] focus:border-[#F59E0B] rounded-xl px-3 py-2 text-sm bg-[#171A20] text-[#E7EAF0] outline-none focus:ring-1 focus:ring-[#F59E0B]"
+                className="w-full border border-white/10 focus:border-[#F59E0B] rounded-xl px-3 py-2 text-sm bg-[#171A20]/70 text-[#E7EAF0] outline-none focus:ring-1 focus:ring-[#F59E0B]"
               >
                 <option value="">ไม่เลือกกลุ่ม (สามารถเลือกภายหลังได้)</option>
                 {groups.map((group) => (

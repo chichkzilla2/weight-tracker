@@ -91,7 +91,7 @@ function LoginContent() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0F1115] flex flex-col items-center justify-center px-4">
+    <div className="min-h-screen flex flex-col items-center justify-center px-4">
       <div className="w-full max-w-sm">
         {/* Logo/Title */}
         <div className="text-center mb-8">
@@ -107,7 +107,7 @@ function LoginContent() {
         )}
 
         {/* Login Card */}
-        <div className="bg-[#171A20] border border-[#343A46] rounded-2xl shadow-sm p-6">
+        <div className="glass-card rounded-2xl p-6">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="username" className="text-[#F59E0B] font-medium">
@@ -120,7 +120,7 @@ function LoginContent() {
                 placeholder="กรอกชื่อผู้ใช้"
                 required
                 autoComplete="username"
-                className="border-[#343A46] focus:border-[#F59E0B] rounded-xl"
+                className="border-white/10 focus:border-[#F59E0B] rounded-xl"
               />
             </div>
 
@@ -135,7 +135,7 @@ function LoginContent() {
                 placeholder="กรอกรหัสผ่าน"
                 required
                 autoComplete="current-password"
-                className="border-[#343A46] focus:border-[#F59E0B] rounded-xl"
+                className="border-white/10 focus:border-[#F59E0B] rounded-xl"
               />
             </div>
 
@@ -168,7 +168,7 @@ function LoginContent() {
       </div>
 
       <AppModal open={nameDialogOpen} onClose={() => {}} backdropColor="rgba(0,0,0,0.68)">
-        <div className="fixed bottom-0 left-0 right-0 w-full rounded-t-2xl bg-[#171A20] max-h-[90vh] overflow-y-auto p-5 shadow-2xl outline-none border border-[#343A46] animate-in slide-in-from-bottom-6 duration-200 sm:slide-in-from-bottom-0 sm:zoom-in-95 sm:absolute sm:top-1/2 sm:left-1/2 sm:bottom-auto sm:right-auto sm:w-[calc(100%-2rem)] sm:max-w-sm sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-2xl">
+        <div className="fixed bottom-0 left-0 right-0 w-full rounded-t-2xl glass-panel glass-glow max-h-[90vh] overflow-y-auto p-5 shadow-2xl outline-none border border-white/10 animate-in slide-in-from-bottom-6 duration-200 sm:slide-in-from-bottom-0 sm:zoom-in-95 sm:absolute sm:top-1/2 sm:left-1/2 sm:bottom-auto sm:right-auto sm:w-[calc(100%-2rem)] sm:max-w-sm sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-2xl">
           <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-full bg-[#F59E0B]/15 text-[#F59E0B]">
             <UserRound size={23} />
           </div>
@@ -190,7 +190,7 @@ function LoginContent() {
                   onChange={(e) => setNameFirstName(e.target.value)}
                   required
                   autoComplete="given-name"
-                  className="border-[#343A46] rounded-xl text-sm"
+                  className="border-white/10 rounded-xl text-sm"
                 />
               </div>
               <div className="space-y-1">
@@ -203,7 +203,7 @@ function LoginContent() {
                   onChange={(e) => setNameLastName(e.target.value)}
                   required
                   autoComplete="family-name"
-                  className="border-[#343A46] rounded-xl text-sm"
+                  className="border-white/10 rounded-xl text-sm"
                 />
               </div>
               {nameError && <p className="text-center text-[#D08A8A] text-xs">{nameError}</p>}

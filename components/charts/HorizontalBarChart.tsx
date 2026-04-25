@@ -108,8 +108,8 @@ export default function HorizontalBarChart({
                   : [String(value), name]
               }
               contentStyle={{
-                background: "#171A20",
-                border: "1px solid #343A46",
+                background: "rgba(23, 26, 32, 0.86)",
+                border: "1px solid rgba(255,255,255,0.12)",
                 borderRadius: "12px",
                 fontSize: "13px",
                 color: "#E7EAF0",
@@ -232,8 +232,8 @@ export default function HorizontalBarChart({
                 : [String(value), ""]
             }
             contentStyle={{
-              background: "#171A20",
-              border: "1px solid #343A46",
+              background: "rgba(23, 26, 32, 0.86)",
+              border: "1px solid rgba(255,255,255,0.12)",
               borderRadius: "12px",
               fontSize: "13px",
               color: "#E7EAF0",
