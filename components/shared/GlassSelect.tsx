@@ -71,12 +71,16 @@ export function GlassSelect({
         disabled={disabled}
         className={cn(
           "flex w-full items-center justify-between gap-2 rounded-xl border bg-[#171A20]/70 transition-colors focus:outline-none disabled:cursor-not-allowed disabled:opacity-50",
-          isSmall ? "px-2 py-1.5 text-xs text-[#F59E0B]" : "px-3 py-2 text-sm text-[#E7EAF0]",
+          isSmall
+            ? "px-2 py-1.5 text-xs text-[#F59E0B]"
+            : "px-3 py-2 text-sm text-[#E7EAF0]",
           open || highlight ? "border-[#F59E0B]" : "border-white/10",
           !disabled && "cursor-pointer",
         )}
       >
-        <span className="flex-1 truncate text-left">{selected?.label ?? ""}</span>
+        <span className="flex-1 truncate text-left">
+          {selected?.label ?? ""}
+        </span>
         <ChevronDown
           size={isSmall ? 12 : 14}
           className={cn(
@@ -88,7 +92,7 @@ export function GlassSelect({
 
       {/* Dropdown panel */}
       {open && (
-        <div className="absolute left-0 right-0 z-30 mt-1 max-h-60 overflow-y-auto rounded-xl border border-[#F59E0B]/15 bg-[#1C1F26]/95 p-1.5 shadow-xl backdrop-blur-xl space-y-0.5">
+        <div className="absolute left-0 right-0 z-50 mt-1 max-h-60 overflow-y-auto rounded-xl border border-[#F59E0B]/15 bg-[#1C1F26]/95 p-1.5 shadow-xl backdrop-blur-xl space-y-0.5">
           {options.map((opt) => {
             const isSel = opt.value === current;
             return (

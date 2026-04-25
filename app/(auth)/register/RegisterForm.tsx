@@ -1,34 +1,34 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { registerUser } from "@/lib/actions/auth"
-import { GlassSelect } from "@/components/shared/GlassSelect"
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { registerUser } from "@/lib/actions/auth";
+import { GlassSelect } from "@/components/shared/GlassSelect";
 
 interface Group {
-  id: string
-  name: string
+  id: string;
+  name: string;
 }
 
 interface Props {
-  groups: Group[]
+  groups: Group[];
 }
 
 export default function RegisterForm({ groups }: Props) {
-  const router = useRouter()
-  const [error, setError] = useState("")
-  const [loading, setLoading] = useState(false)
+  const router = useRouter();
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault()
-    setError("")
-    setLoading(true)
+    e.preventDefault();
+    setError("");
+    setLoading(true);
 
-    const formData = new FormData(e.currentTarget)
+    const formData = new FormData(e.currentTarget);
     const data = {
       firstName: formData.get("firstName") as string,
       lastName: formData.get("lastName") as string,
@@ -36,19 +36,19 @@ export default function RegisterForm({ groups }: Props) {
       password: formData.get("password") as string,
       confirmPassword: formData.get("confirmPassword") as string,
       groupId: formData.get("groupId") as string,
-    }
+    };
 
     try {
-      const result = await registerUser(data)
+      const result = await registerUser(data);
       if (result.error) {
-        setError(result.error)
+        setError(result.error);
       } else {
-        router.push("/login?registered=1")
+        router.push("/login?registered=1");
       }
     } catch {
-      setError("เกิดข้อผิดพลาด กรุณาลองใหม่")
+      setError("เกิดข้อผิดพลาด กรุณาลองใหม่");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
   }
 
@@ -58,13 +58,34 @@ export default function RegisterForm({ groups }: Props) {
         {/* Logo/Title */}
         <div className="text-center mb-8">
           <div className="text-6xl mb-3">🏋️</div>
-          <h1 className="text-2xl font-bold text-[#F59E0B] mb-2">Weight Tracker</h1>
-          <p className="text-[#A8AFBD] text-sm">สมัครสมาชิกเพื่อเริ่มต้นติดตามสุขภาพ</p>
+          <h1 className="text-2xl font-bold text-[#F59E0B] mb-2">
+            Weight Tracker
+          </h1>
+          <p className="text-[#A8AFBD] text-sm">
+            สมัครสมาชิกเพื่อเริ่มต้นติดตามสุขภาพ
+          </p>
         </div>
 
         {/* Register Card */}
         <div className="glass-card rounded-2xl p-6">
           <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="groupId" className="text-[#F59E0B] font-medium">
+                กลุ่ม{" "}
+                <span className="text-[#A8AFBD] font-normal text-xs">
+                  (ไม่บังคับ)
+                </span>
+              </Label>
+              <GlassSelect
+                name="groupId"
+                defaultValue=""
+                options={[
+                  { value: "", label: "ไม่เลือกกลุ่ม (สามารถเลือกภายหลังได้)" },
+                  ...groups.map((g) => ({ value: g.id, label: g.name })),
+                ]}
+              />
+            </div>
+
             <div className="space-y-2">
               <Label htmlFor="firstName" className="text-[#F59E0B] font-medium">
                 ชื่อจริง
@@ -108,7 +129,9 @@ export default function RegisterForm({ groups }: Props) {
                 autoComplete="username"
                 className="border-white/10 focus:border-[#F59E0B] rounded-xl"
               />
-              <p className="text-xs text-[#A8AFBD]">ชื่อผู้ใช้ขั้นต่ำ 3 ตัวอักษร</p>
+              <p className="text-xs text-[#A8AFBD]">
+                ชื่อผู้ใช้ขั้นต่ำ 3 ตัวอักษร
+              </p>
             </div>
 
             <div className="space-y-2">
@@ -124,11 +147,16 @@ export default function RegisterForm({ groups }: Props) {
                 autoComplete="new-password"
                 className="border-white/10 focus:border-[#F59E0B] rounded-xl"
               />
-              <p className="text-xs text-[#A8AFBD]">รหัสผ่านขั้นต่ำ 6 ตัวอักษร</p>
+              <p className="text-xs text-[#A8AFBD]">
+                รหัสผ่านขั้นต่ำ 6 ตัวอักษร
+              </p>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword" className="text-[#F59E0B] font-medium">
+              <Label
+                htmlFor="confirmPassword"
+                className="text-[#F59E0B] font-medium"
+              >
                 ยืนยันรหัสผ่าน
               </Label>
               <Input
@@ -139,20 +167,6 @@ export default function RegisterForm({ groups }: Props) {
                 required
                 autoComplete="new-password"
                 className="border-white/10 focus:border-[#F59E0B] rounded-xl"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="groupId" className="text-[#F59E0B] font-medium">
-                กลุ่ม <span className="text-[#A8AFBD] font-normal text-xs">(ไม่บังคับ)</span>
-              </Label>
-              <GlassSelect
-                name="groupId"
-                defaultValue=""
-                options={[
-                  { value: "", label: "ไม่เลือกกลุ่ม (สามารถเลือกภายหลังได้)" },
-                  ...groups.map((g) => ({ value: g.id, label: g.name })),
-                ]}
               />
             </div>
 
@@ -174,11 +188,14 @@ export default function RegisterForm({ groups }: Props) {
 
         <p className="text-center text-sm text-[#A8AFBD] mt-4">
           มีบัญชีแล้ว?{" "}
-          <Link href="/login" className="text-[#F59E0B] font-medium hover:underline">
+          <Link
+            href="/login"
+            className="text-[#F59E0B] font-medium hover:underline"
+          >
             เข้าสู่ระบบ
           </Link>
         </p>
       </div>
     </div>
-  )
+  );
 }
