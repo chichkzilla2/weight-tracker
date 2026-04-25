@@ -94,7 +94,7 @@ export function GlassSelect({
         onClick={toggle}
         disabled={disabled}
         className={cn(
-          "flex w-full items-center justify-between gap-2 rounded-xl border bg-[#171A20]/70 transition-colors focus:outline-none disabled:cursor-not-allowed disabled:opacity-50",
+          "flex w-full items-center justify-between z-0 gap-2 rounded-xl border bg-[#171A20]/70 transition-colors focus:outline-none disabled:cursor-not-allowed disabled:opacity-50",
           isSmall
             ? "px-2 py-1.5 text-xs text-[#F59E0B]"
             : "px-3 py-2 text-sm text-[#E7EAF0]",
@@ -102,11 +102,13 @@ export function GlassSelect({
           !disabled && "cursor-pointer",
         )}
       >
-        <span className="flex-1 truncate text-left">{selected?.label ?? ""}</span>
+        <span className="flex-1 truncate text-left z-0">
+          {selected?.label ?? ""}
+        </span>
         <ChevronDown
           size={isSmall ? 12 : 14}
           className={cn(
-            "shrink-0 text-[#A8AFBD] transition-transform duration-150",
+            "shrink-0 text-[#A8AFBD] transition-transform duration-150 z-0",
             open && "rotate-180",
           )}
         />
@@ -117,8 +119,8 @@ export function GlassSelect({
         <div
           style={{ maxHeight: panelMaxH }}
           className={cn(
-            "absolute left-0 right-0 z-50 overflow-y-auto rounded-xl border border-[#F59E0B]/15 bg-[#1C1F26]/95 p-1.5 shadow-xl backdrop-blur-xl space-y-0.5",
-            direction === "up" ? "bottom-full mb-1" : "top-full mt-1",
+            "absolute left-0 right-0 overflow-y-auto rounded-xl border border-[#F59E0B]/15 bg-[#1C1F26]/95 p-1.5 shadow-xl backdrop-blur-xl space-y-0.5",
+            direction === "up" ? "bottom-full mb-1" : "top-full mt-1 z-50",
           )}
         >
           {options.map((opt) => {
@@ -128,7 +130,7 @@ export function GlassSelect({
                 key={opt.value}
                 onClick={() => !opt.disabled && pick(opt.value)}
                 className={cn(
-                  "flex select-none items-center justify-between gap-2 rounded-lg px-3 transition-colors",
+                  "flex select-none items-center justify-between gap-2 rounded-lg px-3 transition-colors z-30",
                   isSmall ? "py-1.5 text-xs" : "py-2 text-sm",
                   opt.disabled
                     ? "cursor-not-allowed opacity-40 text-[#A8AFBD]"

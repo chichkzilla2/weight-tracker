@@ -608,14 +608,14 @@ export default function AdminClient({ users, groups }: AdminClientProps) {
               )}
 
               {/* Search & filter */}
-              {/* <div className="glass-card rounded-2xl p-3 mb-3 space-y-2">
+              <div className="glass-card rounded-2xl p-3 mb-3 space-y-2">
                 <input
                   value={userSearch}
                   onChange={(e) => setUserSearch(e.target.value)}
                   placeholder="ค้นหาชื่อ / username..."
                   className="w-full text-sm border border-white/10 rounded-xl px-3 py-2 focus:outline-none focus:border-[#F59E0B]"
                 />
-                <GlassSelect
+                {/* <GlassSelect
                   size="sm"
                   value={userGroupFilter}
                   onChange={setUserGroupFilter}
@@ -623,14 +623,14 @@ export default function AdminClient({ users, groups }: AdminClientProps) {
                     { value: "", label: "ทุกกลุ่ม" },
                     ...groups.map((g) => ({ value: g.id, label: g.name })),
                   ]}
-                />
-              </div> */}
+                /> */}
+              </div>
 
               <div className="glass-card rounded-2xl overflow-clip">
                 <div className="overflow-auto max-h-96">
                   <table className="w-full min-w-[560px] text-sm">
                     <thead>
-                      <tr>
+                      <tr className="z-50">
                         <th className="sticky top-0 z-20 bg-[#000000] text-left px-3 py-2.5 font-semibold text-[#F59E0B] whitespace-nowrap border-b border-white/10">
                           ชื่อ-นามสกุล
                         </th>
