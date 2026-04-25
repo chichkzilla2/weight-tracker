@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { registerUser } from "@/lib/actions/auth"
+import { GlassSelect } from "@/components/shared/GlassSelect"
 
 interface Group {
   id: string
@@ -145,19 +146,14 @@ export default function RegisterForm({ groups }: Props) {
               <Label htmlFor="groupId" className="text-[#F59E0B] font-medium">
                 กลุ่ม <span className="text-[#A8AFBD] font-normal text-xs">(ไม่บังคับ)</span>
               </Label>
-              <select
-                id="groupId"
+              <GlassSelect
                 name="groupId"
                 defaultValue=""
-                className="w-full border border-white/10 focus:border-[#F59E0B] rounded-xl px-3 py-2 text-sm bg-[#171A20]/70 text-[#E7EAF0] outline-none focus:ring-1 focus:ring-[#F59E0B]"
-              >
-                <option value="">ไม่เลือกกลุ่ม (สามารถเลือกภายหลังได้)</option>
-                {groups.map((group) => (
-                  <option key={group.id} value={group.id}>
-                    {group.name}
-                  </option>
-                ))}
-              </select>
+                options={[
+                  { value: "", label: "ไม่เลือกกลุ่ม (สามารถเลือกภายหลังได้)" },
+                  ...groups.map((g) => ({ value: g.id, label: g.name })),
+                ]}
+              />
             </div>
 
             {error && (

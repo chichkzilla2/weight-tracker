@@ -4,6 +4,7 @@ import { useState, useTransition } from "react"
 import { toast } from "sonner"
 import { joinGroup, leaveGroup } from "@/lib/actions/profile"
 import { Loader2 } from "lucide-react"
+import { GlassSelect } from "@/components/shared/GlassSelect"
 
 interface Group { id: string; name: string }
 
@@ -41,17 +42,16 @@ export default function GroupManageSection({ currentGroupId, currentGroupName, g
       {otherGroups.length > 0 && (
         <div className="space-y-1">
           <p className="text-xs text-[#A8AFBD]">เปลี่ยนไปกลุ่มอื่น</p>
-          <select
-            onChange={(e) => handleChange(e.target.value)}
+          <GlassSelect
+            key={currentGroupId}
             defaultValue=""
             disabled={isPending}
-            className="w-full border border-white/10 rounded-xl px-3 py-2 text-sm bg-[#171A20]/70 text-[#E7EAF0] focus:outline-none focus:border-[#F59E0B] disabled:opacity-50"
-          >
-            <option value="">เลือกกลุ่ม...</option>
-            {otherGroups.map((g) => (
-              <option key={g.id} value={g.id}>{g.name}</option>
-            ))}
-          </select>
+            onChange={handleChange}
+            options={[
+              { value: "", label: "เลือกกลุ่ม..." },
+              ...otherGroups.map((g) => ({ value: g.id, label: g.name })),
+            ]}
+          />
         </div>
       )}
 

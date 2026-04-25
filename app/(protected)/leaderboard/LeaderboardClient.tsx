@@ -3,6 +3,7 @@
 import { useMemo, useState, useTransition } from "react";
 import type { LeaderboardEntry } from "@/lib/calculations";
 import { LeaderboardSkeleton } from "@/components/shared/TableSkeleton";
+import { GlassSelect } from "@/components/shared/GlassSelect";
 
 interface MonthlyLeaderboard {
   monthKey: string;
@@ -229,17 +230,15 @@ function LeaderboardSection({
           {monthTab === "history" && historyData?.label}
         </p>
         {monthTab === "history" && monthlyLeaderboards.length > 0 && (
-          <select
+          <GlassSelect
+            size="sm"
             value={selectedHistoryMonth}
-            onChange={(e) => setSelectedHistoryMonth(e.target.value)}
-            className="text-xs border border-white/10 rounded-lg px-2 py-1 bg-[#171A20]/70 text-[#F59E0B] focus:outline-none cursor-pointer"
-          >
-            {[...monthlyLeaderboards].reverse().map((m) => (
-              <option key={m.monthKey} value={m.monthKey}>
-                {m.label}
-              </option>
-            ))}
-          </select>
+            onChange={setSelectedHistoryMonth}
+            options={[...monthlyLeaderboards].reverse().map((m) => ({
+              value: m.monthKey,
+              label: m.label,
+            }))}
+          />
         )}
       </div>
 

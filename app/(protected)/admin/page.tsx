@@ -26,7 +26,7 @@ export default async function AdminPage() {
     }),
     prisma.group.findMany({
       orderBy: { name: "asc" },
-      select: { id: true, name: true, createdAt: true },
+      select: { id: true, name: true, createdAt: true, _count: { select: { users: true } } },
     }),
   ]);
 
@@ -45,6 +45,7 @@ export default async function AdminPage() {
   const serializedGroups = groups.map((g: (typeof groups)[number]) => ({
     id: g.id,
     name: g.name,
+    memberCount: g._count.users,
     createdAt: g.createdAt.toISOString(),
   }));
 

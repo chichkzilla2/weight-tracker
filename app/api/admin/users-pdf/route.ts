@@ -85,7 +85,7 @@ function drawCenteredMixedText(
 function drawTableHeader(doc: PDFKit.PDFDocument, x: number, y: number) {
   doc.font("SarabunBold").fontSize(11);
   doc.text("ลำดับ", x, y, { width: 45 });
-  doc.text("ชื่อ-นามสกุล", x + 55, y, { width: 380 });
+  doc.text("ชื่อ", x + 55, y, { width: 380 });
   doc
     .moveTo(x, y + 20)
     .lineTo(545, y + 20)
@@ -191,7 +191,12 @@ export async function GET() {
       lastName: true,
       group: { select: { name: true } },
     },
-    orderBy: [{ group: { name: "asc" } }, { firstName: "asc" }, { lastName: "asc" }, { realName: "asc" }],
+    orderBy: [
+      { group: { name: "asc" } },
+      { firstName: "asc" },
+      { lastName: "asc" },
+      { realName: "asc" },
+    ],
   });
 
   const pdf = await createPdf(

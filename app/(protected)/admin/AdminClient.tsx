@@ -35,6 +35,7 @@ import {
   AdminGroupsSkeleton,
   AdminUsersSkeleton,
 } from "@/components/shared/TableSkeleton";
+import { GlassSelect } from "@/components/shared/GlassSelect";
 
 interface UserData {
   id: string;
@@ -51,8 +52,11 @@ interface UserData {
 interface GroupData {
   id: string;
   name: string;
+  memberCount: number;
   createdAt: string;
 }
+
+const GROUP_CAPACITY = 10;
 
 interface AdminClientProps {
   users: UserData[];
@@ -559,29 +563,33 @@ export default function AdminClient({ users, groups }: AdminClientProps) {
                     <div className="grid grid-cols-2 gap-3">
                       <div className="space-y-1">
                         <Label className="text-xs text-[#F59E0B]">กลุ่ม</Label>
-                        <select
+                        <GlassSelect
                           name="groupId"
-                          required
-                          className="w-full border border-white/10 rounded-xl px-3 py-2 text-sm bg-[#171A20]/70 focus:outline-none focus:border-[#F59E0B]"
-                        >
-                          <option value="">เลือกกลุ่ม</option>
-                          {groups.map((g) => (
-                            <option key={g.id} value={g.id}>
-                              {g.name}
-                            </option>
-                          ))}
-                        </select>
+                          defaultValue=""
+                          options={[
+                            { value: "", label: "ยังไม่เข้าร่วมกลุ่ม" },
+                            ...groups.map((g) => {
+                              const remaining = GROUP_CAPACITY - g.memberCount;
+                              const isFull = remaining === 0;
+                              return {
+                                value: g.id,
+                                label: `${g.name} ${isFull ? "(เต็มแล้ว)" : `(ว่าง ${remaining} ที่)`}`,
+                                disabled: isFull,
+                              };
+                            }),
+                          ]}
+                        />
                       </div>
                       <div className="space-y-1">
                         <Label className="text-xs text-[#F59E0B]">บทบาท</Label>
-                        <select
+                        <GlassSelect
                           name="role"
                           defaultValue="USER"
-                          className="w-full border border-white/10 rounded-xl px-3 py-2 text-sm bg-[#171A20]/70 focus:outline-none focus:border-[#F59E0B]"
-                        >
-                          <option value="USER">ผู้ใช้งาน</option>
-                          <option value="ADMIN">ผู้ดูแลระบบ</option>
-                        </select>
+                          options={[
+                            { value: "USER", label: "ผู้ใช้งาน" },
+                            { value: "ADMIN", label: "ผู้ดูแลระบบ" },
+                          ]}
+                        />
                       </div>
                     </div>
                     <Button
@@ -603,18 +611,15 @@ export default function AdminClient({ users, groups }: AdminClientProps) {
                   placeholder="ค้นหาชื่อ / username..."
                   className="w-full text-sm border border-white/10 rounded-xl px-3 py-2 focus:outline-none focus:border-[#F59E0B]"
                 />
-                <select
+                <GlassSelect
+                  size="sm"
                   value={userGroupFilter}
-                  onChange={(e) => setUserGroupFilter(e.target.value)}
-                  className="w-full text-xs border border-white/10 rounded-lg px-2 py-1.5 bg-[#171A20]/70 text-[#F59E0B] focus:outline-none focus:border-[#F59E0B]"
-                >
-                  <option value="">ทุกกลุ่ม</option>
-                  {groups.map((g) => (
-                    <option key={g.id} value={g.id}>
-                      {g.name}
-                    </option>
-                  ))}
-                </select>
+                  onChange={setUserGroupFilter}
+                  options={[
+                    { value: "", label: "ทุกกลุ่ม" },
+                    ...groups.map((g) => ({ value: g.id, label: g.name })),
+                  ]}
+                />
               </div>
 
               <div className="glass-card rounded-2xl overflow-hidden">
@@ -649,31 +654,38 @@ export default function AdminClient({ users, groups }: AdminClientProps) {
                             </p>
                           </td>
                           <td className="px-3 py-2.5">
-                            <select
+                            <GlassSelect
+                              size="sm"
                               value={
                                 userGroupSelections[u.id] ?? u.groupId ?? ""
                               }
-                              onChange={(e) =>
-                                setUserGroupSelections((prev) => ({
-                                  ...prev,
-                                  [u.id]: e.target.value,
-                                }))
-                              }
-                              className={`text-xs border rounded-lg px-2 py-1 bg-[#171A20]/70 cursor-pointer focus:outline-none focus:border-[#F59E0B] ${
+                              highlight={
                                 (userGroupSelections[u.id] ??
                                   u.groupId ??
                                   "") !== (u.groupId ?? "")
-                                  ? "border-[#F59E0B] text-[#F59E0B] font-semibold"
-                                  : "border-white/10 text-[#F59E0B]"
-                              }`}
-                            >
-                              <option value="">ไม่มีกลุ่ม</option>
-                              {groups.map((g) => (
-                                <option key={g.id} value={g.id}>
-                                  {g.name}
-                                </option>
-                              ))}
-                            </select>
+                              }
+                              onChange={(val) =>
+                                setUserGroupSelections((prev) => ({
+                                  ...prev,
+                                  [u.id]: val,
+                                }))
+                              }
+                              options={[
+                                { value: "", label: "ไม่มีกลุ่ม" },
+                                ...groups.map((g) => {
+                                  const remaining =
+                                    GROUP_CAPACITY - g.memberCount;
+                                  const isFull = remaining === 0;
+                                  const isCurrentGroup =
+                                    g.id === (u.groupId || "");
+                                  return {
+                                    value: g.id,
+                                    label: `${g.name} ${isFull ? "(เต็มแล้ว)" : `(ว่าง ${remaining} ที่)`}`,
+                                    disabled: isFull && !isCurrentGroup,
+                                  };
+                                }),
+                              ]}
+                            />
                           </td>
                           <td className="px-3 py-2.5">
                             <span

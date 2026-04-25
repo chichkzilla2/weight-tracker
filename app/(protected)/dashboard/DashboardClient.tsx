@@ -5,6 +5,7 @@ import HorizontalBarChart from "@/components/charts/HorizontalBarChart";
 import { getUserMonthlyWeights } from "@/lib/calculations";
 import type { SerializedGroupWithUsers } from "@/lib/calculations";
 import DashboardWaistSection from "./DashboardWaistSection";
+import { GlassSelect } from "@/components/shared/GlassSelect";
 
 interface EntryData {
   id: string;
@@ -377,7 +378,7 @@ export default function DashboardClient({
                 : `เลือก ${selectedWeightGroupIds.length} กลุ่ม`}
             </button>
             {weightDropdownOpen && (
-              <div className="absolute z-20 mt-1 w-full glass-card rounded-xl shadow-lg p-2 space-y-1">
+              <div className="absolute z-20 mt-1 w-full rounded-xl shadow-xl border border-[#F59E0B]/15 bg-[#1C1F26]/95 backdrop-blur-xl p-2 space-y-1 max-h-60 overflow-y-auto">
                 <label className="flex items-center gap-2 px-2 py-1.5 text-sm text-[#F59E0B] cursor-pointer">
                   <input
                     type="checkbox"
@@ -442,15 +443,16 @@ export default function DashboardClient({
                   <label className="text-xs text-[#A8AFBD] font-medium truncate">
                     {col.label}
                   </label>
-                  <select
+                  <GlassSelect
+                    size="sm"
                     value={sort?.col === col.key ? sort.dir : "none"}
-                    onChange={(e) => handleSortChange(col.key, e.target.value)}
-                    className="text-xs border border-white/10 rounded-lg pl-2 py-1.5 bg-[#171A20]/70 text-[#F59E0B] focus:outline-none cursor-pointer"
-                  >
-                    <option value="none">ไม่เรียง</option>
-                    <option value="asc">{col.optAsc ?? "น้อยไปมาก"}</option>
-                    <option value="desc">{col.optDesc ?? "มากไปน้อย"}</option>
-                  </select>
+                    onChange={(v) => handleSortChange(col.key, v)}
+                    options={[
+                      { value: "none", label: "ไม่เรียง" },
+                      { value: "asc", label: col.optAsc ?? "น้อยไปมาก" },
+                      { value: "desc", label: col.optDesc ?? "มากไปน้อย" },
+                    ]}
+                  />
                 </div>
               ))}
             </div>
