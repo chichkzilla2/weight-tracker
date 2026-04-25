@@ -32,6 +32,7 @@ interface Props {
   allGroupsWaist: SerializedGroupWithUsers[];
   userRole: string;
   individualSearch: string;
+  onIndividualSearchChange: (value: string) => void;
 }
 
 const BAR_COLORS = ["#F59E0B", "#A8AFBD"];
@@ -59,6 +60,7 @@ export default function DashboardWaistSection({
   allGroupsWaist,
   userRole,
   individualSearch,
+  onIndividualSearchChange,
 }: Props) {
   const [sort, setSort] = useState<{ col: SortCol; dir: SortDir } | null>({
     col: "change",
@@ -369,6 +371,12 @@ export default function DashboardWaistSection({
             รอบเอวที่เปลี่ยนแปลง = รอบเอวล่าสุด - รอบเอวเริ่มต้น
             และเปอร์เซ็นต์คิดจากรอบเอวเริ่มต้น
           </p>
+          <input
+            value={individualSearch}
+            onChange={(e) => onIndividualSearchChange(e.target.value)}
+            placeholder="ค้นหาชื่อจริง / นามสกุล..."
+            className="mb-3 w-full rounded-xl border border-white/10 px-3 py-2 text-sm text-[#E7EAF0] focus:outline-none focus:border-[#F59E0B]"
+          />
           <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-2 mb-3">
             {SORT_COLS.map((col) => (
               <div key={col.key} className="flex flex-col gap-1">

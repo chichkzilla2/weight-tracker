@@ -383,6 +383,18 @@
   }
 
   @media (max-width: 639px) {
+    [data-sonner-toaster] {
+      top: max(0.75rem, env(safe-area-inset-top)) !important;
+      right: 0.75rem !important;
+      bottom: auto !important;
+      left: auto !important;
+    }
+
+    [data-sonner-toast] {
+      border-radius: 0.9rem !important;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.34) !important;
+    }
+
     [data-slot="dialog-content"],
     [class*="fixed bottom-0"][class*="rounded-t-2xl"] {
       display: flex !important;

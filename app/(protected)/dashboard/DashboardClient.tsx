@@ -113,6 +113,7 @@ export default function DashboardClient({
   >(() => groups.map((g) => g.id));
   const [weightDropdownOpen, setWeightDropdownOpen] = useState(false);
   const [individualSearch, setIndividualSearch] = useState("");
+  const [waistIndividualSearch, setWaistIndividualSearch] = useState("");
   const weightFilterRef = useRef<HTMLDivElement>(null);
 
   const filteredGroups = useMemo(() => {
@@ -580,7 +581,8 @@ export default function DashboardClient({
         <DashboardWaistSection
           allGroupsWaist={allGroupsWaist}
           userRole={userRole}
-          individualSearch={individualSearch}
+          individualSearch={waistIndividualSearch}
+          onIndividualSearchChange={setWaistIndividualSearch}
         />
       </div>
     </div>
