@@ -2,6 +2,7 @@
 
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { normalizeNameParts } from "@/lib/names";
 import { createUserSchema, createGroupSchema } from "@/lib/validations";
 import bcrypt from "bcryptjs";
 import { revalidatePath } from "next/cache";
@@ -24,7 +25,8 @@ export async function createUser(
   const raw = {
     username: formData.get("username") as string,
     password: formData.get("password") as string,
-    realName: formData.get("realName") as string,
+    firstName: formData.get("firstName") as string,
+    lastName: formData.get("lastName") as string,
     groupId: formData.get("groupId") as string,
     role: formData.get("role") as string,
   };
@@ -53,13 +55,16 @@ export async function createUser(
   }
 
   const passwordHash = await bcrypt.hash(parsed.data.password, 12);
+  const name = normalizeNameParts(parsed.data.firstName, parsed.data.lastName);
 
   try {
     await prisma.user.create({
       data: {
         username: parsed.data.username,
         passwordHash,
-        realName: parsed.data.realName,
+        realName: name.fullName,
+        firstName: name.firstName,
+        lastName: name.lastName,
         groupId: parsed.data.groupId ?? null,
         role: parsed.data.role as "USER" | "ADMIN",
       },
@@ -114,16 +119,22 @@ export async function changeUserPasswordByAdmin(
 
 export async function updateUserRealName(
   userId: string,
-  realName: string,
+  firstName: string,
+  lastName?: string,
 ): Promise<{ error?: string; success: boolean }> {
   await requireAdmin();
 
-  const trimmed = realName.trim();
-  if (!trimmed) return { error: "กรุณากรอกชื่อจริง", success: false };
+  const name = normalizeNameParts(firstName, lastName);
+  if (!name.firstName) return { error: "กรุณากรอกชื่อจริง", success: false };
+  if (!name.lastName) return { error: "กรุณากรอกนามสกุล", success: false };
 
   await prisma.user.update({
     where: { id: userId },
-    data: { realName: trimmed },
+    data: {
+      realName: name.fullName,
+      firstName: name.firstName,
+      lastName: name.lastName,
+    },
   });
 
   revalidatePath("/");

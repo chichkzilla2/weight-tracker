@@ -6,6 +6,7 @@ import WaistCard from "@/components/shared/WaistCard";
 import WaistForm from "@/components/shared/WaistForm";
 import HistoryClient from "@/components/shared/HistoryClient";
 import PageHeader from "@/components/shared/PageHeader";
+import { combineName } from "@/lib/names";
 
 export default async function HomePage() {
   const session = await auth();
@@ -13,9 +14,17 @@ export default async function HomePage() {
 
   const currentUser = await prisma.user.findUnique({
     where: { id: session.user.id },
-    select: { realName: true, group: { select: { name: true } } },
+    select: {
+      realName: true,
+      firstName: true,
+      lastName: true,
+      group: { select: { name: true } },
+    },
   });
   const groupName = currentUser?.group?.name ?? null;
+  const displayName = currentUser
+    ? combineName(currentUser.firstName, currentUser.lastName, currentUser.realName)
+    : session.user.realName;
 
   const [
     weightEntriesDesc,
@@ -64,7 +73,7 @@ export default async function HomePage() {
   return (
     <div className="w-full max-w-2xl mx-auto">
       <PageHeader
-        title={`🏠 ${currentUser?.realName ?? session.user.realName}`}
+        title={`🏠 ${displayName}`}
         subtitle={
           groupName ? (
             <span className="inline-block bg-[#242832] border border-[#343A46] text-[#F59E0B] text-xs font-semibold px-3 py-0.5 rounded-full mt-1">

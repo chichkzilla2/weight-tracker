@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/db"
 import { THAI_MONTHS, toThaiYear } from "@/lib/calculations"
+import { combineName } from "@/lib/names"
 import PageHeader from "@/components/shared/PageHeader"
 import GroupJoinView from "./GroupJoinView"
 import GroupManageSection from "./GroupManageSection"
@@ -43,6 +44,8 @@ export default async function GroupPage() {
     select: {
       id: true,
       realName: true,
+      firstName: true,
+      lastName: true,
       weightEntries: {
         where: { recordedAt: { gte: monthStart, lte: monthEnd } },
         orderBy: { recordedAt: "asc" },
@@ -54,7 +57,7 @@ export default async function GroupPage() {
         select: { waist: true },
       },
     },
-    orderBy: { realName: "asc" },
+    orderBy: [{ firstName: "asc" }, { lastName: "asc" }, { realName: "asc" }],
   })
 
   const memberStats = members
@@ -75,10 +78,11 @@ export default async function GroupPage() {
       const waistChange =
         firstWaist !== null && lastWaist !== null ? lastWaist - firstWaist : null
 
+      const displayName = combineName(m.firstName, m.lastName, m.realName)
       return {
         id: m.id,
-        realName: m.realName,
-        initial: m.realName[0]?.toUpperCase() ?? "?",
+        realName: displayName,
+        initial: displayName[0]?.toUpperCase() ?? "?",
         firstWeight,
         lastWeight,
         weightChange,

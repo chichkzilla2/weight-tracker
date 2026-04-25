@@ -6,6 +6,7 @@ import {
   formatMonthKeyThai,
   formatThaiDateTime,
 } from "@/lib/calculations"
+import { combineName } from "@/lib/names"
 import LeaderboardClient from "./LeaderboardClient"
 import PageHeader from "@/components/shared/PageHeader"
 
@@ -27,6 +28,8 @@ export default async function LeaderboardPage() {
         select: {
           id: true,
           realName: true,
+          firstName: true,
+          lastName: true,
           weightEntries: {
             select: { id: true, userId: true, weight: true, recordedAt: true, createdAt: true },
           },
@@ -49,7 +52,7 @@ export default async function LeaderboardPage() {
     name: g.name,
     users: g.users.map((u) => ({
       id: u.id,
-      realName: u.realName,
+      realName: combineName(u.firstName, u.lastName, u.realName),
       weightEntries: u.weightEntries,
     })),
   }))
@@ -66,7 +69,7 @@ export default async function LeaderboardPage() {
     name: g.name,
     users: g.users.map((u) => ({
       id: u.id,
-      realName: u.realName,
+      realName: combineName(u.firstName, u.lastName, u.realName),
       weightEntries: u.waistEntries.map((e) => ({
         id: e.id,
         userId: e.userId,

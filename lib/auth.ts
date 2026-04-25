@@ -2,6 +2,7 @@ import NextAuth from "next-auth"
 import Credentials from "next-auth/providers/credentials"
 import bcrypt from "bcryptjs"
 import { prisma } from "./db"
+import { combineName } from "./names"
 import { loginSchema } from "./validations"
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
@@ -19,6 +20,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             username: true,
             passwordHash: true,
             realName: true,
+            firstName: true,
+            lastName: true,
             role: true,
             groupId: true,
             group: { select: { name: true } },
@@ -32,7 +35,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         return {
           id: user.id,
           username: user.username,
-          realName: user.realName,
+          realName: combineName(user.firstName, user.lastName, user.realName),
+          firstName: user.firstName,
+          lastName: user.lastName,
           role: user.role,
           groupId: user.groupId ?? null,
           groupName: user.group?.name ?? null,
@@ -46,6 +51,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.id = user.id
         token.username = (user as { username?: string }).username
         token.realName = (user as { realName?: string }).realName
+        token.firstName = (user as { firstName?: string | null }).firstName
+        token.lastName = (user as { lastName?: string | null }).lastName
         token.role = (user as { role?: string }).role
         token.groupId = (user as { groupId?: string }).groupId
         token.groupName = (user as { groupName?: string }).groupName
@@ -56,6 +63,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       session.user.id = token.id as string
       session.user.username = token.username as string
       session.user.realName = token.realName as string
+      session.user.firstName = (token.firstName as string | null) ?? null
+      session.user.lastName = (token.lastName as string | null) ?? null
       session.user.role = token.role as string
       session.user.groupId = (token.groupId as string | null) ?? null
       session.user.groupName = (token.groupName as string | null) ?? null

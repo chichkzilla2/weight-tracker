@@ -6,6 +6,7 @@ import { addWeightEntry } from "@/lib/actions/weight"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { CheckCircle2 } from "lucide-react"
 
 const initialState = { error: "", success: false }
 
@@ -65,14 +66,21 @@ export default function WeightForm() {
       </div>
 
       <AppModal open={open} onClose={() => setOpen(false)}>
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#171A20] rounded-2xl shadow-2xl w-[calc(100%-2rem)] max-w-sm p-5 outline-none">
-          <h3 className="font-bold text-[#E7EAF0] text-base mb-2">ยืนยันการบันทึกน้ำหนัก</h3>
-          <p className="text-sm text-[#A8AFBD] mb-5">
-            คุณต้องการบันทึกน้ำหนัก{" "}
-            <span className="font-semibold text-[#F59E0B]">{weightDisplay} กก.</span>{" "}
-            ใช่หรือไม่?
-          </p>
-          <div className="flex gap-2">
+        <div className="fixed bottom-0 left-0 right-0 bg-[#171A20] rounded-t-2xl shadow-2xl w-full max-h-[90vh] overflow-y-auto p-5 outline-none border border-[#343A46] animate-in slide-in-from-bottom-6 duration-200 sm:slide-in-from-bottom-0 sm:zoom-in-95 sm:absolute sm:top-1/2 sm:left-1/2 sm:bottom-auto sm:right-auto sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-2xl sm:w-[calc(100%-2rem)] sm:max-w-sm">
+          <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-full bg-[#F59E0B]/15 text-[#F59E0B]">
+            <CheckCircle2 size={24} />
+          </div>
+          <div className="mb-6 text-center">
+            <h3 className="font-bold text-[#E7EAF0] text-lg">ยืนยันการบันทึกน้ำหนัก</h3>
+          </div>
+          <div className="mb-6 text-center">
+            <p className="text-sm text-[#A8AFBD]">
+              คุณต้องการบันทึกน้ำหนัก{" "}
+              <span className="font-semibold text-[#F59E0B]">{weightDisplay} กก.</span>{" "}
+              ใช่หรือไม่?
+            </p>
+          </div>
+          <div className="flex gap-2 pt-1">
             <button
               onClick={() => setOpen(false)}
               className="flex-1 py-2.5 rounded-xl border border-[#343A46] text-[#F59E0B] text-sm font-medium hover:bg-[#242832] transition-colors"

@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
+import { combineName } from "@/lib/names";
 import AdminClient from "./AdminClient";
 
 export default async function AdminPage() {
@@ -15,6 +16,8 @@ export default async function AdminPage() {
         id: true,
         username: true,
         realName: true,
+        firstName: true,
+        lastName: true,
         role: true,
         groupId: true,
         createdAt: true,
@@ -30,7 +33,9 @@ export default async function AdminPage() {
   const serializedUsers = users.map((u: (typeof users)[number]) => ({
     id: u.id,
     username: u.username,
-    realName: u.realName,
+    realName: combineName(u.firstName, u.lastName, u.realName),
+    firstName: u.firstName ?? "",
+    lastName: u.lastName ?? "",
     role: u.role as string,
     groupId: u.groupId ?? "",
     groupName: u.group?.name ?? "ไม่มีกลุ่ม",

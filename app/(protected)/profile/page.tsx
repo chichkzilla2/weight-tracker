@@ -5,6 +5,7 @@ import ChangePasswordForm from "./ChangePasswordForm";
 import SignOutButton from "./SignOutButton";
 import { ChevronRight, Download } from "lucide-react";
 import PageHeader from "@/components/shared/PageHeader";
+import { combineName } from "@/lib/names";
 
 export default async function ProfilePage() {
   const session = await auth();
@@ -14,6 +15,8 @@ export default async function ProfilePage() {
     where: { id: session.user.id },
     select: {
       realName: true,
+      firstName: true,
+      lastName: true,
       username: true,
       role: true,
       group: { select: { name: true } },
@@ -22,7 +25,8 @@ export default async function ProfilePage() {
 
   if (!user) return null;
 
-  const initial = user.realName?.[0]?.toUpperCase() ?? "U";
+  const displayName = combineName(user.firstName, user.lastName, user.realName);
+  const initial = displayName?.[0]?.toUpperCase() ?? "U";
 
   return (
     <div className="max-w-lg mx-auto">
@@ -34,7 +38,7 @@ export default async function ProfilePage() {
             {initial}
           </div>
           <h2 className="text-xl font-bold text-[#E7EAF0] mb-2">
-            {user.realName}
+            {displayName}
           </h2>
           <GroupBadge name={user.group?.name} />
           {user.role === "ADMIN" && (
@@ -54,10 +58,8 @@ export default async function ProfilePage() {
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-[#A8AFBD]">ชื่อจริง</span>
-              <span className="text-[#E7EAF0] font-medium">
-                {user.realName}
-              </span>
+              <span className="text-[#A8AFBD]">ชื่อ-นามสกุล</span>
+              <span className="text-[#E7EAF0] font-medium">{displayName}</span>
             </div>
           </div>
         </div>
@@ -94,7 +96,7 @@ export default async function ProfilePage() {
         </div>
 
         <p className="text-center text-xs text-[#343A46] mt-8">
-          เวอร์ชัน 3.1.0
+          เวอร์ชัน 3.2.0
         </p>
       </div>
     </div>

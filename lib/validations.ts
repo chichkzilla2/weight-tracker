@@ -17,10 +17,16 @@ export const waistEntrySchema = z.object({
     .positive("รอบเอวต้องมากกว่า 0"),
 })
 
+export const namePartsSchema = z.object({
+  firstName: z.string().trim().min(1, "กรุณากรอกชื่อจริง").max(100, "ชื่อต้องไม่เกิน 100 ตัวอักษร"),
+  lastName: z.string().trim().min(1, "กรุณากรอกนามสกุล").max(100, "นามสกุลต้องไม่เกิน 100 ตัวอักษร"),
+})
+
 export const createUserSchema = z.object({
   username: z.string().min(3, "ชื่อผู้ใช้ต้องมีอย่างน้อย 3 ตัวอักษร"),
   password: z.string().min(6, "รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร"),
-  realName: z.string().min(1, "กรุณากรอกชื่อจริง"),
+  firstName: namePartsSchema.shape.firstName,
+  lastName: namePartsSchema.shape.lastName,
   groupId: z.string().optional(),
   role: z.enum(["USER", "ADMIN"]),
 })
@@ -39,7 +45,8 @@ export const changePasswordSchema = z.object({
 })
 
 export const registerSchema = z.object({
-  realName: z.string().min(1, "กรุณากรอกชื่อจริง").max(100, "ชื่อต้องไม่เกิน 100 ตัวอักษร"),
+  firstName: namePartsSchema.shape.firstName,
+  lastName: namePartsSchema.shape.lastName,
   username: z.string().min(3, "ชื่อผู้ใช้ต้องมีอย่างน้อย 3 ตัวอักษร").max(30, "ชื่อผู้ใช้ต้องไม่เกิน 30 ตัวอักษร"),
   password: z.string().min(6, "รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร").max(128, "รหัสผ่านต้องไม่เกิน 128 ตัวอักษร"),
   confirmPassword: z.string().min(1, "กรุณายืนยันรหัสผ่าน"),
@@ -52,6 +59,7 @@ export const registerSchema = z.object({
 export type LoginInput = z.infer<typeof loginSchema>
 export type WeightEntryInput = z.infer<typeof weightEntrySchema>
 export type WaistEntryInput = z.infer<typeof waistEntrySchema>
+export type NamePartsInput = z.infer<typeof namePartsSchema>
 export type CreateUserInput = z.infer<typeof createUserSchema>
 export type CreateGroupInput = z.infer<typeof createGroupSchema>
 export type ChangePasswordInput = z.infer<typeof changePasswordSchema>

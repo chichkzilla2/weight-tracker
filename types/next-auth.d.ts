@@ -6,6 +6,8 @@ declare module "next-auth" {
       id: string
       username: string
       realName: string
+      firstName: string | null
+      lastName: string | null
       role: string
       groupId: string | null
       groupName: string | null
@@ -18,6 +20,8 @@ declare module "next-auth/jwt" {
     id?: string
     username?: string
     realName?: string
+    firstName?: string | null
+    lastName?: string | null
     role?: string
     groupId?: string
     groupName?: string

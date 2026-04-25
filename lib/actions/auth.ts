@@ -2,8 +2,11 @@
 
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/db";
-import { registerSchema } from "@/lib/validations";
+import { combineName, normalizeNameParts } from "@/lib/names";
+import { namePartsSchema, registerSchema } from "@/lib/validations";
 import { Prisma } from "@prisma/client";
+import { auth } from "@/lib/auth";
+import { revalidatePath } from "next/cache";
 
 export async function registerUser(
   data: unknown,
@@ -16,7 +19,8 @@ export async function registerUser(
     };
   }
 
-  const { realName, username, password, groupId } = parsed.data;
+  const { firstName, lastName, username, password, groupId } = parsed.data;
+  const name = normalizeNameParts(firstName, lastName);
 
   if (groupId) {
     const count = await prisma.user.count({ where: { groupId } });
@@ -31,7 +35,9 @@ export async function registerUser(
       data: {
         username,
         passwordHash,
-        realName,
+        realName: name.fullName,
+        firstName: name.firstName,
+        lastName: name.lastName,
         role: "USER",
         groupId: groupId || null,
       },
@@ -50,4 +56,59 @@ export async function registerUser(
     }
     return { error: "เกิดข้อผิดพลาด กรุณาลองใหม่", success: false };
   }
+}
+
+export async function getLoginNameRequirement(): Promise<{
+  firstName: string;
+  lastName: string;
+  needsUpdate: boolean;
+}> {
+  const session = await auth();
+  if (!session) return { firstName: "", lastName: "", needsUpdate: false };
+
+  const user = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { firstName: true, lastName: true, realName: true },
+  });
+  if (!user) return { firstName: "", lastName: "", needsUpdate: false };
+
+  return {
+    firstName: user.firstName?.trim() || user.realName.trim(),
+    lastName: user.lastName?.trim() ?? "",
+    needsUpdate: !user.lastName?.trim(),
+  };
+}
+
+export async function updateLoginName(data: unknown): Promise<{
+  error?: string;
+  success: boolean;
+}> {
+  const session = await auth();
+  if (!session) return { error: "กรุณาเข้าสู่ระบบ", success: false };
+
+  const parsed = namePartsSchema.safeParse(data);
+  if (!parsed.success) {
+    return {
+      error: parsed.error.issues[0]?.message ?? "ข้อมูลไม่ถูกต้อง",
+      success: false,
+    };
+  }
+
+  const name = normalizeNameParts(parsed.data.firstName, parsed.data.lastName);
+  await prisma.user.update({
+    where: { id: session.user.id },
+    data: {
+      firstName: name.firstName,
+      lastName: name.lastName,
+      realName: combineName(name.firstName, name.lastName),
+    },
+  });
+
+  revalidatePath("/");
+  revalidatePath("/profile");
+  revalidatePath("/group");
+  revalidatePath("/dashboard");
+  revalidatePath("/leaderboard");
+
+  return { success: true };
 }

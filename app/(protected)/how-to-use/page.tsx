@@ -86,8 +86,8 @@ const adminSections = [
     title: "จัดการผู้ใช้",
     steps: [
       "กดเมนู Admin ที่แถบด้านล่าง",
-      "กด + เพิ่มผู้ใช้ใหม่ กรอกชื่อจริง ชื่อผู้ใช้ รหัสผ่าน และเลือกกลุ่ม",
-      "กดไอคอนดินสอข้างชื่อผู้ใช้เพื่อแก้ไขชื่อจริง",
+      "กด + เพิ่มผู้ใช้ใหม่ กรอกชื่อจริง นามสกุล ชื่อผู้ใช้ รหัสผ่าน และเลือกกลุ่ม",
+      "กดไอคอนดินสอข้างชื่อผู้ใช้เพื่อแก้ไขชื่อจริงและนามสกุล",
       "กดปุ่มถังขยะหน้าชื่อผู้ใช้เพื่อลบผู้ใช้ออกจากระบบ (ข้อมูลน้ำหนักจะถูกลบด้วย)",
     ],
   },
@@ -250,7 +250,7 @@ export default async function HowToUsePage() {
 
         {/* Section cards */}
         {sections.map((s) => (
-          <div key={s.title} className={`rounded-2xl border p-4 ${s.color}`}>
+          <div key={s.title} className="bg-[#171A20] border border-[#343A46] rounded-2xl p-4">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <span className="text-2xl">{s.emoji}</span>
@@ -259,7 +259,7 @@ export default async function HowToUsePage() {
                 </h2>
               </div>
               <span
-                className={`text-xs font-semibold px-2 py-0.5 rounded-full ${s.badgeColor}`}
+                className="text-xs font-semibold px-2 py-0.5 rounded-full bg-[#242832] text-[#F59E0B] border border-[#343A46]"
               >
                 {s.badge}
               </span>
@@ -271,7 +271,7 @@ export default async function HowToUsePage() {
                   <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#171A20] border border-[#343A46] flex items-center justify-center text-xs font-bold text-[#F59E0B]">
                     {i + 1}
                   </span>
-                  <span className="text-sm text-[#F59E0B] leading-relaxed pt-0.5">
+                  <span className="text-sm text-[#A8AFBD] leading-relaxed pt-0.5">
                     {step}
                   </span>
                 </li>

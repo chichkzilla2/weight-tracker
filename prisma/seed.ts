@@ -20,6 +20,8 @@ async function main() {
       username: "admin",
       passwordHash,
       realName: "ผู้ดูแลระบบ",
+      firstName: "ผู้ดูแลระบบ",
+      lastName: null,
       role: "ADMIN",
       groupId: group.id,
     },

@@ -12,6 +12,7 @@ import {
 } from "@/lib/calculations";
 import { deleteWeightEntry } from "@/lib/actions/weight";
 import { deleteWaistEntry } from "@/lib/actions/waist";
+import { Trash2 } from "lucide-react";
 
 interface WeightEntryData {
   id: string;
@@ -552,22 +553,29 @@ export default function HistoryClient({
           if (!isPending) setDeleteTarget(null);
         }}
       >
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#171A20] rounded-2xl shadow-2xl w-[calc(100%-2rem)] max-w-sm p-5 outline-none">
-          <h3 className="font-bold text-[#E7EAF0] text-base mb-2">
-            ยืนยันการลบรายการ
-          </h3>
-          <p className="text-sm text-[#A8AFBD] mb-5">
-            ลบรายการ{" "}
-            <span className="font-semibold text-[#F59E0B]">
-              {deleteTarget?.value.toFixed(1)} {deleteTarget?.unit}
-            </span>{" "}
-            วันที่{" "}
-            <span className="font-semibold text-[#F59E0B]">
-              {deleteTarget?.date}
-            </span>
-            ?
-          </p>
-          <div className="flex gap-2">
+        <div className="fixed bottom-0 left-0 right-0 bg-[#171A20] rounded-t-2xl shadow-2xl w-full max-h-[90vh] overflow-y-auto p-5 outline-none border border-[#343A46] animate-in slide-in-from-bottom-6 duration-200 sm:slide-in-from-bottom-0 sm:zoom-in-95 sm:absolute sm:top-1/2 sm:left-1/2 sm:bottom-auto sm:right-auto sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-2xl sm:w-[calc(100%-2rem)] sm:max-w-sm">
+          <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-full bg-[#8A3F3F]/20 text-[#D08A8A]">
+            <Trash2 size={23} />
+          </div>
+          <div className="mb-6 text-center">
+            <h3 className="font-bold text-[#E7EAF0] text-lg">
+              ยืนยันการลบรายการ
+            </h3>
+          </div>
+          <div className="mb-6 text-center">
+            <p className="text-sm text-[#A8AFBD]">
+              ลบรายการ{" "}
+              <span className="font-semibold text-[#F59E0B]">
+                {deleteTarget?.value.toFixed(1)} {deleteTarget?.unit}
+              </span>{" "}
+              วันที่{" "}
+              <span className="font-semibold text-[#F59E0B]">
+                {deleteTarget?.date}
+              </span>
+              ?
+            </p>
+          </div>
+          <div className="flex gap-2 pt-1">
             <button
               onClick={() => setDeleteTarget(null)}
               disabled={isPending}

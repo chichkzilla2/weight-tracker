@@ -29,7 +29,8 @@ export default function RegisterForm({ groups }: Props) {
 
     const formData = new FormData(e.currentTarget)
     const data = {
-      realName: formData.get("realName") as string,
+      firstName: formData.get("firstName") as string,
+      lastName: formData.get("lastName") as string,
       username: formData.get("username") as string,
       password: formData.get("password") as string,
       confirmPassword: formData.get("confirmPassword") as string,
@@ -64,16 +65,31 @@ export default function RegisterForm({ groups }: Props) {
         <div className="bg-[#171A20] border border-[#343A46] rounded-2xl shadow-sm p-6">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="realName" className="text-[#F59E0B] font-medium">
+              <Label htmlFor="firstName" className="text-[#F59E0B] font-medium">
                 ชื่อจริง
               </Label>
               <Input
-                id="realName"
-                name="realName"
+                id="firstName"
+                name="firstName"
                 type="text"
                 placeholder="กรอกชื่อจริง"
                 required
-                autoComplete="name"
+                autoComplete="given-name"
+                className="border-[#343A46] focus:border-[#F59E0B] rounded-xl"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="lastName" className="text-[#F59E0B] font-medium">
+                นามสกุล
+              </Label>
+              <Input
+                id="lastName"
+                name="lastName"
+                type="text"
+                placeholder="กรอกนามสกุล"
+                required
+                autoComplete="family-name"
                 className="border-[#343A46] focus:border-[#F59E0B] rounded-xl"
               />
             </div>

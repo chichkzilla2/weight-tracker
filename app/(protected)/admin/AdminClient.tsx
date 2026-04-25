@@ -7,13 +7,15 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { formatThaiDate } from "@/lib/calculations"
-import { Plus, Trash2, Pencil, KeyRound } from "lucide-react"
+import { AlertTriangle, Info, KeyRound, Pencil, Plus, Trash2 } from "lucide-react"
 import AppModal from "@/components/shared/AppModal"
 
 interface UserData {
   id: string
   username: string
   realName: string
+  firstName: string
+  lastName: string
   role: string
   groupId: string
   groupName: string
@@ -50,7 +52,8 @@ export default function AdminClient({ users, groups }: AdminClientProps) {
   const [showUserForm, setShowUserForm] = useState(false)
   const [showGroupForm, setShowGroupForm] = useState(false)
   const [editGroupName, setEditGroupName] = useState("")
-  const [editUserName, setEditUserName] = useState("")
+  const [editFirstName, setEditFirstName] = useState("")
+  const [editLastName, setEditLastName] = useState("")
   const [newPassword, setNewPassword] = useState("")
   const [passwordError, setPasswordError] = useState("")
 
@@ -128,9 +131,9 @@ export default function AdminClient({ users, groups }: AdminClientProps) {
     }
 
     if (dialog.type === "editUserName") {
-      const result = await updateUserRealName(dialog.userId, editUserName)
+      const result = await updateUserRealName(dialog.userId, editFirstName, editLastName)
       if (result.error) { toast.error(result.error); setConfirming(false); return }
-      toast.success("แก้ไขชื่อจริงเรียบร้อย")
+      toast.success("แก้ไขชื่อเรียบร้อย")
     }
 
     if (dialog.type === "changePassword") {
@@ -155,6 +158,20 @@ export default function AdminClient({ users, groups }: AdminClientProps) {
     { key: "groups" as Tab, label: "จัดการกลุ่ม" },
   ]
   const tabIndex = tabs.findIndex((t) => t.key === tab)
+  const DialogIcon =
+    dialog?.type === "deleteUser" || dialog?.type === "deleteGroup"
+      ? Trash2
+      : dialog?.type === "saveGroups"
+        ? AlertTriangle
+        : dialog?.type === "changePassword"
+          ? KeyRound
+          : dialog?.type === "editGroup" || dialog?.type === "editUserName"
+            ? Pencil
+            : Info
+  const dialogIconClass =
+    dialog?.type === "deleteUser" || dialog?.type === "deleteGroup"
+      ? "bg-[#8A3F3F]/20 text-[#D08A8A]"
+      : "bg-[#F59E0B]/15 text-[#F59E0B]"
 
   return (
     <div>
@@ -164,43 +181,60 @@ export default function AdminClient({ users, groups }: AdminClientProps) {
         onClose={() => { if (!confirming) setDialog(null) }}
         backdropColor="rgba(0,0,0,0.55)"
       >
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#171A20] rounded-2xl shadow-2xl w-[calc(100%-2rem)] max-w-sm p-5 outline-none">
+        <div className="fixed bottom-0 left-0 right-0 bg-[#171A20] rounded-t-2xl shadow-2xl w-full max-h-[90vh] overflow-y-auto p-5 outline-none border border-[#343A46] animate-in slide-in-from-bottom-6 duration-200 sm:slide-in-from-bottom-0 sm:zoom-in-95 sm:absolute sm:top-1/2 sm:left-1/2 sm:bottom-auto sm:right-auto sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-2xl sm:w-[calc(100%-2rem)] sm:max-w-sm">
+          <div className={`mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-full ${dialogIconClass}`}>
+            <DialogIcon size={23} />
+          </div>
           {dialog?.type === "saveGroups" && (
             <>
-              <h3 className="font-bold text-[#E7EAF0] text-base mb-1">ยืนยันการเปลี่ยนกลุ่ม</h3>
-              <p className="text-xs text-[#A8AFBD] mb-3">รายการที่จะเปลี่ยน {dialog.changes.length} รายการ</p>
-              <div className="space-y-2 mb-4 max-h-48 overflow-x-auto overflow-y-auto">
-                {dialog.changes.map((c) => (
-                  <div key={c.userId} className="flex items-center gap-2 text-sm bg-[#0F1115] rounded-lg px-3 py-2 min-w-max">
-                    <span className="font-medium text-[#E7EAF0] flex-1">{c.userName}</span>
-                    <span className="text-[#A8AFBD] text-xs">{c.oldGroupName}</span>
-                    <span className="text-[#A8AFBD] text-xs">→</span>
-                    <span className="text-[#F59E0B] font-medium text-xs">{c.newGroupName}</span>
-                  </div>
-                ))}
+              <div className="mb-6 text-center">
+                <h3 className="font-bold text-[#E7EAF0] text-lg">ยืนยันการเปลี่ยนกลุ่ม</h3>
+              </div>
+              <div className="mb-6 space-y-3">
+                <p className="text-center text-xs text-[#A8AFBD]">รายการที่จะเปลี่ยน {dialog.changes.length} รายการ</p>
+                <div className="space-y-2 max-h-48 overflow-x-auto overflow-y-auto">
+                  {dialog.changes.map((c) => (
+                    <div key={c.userId} className="flex items-center gap-2 text-sm bg-[#0F1115] rounded-lg px-3 py-2 min-w-max">
+                      <span className="font-medium text-[#E7EAF0] flex-1">{c.userName}</span>
+                      <span className="text-[#A8AFBD] text-xs">{c.oldGroupName}</span>
+                      <span className="text-[#A8AFBD] text-xs">→</span>
+                      <span className="text-[#F59E0B] font-medium text-xs">{c.newGroupName}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
             </>
           )}
           {dialog?.type === "deleteUser" && (
             <>
-              <h3 className="font-bold text-[#E7EAF0] text-base mb-1">ยืนยันการลบผู้ใช้</h3>
-              <p className="text-sm text-[#A8AFBD] mb-4">
-                ลบ <span className="font-semibold text-[#E7EAF0]">{dialog.userName}</span> ออกจากระบบ? ข้อมูลน้ำหนักและรอบเอวทั้งหมดจะถูกลบด้วย
-              </p>
+              <div className="mb-6 text-center">
+                <h3 className="font-bold text-[#E7EAF0] text-lg">ยืนยันการลบผู้ใช้</h3>
+              </div>
+              <div className="mb-6 text-center">
+                <p className="text-sm text-[#A8AFBD]">
+                  ลบ <span className="font-semibold text-[#E7EAF0]">{dialog.userName}</span> ออกจากระบบ? ข้อมูลน้ำหนักและรอบเอวทั้งหมดจะถูกลบด้วย
+                </p>
+              </div>
             </>
           )}
           {dialog?.type === "deleteGroup" && (
             <>
-              <h3 className="font-bold text-[#E7EAF0] text-base mb-1">ยืนยันการลบกลุ่ม</h3>
-              <p className="text-sm text-[#A8AFBD] mb-4">
-                ลบกลุ่ม <span className="font-semibold text-[#E7EAF0]">{dialog.groupName}</span> ออกจากระบบ?
-              </p>
+              <div className="mb-6 text-center">
+                <h3 className="font-bold text-[#E7EAF0] text-lg">ยืนยันการลบกลุ่ม</h3>
+              </div>
+              <div className="mb-6 text-center">
+                <p className="text-sm text-[#A8AFBD]">
+                  ลบกลุ่ม <span className="font-semibold text-[#E7EAF0]">{dialog.groupName}</span> ออกจากระบบ?
+                </p>
+              </div>
             </>
           )}
           {dialog?.type === "editGroup" && (
             <>
-              <h3 className="font-bold text-[#E7EAF0] text-base mb-1">แก้ไขชื่อกลุ่ม</h3>
-              <div className="space-y-1 mb-4">
+              <div className="mb-6 text-center">
+                <h3 className="font-bold text-[#E7EAF0] text-lg">แก้ไขชื่อกลุ่ม</h3>
+              </div>
+              <div className="space-y-1 mb-6">
                 <Label className="text-xs text-[#F59E0B]">ชื่อกลุ่ม</Label>
                 <Input value={editGroupName} onChange={(e) => setEditGroupName(e.target.value)} autoFocus className="border-[#343A46] rounded-xl text-sm" />
               </div>
@@ -208,18 +242,29 @@ export default function AdminClient({ users, groups }: AdminClientProps) {
           )}
           {dialog?.type === "editUserName" && (
             <>
-              <h3 className="font-bold text-[#E7EAF0] text-base mb-1">แก้ไขชื่อจริง</h3>
-              <div className="space-y-1 mb-4">
-                <Label className="text-xs text-[#F59E0B]">ชื่อจริง</Label>
-                <Input value={editUserName} onChange={(e) => setEditUserName(e.target.value)} autoFocus className="border-[#343A46] rounded-xl text-sm" />
+              <div className="mb-6 text-center">
+                <h3 className="font-bold text-[#E7EAF0] text-lg">แก้ไขชื่อ</h3>
+              </div>
+              <div className="space-y-3 mb-6">
+                <div className="space-y-1">
+                  <Label className="text-xs text-[#F59E0B]">ชื่อจริง</Label>
+                  <Input value={editFirstName} onChange={(e) => setEditFirstName(e.target.value)} autoFocus required className="border-[#343A46] rounded-xl text-sm" />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs text-[#F59E0B]">นามสกุล</Label>
+                  <Input value={editLastName} onChange={(e) => setEditLastName(e.target.value)} required className="border-[#343A46] rounded-xl text-sm" />
+                </div>
               </div>
             </>
           )}
           {dialog?.type === "changePassword" && (
             <>
-              <h3 className="font-bold text-[#E7EAF0] text-base mb-1">เปลี่ยนรหัสผ่าน</h3>
-              <p className="text-xs text-[#A8AFBD] mb-3">ผู้ใช้: <span className="font-semibold text-[#E7EAF0]">{dialog.userName}</span></p>
-              <div className="space-y-1 mb-4">
+              <div className="mb-6 text-center">
+                <h3 className="font-bold text-[#E7EAF0] text-lg">เปลี่ยนรหัสผ่าน</h3>
+              </div>
+              <div className="mb-6 space-y-3">
+                <p className="text-center text-xs text-[#A8AFBD]">ผู้ใช้: <span className="font-semibold text-[#E7EAF0]">{dialog.userName}</span></p>
+                <div className="space-y-1">
                 <Label className="text-xs text-[#F59E0B]">รหัสผ่านใหม่ (อย่างน้อย 6 ตัวอักษร)</Label>
                 <Input
                   type="password"
@@ -230,10 +275,11 @@ export default function AdminClient({ users, groups }: AdminClientProps) {
                   className="border-[#343A46] rounded-xl text-sm"
                 />
                 {passwordError && <p className="text-[#D08A8A] text-xs">{passwordError}</p>}
+                </div>
               </div>
             </>
           )}
-          <div className="flex gap-2">
+          <div className="flex gap-2 pt-1">
             <button
               onClick={() => { setDialog(null); setNewPassword(""); setPasswordError("") }}
               disabled={confirming}
@@ -298,8 +344,14 @@ export default function AdminClient({ users, groups }: AdminClientProps) {
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1">
                     <Label className="text-xs text-[#F59E0B]">ชื่อจริง</Label>
-                    <Input name="realName" placeholder="ชื่อจริง" required className="border-[#343A46] rounded-xl text-sm" />
+                    <Input name="firstName" placeholder="ชื่อจริง" required className="border-[#343A46] rounded-xl text-sm" />
                   </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs text-[#F59E0B]">นามสกุล</Label>
+                    <Input name="lastName" placeholder="นามสกุล" required className="border-[#343A46] rounded-xl text-sm" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1">
                     <Label className="text-xs text-[#F59E0B]">ชื่อผู้ใช้</Label>
                     <Input name="username" placeholder="username" required className="border-[#343A46] rounded-xl text-sm" />
@@ -355,7 +407,7 @@ export default function AdminClient({ users, groups }: AdminClientProps) {
               <table className="w-full min-w-[560px] text-sm">
                 <thead>
                   <tr className="bg-[#1A1D23] border-b border-[#343A46] sticky top-0 z-10">
-                    <th className="text-left px-3 py-2.5 font-semibold text-[#F59E0B] whitespace-nowrap">ชื่อจริง</th>
+                    <th className="text-left px-3 py-2.5 font-semibold text-[#F59E0B] whitespace-nowrap">ชื่อ-นามสกุล</th>
                     <th className="text-left px-3 py-2.5 font-semibold text-[#F59E0B]">กลุ่ม</th>
                     <th className="text-left px-3 py-2.5 font-semibold text-[#F59E0B]">บทบาท</th>
                     <th className="px-3 py-2.5" />
@@ -390,9 +442,9 @@ export default function AdminClient({ users, groups }: AdminClientProps) {
                       <td className="px-3 py-2.5">
                         <div className="flex items-center gap-2 justify-end">
                           <button
-                            onClick={() => { setEditUserName(u.realName); setDialog({ type: "editUserName", userId: u.id, userName: u.realName }) }}
+                            onClick={() => { setEditFirstName(u.firstName); setEditLastName(u.lastName); setDialog({ type: "editUserName", userId: u.id, userName: u.realName }) }}
                             className="text-[#A8AFBD] hover:text-[#F59E0B] transition-colors"
-                            title="แก้ไขชื่อจริง"
+                            title="แก้ไขชื่อ"
                           >
                             <Pencil size={14} />
                           </button>

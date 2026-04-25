@@ -3,6 +3,7 @@ import PDFDocument from "pdfkit";
 import path from "path";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { combineName } from "@/lib/names";
 
 export const runtime = "nodejs";
 
@@ -84,7 +85,7 @@ function drawCenteredMixedText(
 function drawTableHeader(doc: PDFKit.PDFDocument, x: number, y: number) {
   doc.font("SarabunBold").fontSize(11);
   doc.text("ลำดับ", x, y, { width: 45 });
-  doc.text("ชื่อจริง", x + 55, y, { width: 380 });
+  doc.text("ชื่อ-นามสกุล", x + 55, y, { width: 380 });
   doc
     .moveTo(x, y + 20)
     .lineTo(545, y + 20)
@@ -184,11 +185,21 @@ export async function GET() {
   }
 
   const users = await prisma.user.findMany({
-    include: { group: true },
-    orderBy: [{ group: { name: "asc" } }, { realName: "asc" }],
+    select: {
+      realName: true,
+      firstName: true,
+      lastName: true,
+      group: { select: { name: true } },
+    },
+    orderBy: [{ group: { name: "asc" } }, { firstName: "asc" }, { lastName: "asc" }, { realName: "asc" }],
   });
 
-  const pdf = await createPdf(users);
+  const pdf = await createPdf(
+    users.map((user) => ({
+      realName: combineName(user.firstName, user.lastName, user.realName),
+      group: user.group,
+    })),
+  );
   const filename = `users-${new Date().toISOString().slice(0, 10)}.pdf`;
 
   return new NextResponse(new Uint8Array(pdf), {

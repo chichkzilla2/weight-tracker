@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import DashboardClient from "./DashboardClient";
 import PageHeader from "@/components/shared/PageHeader";
+import { combineName } from "@/lib/names";
 
 export default async function DashboardPage() {
   const session = await auth();
@@ -16,6 +17,8 @@ export default async function DashboardPage() {
         select: {
           id: true,
           realName: true,
+          firstName: true,
+          lastName: true,
           weightEntries: {
             orderBy: { recordedAt: "asc" },
             select: { id: true, userId: true, weight: true, recordedAt: true, createdAt: true },
@@ -34,7 +37,7 @@ export default async function DashboardPage() {
     name: g.name,
     users: g.users.map((u) => ({
       id: u.id,
-      realName: u.realName,
+      realName: combineName(u.firstName, u.lastName, u.realName),
       weightEntries: u.weightEntries.map((e) => ({
         id: e.id,
         userId: e.userId,
@@ -51,7 +54,7 @@ export default async function DashboardPage() {
     name: g.name,
     users: g.users.map((u) => ({
       id: u.id,
-      realName: u.realName,
+      realName: combineName(u.firstName, u.lastName, u.realName),
       weightEntries: u.waistEntries.map((e) => ({
         id: e.id,
         userId: e.userId,
