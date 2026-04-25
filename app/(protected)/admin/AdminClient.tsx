@@ -488,7 +488,11 @@ export default function AdminClient({ users, groups }: AdminClientProps) {
       </div>
 
       {tabPending || activeTab !== tab ? (
-        activeTab === "users" ? <AdminUsersSkeleton /> : <AdminGroupsSkeleton />
+        activeTab === "users" ? (
+          <AdminUsersSkeleton />
+        ) : (
+          <AdminGroupsSkeleton />
+        )
       ) : (
         <>
           {/* Users Tab */}
@@ -604,7 +608,7 @@ export default function AdminClient({ users, groups }: AdminClientProps) {
               )}
 
               {/* Search & filter */}
-              <div className="glass-card rounded-2xl p-3 mb-3 space-y-2">
+              {/* <div className="glass-card rounded-2xl p-3 mb-3 space-y-2">
                 <input
                   value={userSearch}
                   onChange={(e) => setUserSearch(e.target.value)}
@@ -620,23 +624,23 @@ export default function AdminClient({ users, groups }: AdminClientProps) {
                     ...groups.map((g) => ({ value: g.id, label: g.name })),
                   ]}
                 />
-              </div>
+              </div> */}
 
-              <div className="glass-card rounded-2xl overflow-hidden">
+              <div className="glass-card rounded-2xl overflow-clip">
                 <div className="overflow-auto max-h-96">
                   <table className="w-full min-w-[560px] text-sm">
                     <thead>
-                      <tr className="bg-[#000000] border-b border-white/10 sticky top-0 z-10">
-                        <th className="text-left px-3 py-2.5 font-semibold text-[#F59E0B] whitespace-nowrap">
+                      <tr>
+                        <th className="sticky top-0 z-20 bg-[#000000] text-left px-3 py-2.5 font-semibold text-[#F59E0B] whitespace-nowrap border-b border-white/10">
                           ชื่อ-นามสกุล
                         </th>
-                        <th className="text-left px-3 py-2.5 font-semibold text-[#F59E0B]">
+                        <th className="sticky top-0 z-20 bg-[#000000] text-left px-3 py-2.5 font-semibold text-[#F59E0B] border-b border-white/10">
                           กลุ่ม
                         </th>
-                        <th className="text-left px-3 py-2.5 font-semibold text-[#F59E0B]">
+                        <th className="sticky top-0 z-20 bg-[#000000] text-left px-3 py-2.5 font-semibold text-[#F59E0B] border-b border-white/10">
                           บทบาท
                         </th>
-                        <th className="px-3 py-2.5" />
+                        <th className="sticky top-0 z-20 bg-[#000000] px-3 py-2.5 border-b border-white/10" />
                       </tr>
                     </thead>
                     <tbody>
@@ -822,18 +826,18 @@ export default function AdminClient({ users, groups }: AdminClientProps) {
                 </div>
               )}
 
-              <div className="glass-card rounded-2xl overflow-hidden">
+              <div className="glass-card rounded-2xl overflow-clip">
                 <div className="overflow-y-auto max-h-96">
                   <table className="w-full text-sm">
                     <thead>
-                      <tr className="bg-[#1A1D23]/70 border-b border-white/10 sticky top-0 z-10">
-                        <th className="text-left px-4 py-2.5 font-semibold text-[#F59E0B]">
+                      <tr>
+                        <th className="sticky top-0 z-20 bg-[#1A1D23] text-left px-4 py-2.5 font-semibold text-[#F59E0B] border-b border-white/10">
                           ชื่อกลุ่ม
                         </th>
-                        <th className="text-left px-4 py-2.5 font-semibold text-[#F59E0B]">
+                        <th className="sticky top-0 z-20 bg-[#1A1D23] text-left px-4 py-2.5 font-semibold text-[#F59E0B] border-b border-white/10">
                           สร้างเมื่อ
                         </th>
-                        <th className="px-4 py-2.5" />
+                        <th className="sticky top-0 z-20 bg-[#1A1D23] px-4 py-2.5 border-b border-white/10" />
                       </tr>
                     </thead>
                     <tbody>
