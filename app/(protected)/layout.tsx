@@ -15,7 +15,7 @@ export default async function ProtectedLayout({
 
   return (
     <div className="min-h-screen">
-      <main className="pb-24 lg:pb-0 lg:pl-16 pt-6 px-4">{children}</main>
+      <main className="pb-6 lg:pb-0 lg:pl-16 pt-6 px-4">{children}</main>
       <BottomNav />
     </div>
   )
