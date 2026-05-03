@@ -2,8 +2,12 @@
 
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/db"
+import { getCurrentThaiMonthRange, getThaiMonthStart } from "@/lib/thai-month"
 import { weightEntrySchema } from "@/lib/validations"
 import { revalidatePath } from "next/cache"
+
+const MONTHLY_LIMIT_MESSAGE =
+  "สามารถลงน้ำหนักและรอบเอวได้เดือนละ 1 ครั้งเท่านั้น หากต้องการแก้ไขข้อมูล กรุณาติดต่อผู้ดูแลระบบ"
 
 export async function addWeightEntry(prevState: { error: string; success: boolean }, formData: FormData) {
   const session = await auth()
@@ -19,11 +23,25 @@ export async function addWeightEntry(prevState: { error: string; success: boolea
     return { error: parsed.error.issues[0]?.message ?? "ข้อมูลไม่ถูกต้อง", success: false }
   }
 
+  const { start, end } = getCurrentThaiMonthRange()
+  const existing = await prisma.weightEntry.findFirst({
+    where: {
+      userId: session.user.id,
+      recordedAt: { gte: start, lt: end },
+    },
+    select: { id: true },
+  })
+
+  if (existing) {
+    return { error: MONTHLY_LIMIT_MESSAGE, success: false }
+  }
+
   await prisma.weightEntry.create({
     data: {
       userId: session.user.id,
       weight: parsed.data.weight,
       recordedAt: new Date(),
+      recordMonth: getThaiMonthStart(),
     },
   })
 

@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  type FormEvent,
   useState,
   useActionState,
   useEffect,
@@ -18,11 +19,15 @@ import {
   updateGroupName,
   changeUserPasswordByAdmin,
   updateUserRealName,
+  createWeightRecordByAdmin,
+  updateWeightRecordByAdmin,
+  createWaistRecordByAdmin,
+  updateWaistRecordByAdmin,
 } from "@/lib/actions/admin";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { formatThaiDate } from "@/lib/calculations";
+import { formatThaiDate, THAI_MONTHS, toThaiYear } from "@/lib/calculations";
 import {
   AlertTriangle,
   Info,
@@ -48,6 +53,8 @@ interface UserData {
   groupId: string;
   groupName: string;
   createdAt: string;
+  weightEntries: { id: string; weight: number; recordedAt: string }[];
+  waistEntries: { id: string; waist: number; recordedAt: string }[];
 }
 
 interface GroupData {
@@ -58,6 +65,36 @@ interface GroupData {
 }
 
 const GROUP_CAPACITY = 10;
+
+function formatDateInput(value: string) {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Bangkok",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(new Date(value));
+  const get = (type: string) => parts.find((p) => p.type === type)?.value ?? "";
+  return `${get("year")}-${get("month")}-${get("day")}`;
+}
+
+function todayDateInput() {
+  return formatDateInput(new Date().toISOString());
+}
+
+function formatThaiMonthInput(value: string) {
+  const [yearValue, monthValue] = formatDateInput(value).split("-");
+  const year = Number(yearValue);
+  const month = Number(monthValue);
+  return `${THAI_MONTHS[month - 1] ?? ""} ${toThaiYear(year)}`;
+}
+
+function todayThaiMonthLabel() {
+  return formatThaiMonthInput(new Date().toISOString());
+}
+
+function formatThaiMonthKey(value: string) {
+  return formatDateInput(value).slice(0, 7);
+}
 
 interface AdminClientProps {
   users: UserData[];
@@ -106,12 +143,15 @@ export default function AdminClient({ users, groups }: AdminClientProps) {
   const [dialog, setDialog] = useState<DialogState>(null);
   const [confirming, setConfirming] = useState(false);
   const [detailUser, setDetailUser] = useState<DetailUser | null>(null);
+  const [passwordUser, setPasswordUser] = useState<DetailUser | null>(null);
+  const [recordUser, setRecordUser] = useState<DetailUser | null>(null);
   const [detailFirstName, setDetailFirstName] = useState("");
   const [detailLastName, setDetailLastName] = useState("");
   const [detailGroupId, setDetailGroupId] = useState("");
   const [detailPassword, setDetailPassword] = useState("");
-  const [showDetailPassword, setShowDetailPassword] = useState(false);
+  const [detailPasswordConfirm, setDetailPasswordConfirm] = useState("");
   const [detailSaving, setDetailSaving] = useState(false);
+  const [recordSaving, setRecordSaving] = useState(false);
 
   const [userGroupSelections, setUserGroupSelections] = useState<
     Record<string, string>
@@ -185,85 +225,259 @@ export default function AdminClient({ users, groups }: AdminClientProps) {
     !!detailUser &&
     (detailFirstName.trim() !== detailUser.firstName ||
       detailLastName.trim() !== detailUser.lastName ||
-      detailGroupId !== (detailUser.groupId ?? "") ||
-      detailPassword.length > 0);
+      detailGroupId !== (detailUser.groupId ?? ""));
 
   function openUserDetail(user: UserData) {
     setDetailUser(user);
     setDetailFirstName(user.firstName);
     setDetailLastName(user.lastName);
     setDetailGroupId(user.groupId ?? "");
-    setDetailPassword("");
-    setShowDetailPassword(false);
-    setPasswordError("");
   }
 
   async function handleSaveUserDetail() {
     if (!detailUser || !detailChanged) return;
     setDetailSaving(true);
 
-    const nameChanged =
-      detailFirstName.trim() !== detailUser.firstName ||
-      detailLastName.trim() !== detailUser.lastName;
-    const groupChanged = detailGroupId !== (detailUser.groupId ?? "");
+    try {
+      const nameChanged =
+        detailFirstName.trim() !== detailUser.firstName ||
+        detailLastName.trim() !== detailUser.lastName;
+      const groupChanged = detailGroupId !== (detailUser.groupId ?? "");
 
-    if (nameChanged) {
-      const result = await updateUserRealName(
-        detailUser.id,
-        detailFirstName,
-        detailLastName,
-      );
-      if (result.error) {
-        toast.error(result.error);
-        setDetailSaving(false);
-        return;
+      if (nameChanged) {
+        const result = await updateUserRealName(
+          detailUser.id,
+          detailFirstName,
+          detailLastName,
+        );
+        if (result.error) {
+          toast.error(result.error);
+          setDetailSaving(false);
+          return;
+        }
       }
+
+      if (groupChanged) {
+        const result = await changeUserGroup(detailUser.id, detailGroupId);
+        if (result.error) {
+          toast.error(result.error);
+          setDetailSaving(false);
+          return;
+        }
+      }
+
+      const nextGroupName =
+        groups.find((g) => g.id === detailGroupId)?.name ?? "ไม่มีกลุ่ม";
+      setDetailUser({
+        ...detailUser,
+        realName: [detailFirstName.trim(), detailLastName.trim()]
+          .filter(Boolean)
+          .join(" "),
+        firstName: detailFirstName.trim(),
+        lastName: detailLastName.trim(),
+        groupId: detailGroupId,
+        groupName: nextGroupName,
+      });
+      toast.success("บันทึกข้อมูลผู้ใช้เรียบร้อย");
+      router.refresh();
+    } catch {
+      toast.error("บันทึกข้อมูลผู้ใช้ไม่สำเร็จ");
+    } finally {
+      setDetailSaving(false);
+    }
+  }
+
+  function openPasswordDialog(user: UserData) {
+    setPasswordUser(user);
+    setDetailPassword("");
+    setDetailPasswordConfirm("");
+    setPasswordError("");
+  }
+
+  async function handleSavePassword() {
+    if (!passwordUser) return;
+    if (detailPassword.length < 6) {
+      setPasswordError("รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร");
+      return;
+    }
+    if (detailPassword !== detailPasswordConfirm) {
+      setPasswordError("รหัสผ่านไม่ตรงกัน");
+      return;
     }
 
-    if (groupChanged) {
-      const result = await changeUserGroup(detailUser.id, detailGroupId);
-      if (result.error) {
-        toast.error(result.error);
-        setDetailSaving(false);
-        return;
-      }
-    }
-
-    if (detailPassword.length > 0) {
-      if (detailPassword.length < 6) {
-        setPasswordError("รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร");
-        setDetailSaving(false);
-        return;
-      }
+    setDetailSaving(true);
+    try {
       const result = await changeUserPasswordByAdmin(
-        detailUser.id,
+        passwordUser.id,
         detailPassword,
       );
       if (result.error) {
         toast.error(result.error);
-        setDetailSaving(false);
         return;
       }
+      toast.success(`เปลี่ยนรหัสผ่านของ ${passwordUser.realName} เรียบร้อย`);
+      setPasswordUser(null);
+      setDetailPassword("");
+      setDetailPasswordConfirm("");
+      setPasswordError("");
+      router.refresh();
+    } catch {
+      toast.error("เปลี่ยนรหัสผ่านไม่สำเร็จ");
+    } finally {
+      setDetailSaving(false);
     }
+  }
 
-    const nextGroupName =
-      groups.find((g) => g.id === detailGroupId)?.name ?? "ไม่มีกลุ่ม";
-    setDetailUser({
-      ...detailUser,
-      realName: [detailFirstName.trim(), detailLastName.trim()]
-        .filter(Boolean)
-        .join(" "),
-      firstName: detailFirstName.trim(),
-      lastName: detailLastName.trim(),
-      groupId: detailGroupId,
-      groupName: nextGroupName,
-    });
-    toast.success("บันทึกข้อมูลผู้ใช้เรียบร้อย");
-    setDetailPassword("");
-    setShowDetailPassword(false);
-    setPasswordError("");
-    setDetailSaving(false);
-    router.refresh();
+  async function handleCreateWeightRecord(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (!recordUser) return;
+    const form = e.currentTarget;
+    const formData = new FormData(form);
+    setRecordSaving(true);
+    try {
+      const result = await createWeightRecordByAdmin(
+        recordUser.id,
+        String(formData.get("weight") ?? ""),
+        String(formData.get("recordedAt") ?? ""),
+      );
+      if (result.error) {
+        toast.error(result.error);
+        return;
+      }
+      if (result.entry) {
+        setRecordUser({
+          ...recordUser,
+          weightEntries: [
+            result.entry,
+            ...recordUser.weightEntries.filter(
+              (entry) => entry.id !== result.entry?.id,
+            ),
+          ],
+        });
+      }
+      form.reset();
+      toast.success("เพิ่มข้อมูลน้ำหนักเรียบร้อย");
+      router.refresh();
+    } catch {
+      toast.error("เพิ่มข้อมูลน้ำหนักไม่สำเร็จ");
+    } finally {
+      setRecordSaving(false);
+    }
+  }
+
+  async function handleUpdateWeightRecord(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (!recordUser) return;
+    const formData = new FormData(e.currentTarget);
+    const entryId = String(formData.get("entryId") ?? "");
+    const weight = String(formData.get("weight") ?? "");
+    const recordedAt = String(formData.get("recordedAt") ?? "");
+    setRecordSaving(true);
+    try {
+      const result = await updateWeightRecordByAdmin(
+        entryId,
+        weight,
+        recordedAt,
+      );
+      if (result.error) {
+        toast.error(result.error);
+        return;
+      }
+      setRecordUser({
+        ...recordUser,
+        weightEntries: recordUser.weightEntries.map((entry) =>
+          entry.id === entryId
+            ? {
+                ...entry,
+                weight: Number(weight),
+                recordedAt: new Date(
+                  `${recordedAt}T00:00:00+07:00`,
+                ).toISOString(),
+              }
+            : entry,
+        ),
+      });
+      toast.success("แก้ไขข้อมูลน้ำหนักเรียบร้อย");
+      router.refresh();
+    } catch {
+      toast.error("แก้ไขข้อมูลน้ำหนักไม่สำเร็จ");
+    } finally {
+      setRecordSaving(false);
+    }
+  }
+
+  async function handleCreateWaistRecord(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (!recordUser) return;
+    const form = e.currentTarget;
+    const formData = new FormData(form);
+    setRecordSaving(true);
+    try {
+      const result = await createWaistRecordByAdmin(
+        recordUser.id,
+        String(formData.get("waist") ?? ""),
+        String(formData.get("recordedAt") ?? ""),
+      );
+      if (result.error) {
+        toast.error(result.error);
+        return;
+      }
+      if (result.entry) {
+        setRecordUser({
+          ...recordUser,
+          waistEntries: [
+            result.entry,
+            ...recordUser.waistEntries.filter(
+              (entry) => entry.id !== result.entry?.id,
+            ),
+          ],
+        });
+      }
+      form.reset();
+      toast.success("เพิ่มข้อมูลรอบเอวเรียบร้อย");
+      router.refresh();
+    } catch {
+      toast.error("เพิ่มข้อมูลรอบเอวไม่สำเร็จ");
+    } finally {
+      setRecordSaving(false);
+    }
+  }
+
+  async function handleUpdateWaistRecord(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (!recordUser) return;
+    const formData = new FormData(e.currentTarget);
+    const entryId = String(formData.get("entryId") ?? "");
+    const waist = String(formData.get("waist") ?? "");
+    const recordedAt = String(formData.get("recordedAt") ?? "");
+    setRecordSaving(true);
+    try {
+      const result = await updateWaistRecordByAdmin(entryId, waist, recordedAt);
+      if (result.error) {
+        toast.error(result.error);
+        return;
+      }
+      setRecordUser({
+        ...recordUser,
+        waistEntries: recordUser.waistEntries.map((entry) =>
+          entry.id === entryId
+            ? {
+                ...entry,
+                waist: Number(waist),
+                recordedAt: new Date(
+                  `${recordedAt}T00:00:00+07:00`,
+                ).toISOString(),
+              }
+            : entry,
+        ),
+      });
+      toast.success("แก้ไขข้อมูลรอบเอวเรียบร้อย");
+      router.refresh();
+    } catch {
+      toast.error("แก้ไขข้อมูลรอบเอวไม่สำเร็จ");
+    } finally {
+      setRecordSaving(false);
+    }
   }
 
   async function handleConfirm() {
@@ -285,9 +499,13 @@ export default function AdminClient({ users, groups }: AdminClientProps) {
     }
 
     if (dialog.type === "deleteUser") {
-      const result = await deleteUser(dialog.userId);
-      if (result.error) toast.error(result.error);
-      else toast.success(`ลบผู้ใช้ ${dialog.userName} เรียบร้อย`);
+      try {
+        const result = await deleteUser(dialog.userId);
+        if (result.error) toast.error(result.error);
+        else toast.success(`ลบผู้ใช้ ${dialog.userName} เรียบร้อย`);
+      } catch {
+        toast.error("ลบผู้ใช้ไม่สำเร็จ");
+      }
     }
 
     if (dialog.type === "deleteGroup") {
@@ -363,6 +581,15 @@ export default function AdminClient({ users, groups }: AdminClientProps) {
     dialog?.type === "deleteUser" || dialog?.type === "deleteGroup"
       ? "bg-[#8A3F3F]/20 text-[#D08A8A]"
       : "bg-[#F59E0B]/15 text-[#F59E0B]";
+  const currentThaiMonthKey = todayDateInput().slice(0, 7);
+  const hasCurrentWeightRecord =
+    recordUser?.weightEntries.some(
+      (entry) => formatThaiMonthKey(entry.recordedAt) === currentThaiMonthKey,
+    ) ?? false;
+  const hasCurrentWaistRecord =
+    recordUser?.waistEntries.some(
+      (entry) => formatThaiMonthKey(entry.recordedAt) === currentThaiMonthKey,
+    ) ?? false;
 
   return (
     <div>
@@ -380,24 +607,34 @@ export default function AdminClient({ users, groups }: AdminClientProps) {
               <Info size={23} />
             </div>
             <div className="mb-6 text-center">
-              <h3 className="font-bold text-[#E7EAF0] text-lg">รายละเอียดผู้ใช้</h3>
-              <p className="text-xs text-[#A8AFBD] mt-1">{detailUser.realName}</p>
+              <h3 className="font-bold text-[#E7EAF0] text-lg">
+                รายละเอียดผู้ใช้
+              </h3>
+              <p className="text-xs text-[#A8AFBD] mt-1">
+                {detailUser.realName}
+              </p>
             </div>
 
             <div className="mb-6 space-y-4">
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div className="rounded-xl border border-white/10 bg-[#0F1115]/55 px-3 py-2">
                   <p className="text-[11px] text-[#A8AFBD]">user_id</p>
-                  <p className="text-xs font-medium text-[#E7EAF0] break-all">{detailUser.id}</p>
+                  <p className="text-xs font-medium text-[#E7EAF0] break-all">
+                    {detailUser.id}
+                  </p>
                 </div>
                 <div className="rounded-xl border border-white/10 bg-[#0F1115]/55 px-3 py-2">
                   <p className="text-[11px] text-[#A8AFBD]">role</p>
-                  <p className="text-xs font-medium text-[#E7EAF0]">{detailUser.role}</p>
+                  <p className="text-xs font-medium text-[#E7EAF0]">
+                    {detailUser.role}
+                  </p>
                 </div>
               </div>
 
               <div className="space-y-1">
-                <Label className="text-xs text-[#F59E0B]">ชื่อจริง (first name)</Label>
+                <Label className="text-xs text-[#F59E0B]">
+                  ชื่อจริง (first name)
+                </Label>
                 <Input
                   value={detailFirstName}
                   onChange={(e) => setDetailFirstName(e.target.value)}
@@ -407,7 +644,9 @@ export default function AdminClient({ users, groups }: AdminClientProps) {
 
               {detailUser.lastName && (
                 <div className="space-y-1">
-                  <Label className="text-xs text-[#F59E0B]">นามสกุล (last name)</Label>
+                  <Label className="text-xs text-[#F59E0B]">
+                    นามสกุล (last name)
+                  </Label>
                   <Input
                     value={detailLastName}
                     onChange={(e) => setDetailLastName(e.target.value)}
@@ -426,7 +665,8 @@ export default function AdminClient({ users, groups }: AdminClientProps) {
                     ...groups.map((g) => {
                       const remaining = GROUP_CAPACITY - g.memberCount;
                       const isFull = remaining === 0;
-                      const isCurrentGroup = g.id === (detailUser.groupId || "");
+                      const isCurrentGroup =
+                        g.id === (detailUser.groupId || "");
                       return {
                         value: g.id,
                         label: `${g.name} ${isFull ? "(เต็มแล้ว)" : `(ว่าง ${remaining} ที่)`}`,
@@ -436,58 +676,287 @@ export default function AdminClient({ users, groups }: AdminClientProps) {
                   ]}
                 />
               </div>
-
-              {showDetailPassword && (
-                <div className="space-y-1">
-                  <Label className="text-xs text-[#F59E0B]">รหัสผ่าน</Label>
-                  <Input
-                    type="password"
-                    value={detailPassword}
-                    onChange={(e) => {
-                      setDetailPassword(e.target.value);
-                      setPasswordError("");
-                    }}
-                    placeholder="กรอกรหัสผ่านใหม่"
-                    className="border-white/10 rounded-xl text-sm"
-                  />
-                  {passwordError && <p className="text-[#D08A8A] text-xs">{passwordError}</p>}
-                </div>
-              )}
             </div>
 
             <div className="space-y-3">
-              <div className="flex justify-center">
+              <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
                 <button
-                  onClick={() => setShowDetailPassword((v) => !v)}
+                  onClick={() => setDetailUser(null)}
                   disabled={detailSaving}
-                  className="px-4 py-2 rounded-xl text-sm font-medium border border-white/10 text-[#F59E0B] hover:bg-[#1A1D23]/70 transition-colors disabled:opacity-50"
+                  className="px-4 py-2 rounded-xl text-sm font-medium border border-white/10 text-[#A8AFBD] hover:bg-[#1A1D23]/70 transition-colors disabled:opacity-50"
                 >
-                  แก้รหัสผ่าน
+                  ยกเลิก
+                </button>
+                <button
+                  onClick={() => {
+                    setDetailUser(null);
+                    setDialog({
+                      type: "deleteUser",
+                      userId: detailUser.id,
+                      userName: detailUser.realName,
+                    });
+                  }}
+                  disabled={detailSaving}
+                  className="px-4 py-2 rounded-xl text-sm font-medium bg-[#7A3434] hover:bg-[#5F2727] text-white transition-colors disabled:opacity-50"
+                >
+                  ลบ
+                </button>
+                <button
+                  onClick={handleSaveUserDetail}
+                  disabled={!detailChanged || detailSaving}
+                  className="px-4 py-2 rounded-xl text-sm font-medium bg-[#F59E0B] hover:bg-[#D97706] text-[#111318] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  {detailSaving ? "กำลังบันทึก..." : "บันทึก"}
                 </button>
               </div>
-              <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-<button
-                onClick={() => {
-                  setDetailUser(null);
-                  setDialog({
-                    type: "deleteUser",
-                    userId: detailUser.id,
-                    userName: detailUser.realName,
-                  });
-                }}
+            </div>
+          </div>
+        )}
+      </AppModal>
+
+      {/* Password Dialog */}
+      <AppModal
+        open={passwordUser !== null}
+        onClose={() => {
+          if (!detailSaving) setPasswordUser(null);
+        }}
+        backdropColor="rgba(0,0,0,0.55)"
+      >
+        {passwordUser && (
+          <div className="fixed bottom-0 left-0 right-0 rounded-t-2xl bg-[rgb(23,26,32)] shadow-2xl w-full max-h-[65vh] overflow-y-auto p-5 outline-none border border-white/10 animate-in slide-in-from-bottom-6 duration-200 sm:slide-in-from-bottom-0 sm:zoom-in-95 sm:absolute sm:top-1/2 sm:left-1/2 sm:bottom-auto sm:right-auto sm:max-h-[90vh] sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-2xl sm:w-[calc(100%-2rem)] sm:max-w-sm">
+            <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-full bg-[#F59E0B]/15 text-[#F59E0B]">
+              <KeyRound size={23} />
+            </div>
+            <div className="mb-6 text-center">
+              <h3 className="font-bold text-[#E7EAF0] text-lg">
+                แก้ไขรหัสผ่าน
+              </h3>
+              <p className="text-xs text-[#A8AFBD] mt-1">
+                {passwordUser.realName}
+              </p>
+            </div>
+            <div className="mb-6 space-y-3">
+              <div className="space-y-1">
+                <Label className="text-xs text-[#F59E0B]">รหัสผ่านใหม่</Label>
+                <Input
+                  type="password"
+                  value={detailPassword}
+                  onChange={(e) => {
+                    setDetailPassword(e.target.value);
+                    setPasswordError("");
+                  }}
+                  className="border-white/10 rounded-xl text-sm"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs text-[#F59E0B]">ยืนยันรหัสผ่าน</Label>
+                <Input
+                  type="password"
+                  value={detailPasswordConfirm}
+                  onChange={(e) => {
+                    setDetailPasswordConfirm(e.target.value);
+                    setPasswordError("");
+                  }}
+                  className="border-white/10 rounded-xl text-sm"
+                />
+              </div>
+              {passwordError && (
+                <p className="text-[#D08A8A] text-xs">{passwordError}</p>
+              )}
+            </div>
+            <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+              <button
+                onClick={() => setPasswordUser(null)}
                 disabled={detailSaving}
-                className="px-4 py-2 rounded-xl text-sm font-medium bg-[#7A3434] hover:bg-[#5F2727] text-white transition-colors disabled:opacity-50"
+                className="px-4 py-2 rounded-xl text-sm font-medium border border-white/10 text-[#A8AFBD] hover:bg-[#1A1D23]/70 transition-colors disabled:opacity-50"
               >
-                ลบ
+                ยกเลิก
               </button>
               <button
-                onClick={handleSaveUserDetail}
-                disabled={!detailChanged || detailSaving}
-                className="px-4 py-2 rounded-xl text-sm font-medium bg-[#F59E0B] hover:bg-[#D97706] text-[#111318] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                onClick={handleSavePassword}
+                disabled={detailSaving}
+                className="px-4 py-2 rounded-xl text-sm font-medium bg-[#F59E0B] hover:bg-[#D97706] text-[#111318] transition-colors disabled:opacity-40"
               >
                 {detailSaving ? "กำลังบันทึก..." : "บันทึก"}
               </button>
+            </div>
+          </div>
+        )}
+      </AppModal>
+
+      {/* Weight/Waist Records Dialog */}
+      <AppModal
+        open={recordUser !== null}
+        onClose={() => {
+          if (!recordSaving) setRecordUser(null);
+        }}
+        backdropColor="rgba(0,0,0,0.55)"
+      >
+        {recordUser && (
+          <div className="fixed bottom-0 left-0 right-0 rounded-t-2xl bg-[rgb(23,26,32)] shadow-2xl w-full max-h-[65vh] overflow-y-auto p-5 outline-none border border-white/10 animate-in slide-in-from-bottom-6 duration-200 sm:slide-in-from-bottom-0 sm:zoom-in-95 sm:absolute sm:top-1/2 sm:left-1/2 sm:bottom-auto sm:right-auto sm:max-h-[90vh] sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-2xl sm:w-[calc(100%-2rem)] sm:max-w-md">
+            <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-full bg-[#F59E0B]/15 text-[#F59E0B]">
+              <Pencil size={23} />
+            </div>
+            <div className="mb-6 text-center">
+              <h3 className="font-bold text-[#E7EAF0] text-lg">
+                แก้ไขน้ำหนัก/รอบเอว
+              </h3>
+              <p className="text-xs text-[#A8AFBD] mt-1">
+                {recordUser.realName}
+              </p>
+            </div>
+            <div className="mb-6 space-y-4">
+              <div className="space-y-3 rounded-xl border border-white/10 bg-[#0F1115]/45 p-3">
+                <p className="text-sm font-semibold text-[#F59E0B]">
+                  ข้อมูลน้ำหนัก
+                </p>
+                {!hasCurrentWeightRecord && (
+                  <form
+                    onSubmit={handleCreateWeightRecord}
+                    className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_1fr_auto]"
+                  >
+                    <Input
+                      name="weight"
+                      type="number"
+                      step="0.1"
+                      min="0"
+                      placeholder="น้ำหนัก"
+                      required
+                      className="border-white/10 rounded-xl text-sm"
+                    />
+                    <input
+                      type="hidden"
+                      name="recordedAt"
+                      value={todayDateInput()}
+                    />
+                    <div className="rounded-xl border border-white/10 bg-[#171A20]/70 px-3 py-2 text-sm text-[#E7EAF0]">
+                      {todayThaiMonthLabel()}
+                    </div>
+                    <button
+                      type="submit"
+                      disabled={recordSaving}
+                      className="rounded-xl bg-[#F59E0B] px-3 py-2 text-sm font-medium text-[#111318] disabled:opacity-50"
+                    >
+                      เพิ่ม
+                    </button>
+                  </form>
+                )}
+                <div className="space-y-2">
+                  {recordUser.weightEntries.map((entry) => (
+                    <form
+                      key={entry.id}
+                      onSubmit={handleUpdateWeightRecord}
+                      className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_1fr_auto]"
+                    >
+                      <input type="hidden" name="entryId" value={entry.id} />
+                      <Input
+                        name="weight"
+                        type="number"
+                        step="0.1"
+                        min="0"
+                        defaultValue={entry.weight}
+                        required
+                        className="border-white/10 rounded-xl text-sm"
+                      />
+                      <input
+                        type="hidden"
+                        name="recordedAt"
+                        value={formatDateInput(entry.recordedAt)}
+                      />
+                      <div className="rounded-xl border border-white/10 bg-[#171A20]/70 px-3 py-2 text-sm text-[#E7EAF0]">
+                        {formatThaiMonthInput(entry.recordedAt)}
+                      </div>
+                      <button
+                        type="submit"
+                        disabled={recordSaving}
+                        className="rounded-xl border border-[#F59E0B]/25 px-3 py-2 text-sm font-medium text-[#F59E0B] disabled:opacity-50"
+                      >
+                        แก้ไข
+                      </button>
+                    </form>
+                  ))}
+                </div>
               </div>
+              <div className="space-y-3 rounded-xl border border-white/10 bg-[#0F1115]/45 p-3">
+                <p className="text-sm font-semibold text-[#F59E0B]">
+                  ข้อมูลรอบเอว
+                </p>
+                {!hasCurrentWaistRecord && (
+                  <form
+                    onSubmit={handleCreateWaistRecord}
+                    className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_1fr_auto]"
+                  >
+                    <Input
+                      name="waist"
+                      type="number"
+                      step="0.1"
+                      min="0"
+                      placeholder="รอบเอว"
+                      required
+                      className="border-white/10 rounded-xl text-sm"
+                    />
+                    <input
+                      type="hidden"
+                      name="recordedAt"
+                      value={todayDateInput()}
+                    />
+                    <div className="rounded-xl border border-white/10 bg-[#171A20]/70 px-3 py-2 text-sm text-[#E7EAF0]">
+                      {todayThaiMonthLabel()}
+                    </div>
+                    <button
+                      type="submit"
+                      disabled={recordSaving}
+                      className="rounded-xl bg-[#F59E0B] px-3 py-2 text-sm font-medium text-[#111318] disabled:opacity-50"
+                    >
+                      เพิ่ม
+                    </button>
+                  </form>
+                )}
+                <div className="space-y-2">
+                  {recordUser.waistEntries.map((entry) => (
+                    <form
+                      key={entry.id}
+                      onSubmit={handleUpdateWaistRecord}
+                      className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_1fr_auto]"
+                    >
+                      <input type="hidden" name="entryId" value={entry.id} />
+                      <Input
+                        name="waist"
+                        type="number"
+                        step="0.1"
+                        min="0"
+                        defaultValue={entry.waist}
+                        required
+                        className="border-white/10 rounded-xl text-sm"
+                      />
+                      <input
+                        type="hidden"
+                        name="recordedAt"
+                        value={formatDateInput(entry.recordedAt)}
+                      />
+                      <div className="rounded-xl border border-white/10 bg-[#171A20]/70 px-3 py-2 text-sm text-[#E7EAF0]">
+                        {formatThaiMonthInput(entry.recordedAt)}
+                      </div>
+                      <button
+                        type="submit"
+                        disabled={recordSaving}
+                        className="rounded-xl border border-[#F59E0B]/25 px-3 py-2 text-sm font-medium text-[#F59E0B] disabled:opacity-50"
+                      >
+                        แก้ไข
+                      </button>
+                    </form>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <div className="flex justify-end">
+              <button
+                onClick={() => setRecordUser(null)}
+                disabled={recordSaving}
+                className="px-4 py-2 rounded-xl text-sm font-medium border border-white/10 text-[#A8AFBD] hover:bg-[#1A1D23]/70 transition-colors disabled:opacity-50"
+              >
+                ยกเลิก
+              </button>
             </div>
           </div>
         )}
@@ -870,7 +1339,10 @@ export default function AdminClient({ users, groups }: AdminClientProps) {
                           key={u.id}
                           className={`border-b border-white/10 last:border-0 ${i % 2 === 0 ? "bg-[#171A20]/70" : "bg-[#0F1115]/55"}`}
                         >
-                          <td data-label="ชื่อ" className="px-3 py-2.5 whitespace-nowrap">
+                          <td
+                            data-label="ชื่อ"
+                            className="px-3 py-2.5 whitespace-nowrap"
+                          >
                             <p className="font-medium text-[#E7EAF0] whitespace-nowrap">
                               {u.realName}
                             </p>
@@ -878,19 +1350,42 @@ export default function AdminClient({ users, groups }: AdminClientProps) {
                               {u.username}
                             </p>
                           </td>
-                          <td data-label="user_id" className="responsive-card-only px-3 py-2.5 text-[#E7EAF0] whitespace-nowrap">
+                          <td
+                            data-label="user_id"
+                            className="responsive-card-only px-3 py-2.5 text-[#E7EAF0] whitespace-nowrap"
+                          >
                             {u.username}
                           </td>
-                          <td data-label="กลุ่ม" className="px-3 py-2.5 text-[#E7EAF0] whitespace-nowrap">
+                          <td
+                            data-label="กลุ่ม"
+                            className="px-3 py-2.5 text-[#E7EAF0] whitespace-nowrap"
+                          >
                             {u.groupName}
                           </td>
-                          <td data-label="รายละเอียด" className="px-3 py-2.5 text-right">
-                            <button
-                              onClick={() => openUserDetail(u)}
-                              className="rounded-lg border border-[#F59E0B]/25 px-3 py-1.5 text-xs font-medium text-[#F59E0B] hover:bg-[#F59E0B]/10 transition-colors"
-                            >
-                              รายละเอียด
-                            </button>
+                          <td
+                            data-label=""
+                            className="px-3 py-2.5 text-right"
+                          >
+                            <div className="admin-user-card-actions flex flex-nowrap justify-end gap-2">
+                              <button
+                                onClick={() => openUserDetail(u)}
+                                className="whitespace-nowrap rounded-lg border border-[#F59E0B]/25 px-3 py-1.5 text-xs font-medium text-[#F59E0B] hover:bg-[#F59E0B]/10 transition-colors"
+                              >
+                                รายละเอียด
+                              </button>
+                              <button
+                                onClick={() => openPasswordDialog(u)}
+                                className="whitespace-nowrap rounded-lg border border-[#F59E0B]/25 px-3 py-1.5 text-xs font-medium text-[#F59E0B] hover:bg-[#F59E0B]/10 transition-colors"
+                              >
+                                แก้ไขรหัสผ่าน
+                              </button>
+                              <button
+                                onClick={() => setRecordUser(u)}
+                                className="admin-user-record-action whitespace-nowrap rounded-lg border border-[#F59E0B]/25 px-3 py-1.5 text-xs font-medium text-[#F59E0B] hover:bg-[#F59E0B]/10 transition-colors"
+                              >
+                                แก้ไขน้ำหนัก/รอบเอว
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       ))}
@@ -974,10 +1469,16 @@ export default function AdminClient({ users, groups }: AdminClientProps) {
                           key={g.id}
                           className={`border-b border-white/10 last:border-0 ${i % 2 === 0 ? "bg-[#171A20]/70" : "bg-[#0F1115]/55"}`}
                         >
-                          <td data-label="ชื่อกลุ่ม" className="px-4 py-2.5 font-medium text-[#E7EAF0]">
+                          <td
+                            data-label="ชื่อกลุ่ม"
+                            className="px-4 py-2.5 font-medium text-[#E7EAF0]"
+                          >
                             {g.name}
                           </td>
-                          <td data-label="สร้างเมื่อ" className="px-4 py-2.5 text-xs text-[#A8AFBD]">
+                          <td
+                            data-label="สร้างเมื่อ"
+                            className="px-4 py-2.5 text-xs text-[#A8AFBD]"
+                          >
                             {formatThaiDate(new Date(g.createdAt))}
                           </td>
                           <td data-label="จัดการ" className="px-4 py-2.5">

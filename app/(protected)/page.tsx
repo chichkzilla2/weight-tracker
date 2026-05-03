@@ -7,6 +7,10 @@ import WaistForm from "@/components/shared/WaistForm";
 import HistoryClient from "@/components/shared/HistoryClient";
 import PageHeader from "@/components/shared/PageHeader";
 import { combineName } from "@/lib/names";
+import { getCurrentThaiMonthRange } from "@/lib/thai-month";
+
+const MONTHLY_LIMIT_MESSAGE =
+  "สามารถลงน้ำหนักและรอบเอวได้เดือนละ 1 ครั้งเท่านั้น หากต้องการแก้ไขข้อมูล กรุณาติดต่อผู้ดูแลระบบ";
 
 export default async function HomePage() {
   const session = await auth();
@@ -25,6 +29,8 @@ export default async function HomePage() {
   const displayName = currentUser
     ? combineName(currentUser.firstName, currentUser.lastName, currentUser.realName)
     : session.user.realName;
+  const { start: currentMonthStart, end: currentMonthEnd } =
+    getCurrentThaiMonthRange();
 
   const [
     weightEntriesDesc,
@@ -46,6 +52,12 @@ export default async function HomePage() {
 
   const latestWeight = weightEntriesDesc[0] ?? null;
   const latestWaist = waistEntriesDesc[0] ?? null;
+  const hasCurrentMonthWeight = weightEntriesDesc.some(
+    (e) => e.recordedAt >= currentMonthStart && e.recordedAt < currentMonthEnd,
+  );
+  const hasCurrentMonthWaist = waistEntriesDesc.some(
+    (e) => e.recordedAt >= currentMonthStart && e.recordedAt < currentMonthEnd,
+  );
   const weightEntriesAsc = [...weightEntriesDesc].reverse();
   const waistEntriesAsc = [...waistEntriesDesc].reverse();
 
@@ -107,10 +119,16 @@ export default async function HomePage() {
             />
           </div>
           <div className="order-2 md:order-3">
-            <WeightForm />
+            <WeightForm
+              disabled={hasCurrentMonthWeight}
+              disabledMessage={MONTHLY_LIMIT_MESSAGE}
+            />
           </div>
           <div className="order-4 md:order-4">
-            <WaistForm />
+            <WaistForm
+              disabled={hasCurrentMonthWaist}
+              disabledMessage={MONTHLY_LIMIT_MESSAGE}
+            />
           </div>
         </div>
 

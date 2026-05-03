@@ -44,9 +44,11 @@ model WeightEntry {
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   weight     Decimal  @db.Decimal(5, 2)
   recordedAt DateTime @default(now())
+  recordMonth DateTime
   createdAt  DateTime @default(now())
 
   @@index([userId, recordedAt])
+  @@unique([userId, recordMonth])
 }
 
 model WaistEntry {
@@ -55,7 +57,9 @@ model WaistEntry {
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   waist      Decimal  @db.Decimal(5, 1)
   recordedAt DateTime @default(now())
+  recordMonth DateTime
   createdAt  DateTime @default(now())
 
   @@index([userId, recordedAt])
+  @@unique([userId, recordMonth])
 }

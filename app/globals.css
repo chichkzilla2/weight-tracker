@@ -73,10 +73,28 @@
   body {
     @apply bg-[#0F1115] text-[#E7EAF0];
     background:
-      radial-gradient(circle at 14% 10%, rgba(245, 158, 11, 0.22), transparent 24rem),
-      radial-gradient(circle at 86% 20%, rgba(217, 119, 6, 0.16), transparent 28rem),
-      radial-gradient(circle at 50% 105%, rgba(245, 158, 11, 0.1), transparent 34rem),
-      linear-gradient(135deg, #050608 0%, #0d1016 38%, #181008 72%, #090705 100%);
+      radial-gradient(
+        circle at 14% 10%,
+        rgba(245, 158, 11, 0.22),
+        transparent 24rem
+      ),
+      radial-gradient(
+        circle at 86% 20%,
+        rgba(217, 119, 6, 0.16),
+        transparent 28rem
+      ),
+      radial-gradient(
+        circle at 50% 105%,
+        rgba(245, 158, 11, 0.1),
+        transparent 34rem
+      ),
+      linear-gradient(
+        135deg,
+        #050608 0%,
+        #0d1016 38%,
+        #181008 72%,
+        #090705 100%
+      );
     background-attachment: fixed;
     font-family: var(--font-sans), "Sarabun", sans-serif;
     scrollbar-color: var(--primary) var(--background);
@@ -116,7 +134,12 @@
 @layer components {
   .glass-panel {
     background:
-      linear-gradient(145deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02) 44%, rgba(245, 158, 11, 0.035)),
+      linear-gradient(
+        145deg,
+        rgba(255, 255, 255, 0.08),
+        rgba(255, 255, 255, 0.02) 44%,
+        rgba(245, 158, 11, 0.035)
+      ),
       var(--glass);
     border: 1px solid var(--glass-border-muted);
     box-shadow:
@@ -129,7 +152,12 @@
 
   .glass-card {
     background:
-      linear-gradient(145deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.018) 48%, rgba(245, 158, 11, 0.025)),
+      linear-gradient(
+        145deg,
+        rgba(255, 255, 255, 0.07),
+        rgba(255, 255, 255, 0.018) 48%,
+        rgba(245, 158, 11, 0.025)
+      ),
       var(--glass);
     border: 1px solid var(--glass-border-muted);
     box-shadow:
@@ -142,7 +170,11 @@
 
   .glass-soft {
     background:
-      linear-gradient(135deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.012)),
+      linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.045),
+        rgba(255, 255, 255, 0.012)
+      ),
       rgba(255, 255, 255, 0.035);
     border-color: rgba(255, 255, 255, 0.09);
     backdrop-filter: blur(10px) saturate(125%);
@@ -157,7 +189,11 @@
 
   .glass-nav {
     background:
-      linear-gradient(180deg, rgba(255, 255, 255, 0.065), rgba(255, 255, 255, 0.022)),
+      linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0.065),
+        rgba(255, 255, 255, 0.022)
+      ),
       rgba(16, 19, 25, 0.78);
     border-color: var(--glass-border-muted);
     box-shadow: 0 10px 34px rgba(0, 0, 0, 0.34);
@@ -200,7 +236,12 @@
   [class*="bg-[#1A1D23]"],
   [class*="bg-[#242832]"] {
     background:
-      linear-gradient(145deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.014) 50%, rgba(245, 158, 11, 0.025)),
+      linear-gradient(
+        145deg,
+        rgba(255, 255, 255, 0.055),
+        rgba(255, 255, 255, 0.014) 50%,
+        rgba(245, 158, 11, 0.025)
+      ),
       rgba(18, 21, 27, 0.5) !important;
     border-color: rgba(255, 255, 255, 0.11);
     box-shadow:
@@ -214,7 +255,11 @@
   [class*="bg-[#3A2022]"],
   [class*="bg-[#1F232B]"] {
     background:
-      linear-gradient(145deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.014)),
+      linear-gradient(
+        145deg,
+        rgba(255, 255, 255, 0.05),
+        rgba(255, 255, 255, 0.014)
+      ),
       rgba(42, 23, 25, 0.48) !important;
     border-color: rgba(208, 138, 138, 0.28);
     box-shadow:
@@ -311,7 +356,12 @@
       border: 1px solid rgba(255, 255, 255, 0.12) !important;
       border-radius: 1rem;
       background:
-        linear-gradient(145deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.018) 48%, rgba(245, 158, 11, 0.025)),
+        linear-gradient(
+          145deg,
+          rgba(255, 255, 255, 0.07),
+          rgba(255, 255, 255, 0.018) 48%,
+          rgba(245, 158, 11, 0.025)
+        ),
         var(--glass) !important;
       box-shadow:
         0 12px 28px rgba(0, 0, 0, 0.2),
@@ -380,14 +430,72 @@
     .responsive-table td[data-label=""] {
       justify-content: flex-end;
     }
+
+    .responsive-table .admin-user-card-actions {
+      display: grid !important;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.5rem;
+      width: 100%;
+    }
+
+    .responsive-table .admin-user-card-actions button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      white-space: normal;
+      text-align: center;
+    }
+
+    .responsive-table .admin-user-card-actions .admin-user-record-action {
+      grid-column: 1 / -1;
+      width: 100%;
+    }
   }
 
   @media (max-width: 639px) {
     [data-sonner-toaster] {
-      top: max(0.75rem, env(safe-area-inset-top)) !important;
-      right: 0.75rem !important;
+      position: fixed !important;
+      --mobile-offset-top: calc(
+        env(safe-area-inset-top, 0px) + 20px
+      ) !important;
+      --mobile-offset-right: calc(
+        env(safe-area-inset-right, 0px) + 12px
+      ) !important;
+      --mobile-offset-left: calc(
+        env(safe-area-inset-left, 0px) + 12px
+      ) !important;
+      top: calc(env(safe-area-inset-top, 0px) + 20px) !important;
+      right: calc(env(safe-area-inset-right, 0px) + 12px) !important;
       bottom: auto !important;
-      left: auto !important;
+      left: calc(env(safe-area-inset-left, 0px) + 12px) !important;
+      width: calc(
+        100vw - env(safe-area-inset-left, 0px) -
+          env(safe-area-inset-right, 0px) - 24px
+      ) !important;
+      max-width: calc(
+        100vw - env(safe-area-inset-left, 0px) -
+          env(safe-area-inset-right, 0px) - 24px
+      ) !important;
+      transform: none !important;
+      z-index: 2147483647 !important;
+    }
+
+    [data-sonner-toaster][data-y-position="top"] {
+      top: calc(env(safe-area-inset-top, 0px) + 20px) !important;
+      bottom: auto !important;
+    }
+
+    [data-sonner-toaster][data-x-position="center"] {
+      left: calc(env(safe-area-inset-left, 0px) + 12px) !important;
+      right: calc(env(safe-area-inset-right, 0px) + 12px) !important;
+      transform: none !important;
+    }
+
+    [data-sonner-toaster] [data-sonner-toast] {
+      left: 0 !important;
+      right: 0 !important;
+      width: 100% !important;
+      max-width: 100% !important;
     }
 
     [data-sonner-toast] {

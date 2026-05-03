@@ -10,7 +10,12 @@ import { CheckCircle2 } from "lucide-react"
 
 const initialState = { error: "", success: false }
 
-export default function WaistForm() {
+interface WaistFormProps {
+  disabled?: boolean
+  disabledMessage?: string
+}
+
+export default function WaistForm({ disabled = false, disabledMessage = "" }: WaistFormProps) {
   const [state, formAction, isPending] = useActionState(addWaistEntry, initialState)
   const [open, setOpen] = useState(false)
   const [pendingData, setPendingData] = useState<FormData | null>(null)
@@ -18,6 +23,7 @@ export default function WaistForm() {
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
+    if (disabled) return
     const fd = new FormData(e.currentTarget)
     const w = fd.get("waist") as string
     if (!w) return
@@ -49,11 +55,12 @@ export default function WaistForm() {
               step="0.1"
               placeholder="เช่น 80.5"
               required
+              disabled={disabled}
               className="flex-1 border-white/10 focus:border-[#F59E0B] rounded-xl text-xl px-5 text-center h-12"
             />
             <Button
               type="submit"
-              disabled={isPending}
+              disabled={disabled || isPending}
               className="px-6 bg-[#F59E0B] hover:bg-[#D97706] text-[#111318] rounded-xl font-medium text-base h-12"
             >
               {isPending ? "กำลังบันทึก..." : "บันทึก"}
@@ -61,6 +68,9 @@ export default function WaistForm() {
           </div>
           {state.error && (
             <p className="text-[#D08A8A] text-sm mt-2">{state.error}</p>
+          )}
+          {disabled && disabledMessage && (
+            <p className="text-[#A8AFBD] text-xs mt-2">{disabledMessage}</p>
           )}
         </form>
       </div>

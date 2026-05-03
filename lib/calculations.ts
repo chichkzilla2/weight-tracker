@@ -1,9 +1,7 @@
-import type { WeightEntry } from "@prisma/client"
-
 export interface UserWithEntries {
   id: string
   realName: string
-  weightEntries: WeightEntry[]
+  weightEntries: WeightEntryLike[]
 }
 
 export interface GroupWithUsers {

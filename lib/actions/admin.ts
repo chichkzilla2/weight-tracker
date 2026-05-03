@@ -3,10 +3,33 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { normalizeNameParts } from "@/lib/names";
+import { getThaiMonthStart } from "@/lib/thai-month";
 import { createUserSchema, createGroupSchema } from "@/lib/validations";
 import bcrypt from "bcryptjs";
 import { revalidatePath } from "next/cache";
 import { Prisma } from "@prisma/client";
+
+function parseAdminRecordDate(date: string) {
+  const parsed = new Date(`${date}T00:00:00+07:00`);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
+async function ensureUserExists(userId: string) {
+  if (!userId) return false;
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { id: true },
+  });
+  return !!user;
+}
+
+function revalidateRecordPages() {
+  revalidatePath("/");
+  revalidatePath("/admin");
+  revalidatePath("/dashboard");
+  revalidatePath("/leaderboard");
+  revalidatePath("/group");
+}
 
 async function requireAdmin() {
   const session = await auth();
@@ -46,9 +69,19 @@ export async function createUser(
     return { error: "ชื่อผู้ใช้นี้มีอยู่แล้ว", success: false };
   }
 
-  if (parsed.data.groupId) {
+  const groupId = parsed.data.groupId?.trim() || null;
+
+  if (groupId) {
+    const group = await prisma.group.findUnique({
+      where: { id: groupId },
+      select: { id: true },
+    });
+    if (!group) {
+      return { error: "ไม่พบกลุ่มที่เลือก กรุณาเลือกกลุ่มใหม่", success: false };
+    }
+
     const count = await prisma.user.count({
-      where: { groupId: parsed.data.groupId },
+      where: { groupId },
     });
     if (count >= 10)
       return { error: "กลุ่มนี้มีสมาชิกครบ 10 คนแล้ว", success: false };
@@ -65,7 +98,7 @@ export async function createUser(
         realName: name.fullName,
         firstName: name.firstName,
         lastName: name.lastName,
-        groupId: parsed.data.groupId ?? null,
+        groupId,
         role: parsed.data.role as "USER" | "ADMIN",
       },
     });
@@ -75,6 +108,12 @@ export async function createUser(
       err.code === "P2002"
     ) {
       return { error: "ชื่อผู้ใช้นี้มีอยู่แล้ว", success: false };
+    }
+    if (
+      err instanceof Prisma.PrismaClientKnownRequestError &&
+      err.code === "P2003"
+    ) {
+      return { error: "ไม่พบกลุ่มที่เลือก กรุณาเลือกกลุ่มใหม่", success: false };
     }
     throw err;
   }
@@ -268,5 +307,125 @@ export async function deleteGroup(
   }
 
   revalidatePath("/admin");
+  return { success: true };
+}
+
+export async function createWeightRecordByAdmin(
+  userId: string,
+  weight: string,
+  recordedAt: string,
+) {
+  await requireAdmin();
+
+  if (!(await ensureUserExists(userId))) return { error: "ไม่พบผู้ใช้", success: false };
+  const value = Number(weight);
+  if (!Number.isFinite(value) || value <= 0) {
+    return { error: "กรุณากรอกน้ำหนักที่ถูกต้อง", success: false };
+  }
+  const date = parseAdminRecordDate(recordedAt);
+  if (!date) return { error: "กรุณาเลือกวันที่ที่ถูกต้อง", success: false };
+  const recordMonth = getThaiMonthStart(date);
+
+  const entry = await prisma.weightEntry.upsert({
+    where: { userId_recordMonth: { userId, recordMonth } },
+    update: { weight: value, recordedAt: date },
+    create: { userId, weight: value, recordedAt: date, recordMonth },
+    select: { id: true, weight: true, recordedAt: true },
+  });
+  revalidateRecordPages();
+  return {
+    success: true,
+    entry: {
+      id: entry.id,
+      weight: parseFloat(entry.weight.toString()),
+      recordedAt: entry.recordedAt.toISOString(),
+    },
+  };
+}
+
+export async function updateWeightRecordByAdmin(
+  entryId: string,
+  weight: string,
+  recordedAt: string,
+): Promise<{ error?: string; success: boolean }> {
+  await requireAdmin();
+
+  const value = Number(weight);
+  if (!Number.isFinite(value) || value <= 0) {
+    return { error: "กรุณากรอกน้ำหนักที่ถูกต้อง", success: false };
+  }
+  const date = parseAdminRecordDate(recordedAt);
+  if (!date) return { error: "กรุณาเลือกวันที่ที่ถูกต้อง", success: false };
+  const recordMonth = getThaiMonthStart(date);
+
+  try {
+    await prisma.weightEntry.update({
+      where: { id: entryId },
+      data: { weight: value, recordedAt: date, recordMonth },
+    });
+  } catch {
+    return { error: "ไม่พบข้อมูลน้ำหนัก หรือมีข้อมูลเดือนนี้แล้ว", success: false };
+  }
+  revalidateRecordPages();
+  return { success: true };
+}
+
+export async function createWaistRecordByAdmin(
+  userId: string,
+  waist: string,
+  recordedAt: string,
+) {
+  await requireAdmin();
+
+  if (!(await ensureUserExists(userId))) return { error: "ไม่พบผู้ใช้", success: false };
+  const value = Number(waist);
+  if (!Number.isFinite(value) || value <= 0) {
+    return { error: "กรุณากรอกรอบเอวที่ถูกต้อง", success: false };
+  }
+  const date = parseAdminRecordDate(recordedAt);
+  if (!date) return { error: "กรุณาเลือกวันที่ที่ถูกต้อง", success: false };
+  const recordMonth = getThaiMonthStart(date);
+
+  const entry = await prisma.waistEntry.upsert({
+    where: { userId_recordMonth: { userId, recordMonth } },
+    update: { waist: value, recordedAt: date },
+    create: { userId, waist: value, recordedAt: date, recordMonth },
+    select: { id: true, waist: true, recordedAt: true },
+  });
+  revalidateRecordPages();
+  return {
+    success: true,
+    entry: {
+      id: entry.id,
+      waist: parseFloat(entry.waist.toString()),
+      recordedAt: entry.recordedAt.toISOString(),
+    },
+  };
+}
+
+export async function updateWaistRecordByAdmin(
+  entryId: string,
+  waist: string,
+  recordedAt: string,
+): Promise<{ error?: string; success: boolean }> {
+  await requireAdmin();
+
+  const value = Number(waist);
+  if (!Number.isFinite(value) || value <= 0) {
+    return { error: "กรุณากรอกรอบเอวที่ถูกต้อง", success: false };
+  }
+  const date = parseAdminRecordDate(recordedAt);
+  if (!date) return { error: "กรุณาเลือกวันที่ที่ถูกต้อง", success: false };
+  const recordMonth = getThaiMonthStart(date);
+
+  try {
+    await prisma.waistEntry.update({
+      where: { id: entryId },
+      data: { waist: value, recordedAt: date, recordMonth },
+    });
+  } catch {
+    return { error: "ไม่พบข้อมูลรอบเอว หรือมีข้อมูลเดือนนี้แล้ว", success: false };
+  }
+  revalidateRecordPages();
   return { success: true };
 }

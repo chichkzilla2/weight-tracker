@@ -22,6 +22,14 @@ export default async function AdminPage() {
         groupId: true,
         createdAt: true,
         group: { select: { name: true } },
+        weightEntries: {
+          orderBy: { recordedAt: "desc" },
+          select: { id: true, weight: true, recordedAt: true },
+        },
+        waistEntries: {
+          orderBy: { recordedAt: "desc" },
+          select: { id: true, waist: true, recordedAt: true },
+        },
       },
     }),
     prisma.group.findMany({
@@ -40,6 +48,16 @@ export default async function AdminPage() {
     groupId: u.groupId ?? "",
     groupName: u.group?.name ?? "ไม่มีกลุ่ม",
     createdAt: u.createdAt.toISOString(),
+    weightEntries: u.weightEntries.map((e) => ({
+      id: e.id,
+      weight: parseFloat(e.weight.toString()),
+      recordedAt: e.recordedAt.toISOString(),
+    })),
+    waistEntries: u.waistEntries.map((e) => ({
+      id: e.id,
+      waist: parseFloat(e.waist.toString()),
+      recordedAt: e.recordedAt.toISOString(),
+    })),
   }));
 
   const serializedGroups = groups.map((g: (typeof groups)[number]) => ({
