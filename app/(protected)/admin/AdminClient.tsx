@@ -98,7 +98,8 @@ function buildChallengeMonths() {
   const months: { key: string; dateValue: string; label: string }[] = [];
 
   for (let year = CHALLENGE_START_YEAR; year <= currentYear; year++) {
-    const startMonth = year === CHALLENGE_START_YEAR ? CHALLENGE_START_MONTH : 0;
+    const startMonth =
+      year === CHALLENGE_START_YEAR ? CHALLENGE_START_MONTH : 0;
     const endMonth = year === currentYear ? currentMonth : 11;
 
     for (let month = startMonth; month <= endMonth; month++) {
@@ -832,7 +833,7 @@ export default function AdminClient({ users, groups }: AdminClientProps) {
                 <p className="text-sm font-semibold text-[#F59E0B]">
                   ข้อมูลน้ำหนัก
                 </p>
-                <div className="space-y-2">
+                <div className="space-y-8">
                   {challengeMonths.map((month) => {
                     const entry = weightEntriesByMonth.get(month.key);
                     return (
@@ -894,7 +895,7 @@ export default function AdminClient({ users, groups }: AdminClientProps) {
                 <p className="text-sm font-semibold text-[#F59E0B]">
                   ข้อมูลรอบเอว
                 </p>
-                <div className="space-y-2">
+                <div className="space-y-8">
                   {challengeMonths.map((month) => {
                     const entry = waistEntriesByMonth.get(month.key);
                     return (
@@ -1366,10 +1367,7 @@ export default function AdminClient({ users, groups }: AdminClientProps) {
                           >
                             {u.groupName}
                           </td>
-                          <td
-                            data-label=""
-                            className="px-3 py-2.5 text-right"
-                          >
+                          <td data-label="" className="px-3 py-2.5 text-right">
                             <div className="admin-user-card-actions flex flex-nowrap justify-end gap-2">
                               <button
                                 onClick={() => openUserDetail(u)}
