@@ -15,6 +15,9 @@ import { deleteWaistEntry } from "@/lib/actions/waist";
 import { Trash2 } from "lucide-react";
 import { HistoryTabSkeleton } from "@/components/shared/TableSkeleton";
 
+const HISTORY_START_YEAR = 2026;
+const HISTORY_START_MONTH = 3; // April, zero-based
+
 interface WeightEntryData {
   id: string;
   weight: number;
@@ -36,6 +39,7 @@ interface HistoryClientProps {
 
 interface MonthRow {
   monthKey: string;
+  label: string;
   weight: number | null;
   weightChange: number | null;
   waist: number | null;
@@ -44,13 +48,27 @@ interface MonthRow {
 
 type EntryTab = "weight" | "waist";
 
+function getThaiYearMonth(value: string) {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Bangkok",
+    year: "numeric",
+    month: "2-digit",
+  }).formatToParts(new Date(value));
+  const get = (type: string) => parts.find((p) => p.type === type)?.value ?? "";
+  return { year: Number(get("year")), month: Number(get("month")) - 1 };
+}
+
+function getCurrentThaiYearMonth() {
+  return getThaiYearMonth(new Date().toISOString());
+}
+
 export default function HistoryClient({
   entries,
   allEntries,
   waistEntries,
   allWaistEntries,
 }: HistoryClientProps) {
-  const currentCEYear = new Date().getFullYear();
+  const { year: currentCEYear, month: currentMonth } = getCurrentThaiYearMonth();
   const [ceYear, setCeYear] = useState(currentCEYear);
   const [entryTab, setEntryTab] = useState<EntryTab>("weight");
   const [activeEntryTab, setActiveEntryTab] = useState<EntryTab>("weight");
@@ -67,13 +85,13 @@ export default function HistoryClient({
   // --- Monthly summary ---
   const yearWeightEntries = useMemo(
     () =>
-      entries.filter((e) => new Date(e.recordedAt).getFullYear() === ceYear),
+      entries.filter((e) => getThaiYearMonth(e.recordedAt).year === ceYear),
     [entries, ceYear],
   );
   const yearWaistEntries = useMemo(
     () =>
       waistEntries.filter(
-        (e) => new Date(e.recordedAt).getFullYear() === ceYear,
+        (e) => getThaiYearMonth(e.recordedAt).year === ceYear,
       ),
     [waistEntries, ceYear],
   );
@@ -81,26 +99,27 @@ export default function HistoryClient({
   const rows: MonthRow[] = useMemo(() => {
     const weightMonthlyMap = new Map<string, number>();
     for (const e of yearWeightEntries) {
-      const key = String(new Date(e.recordedAt).getMonth() + 1).padStart(
-        2,
-        "0",
-      );
+      const key = String(getThaiYearMonth(e.recordedAt).month + 1).padStart(2, "0");
       weightMonthlyMap.set(key, e.weight);
     }
 
     const waistMonthlyMap = new Map<string, number>();
     for (const e of yearWaistEntries) {
-      const key = String(new Date(e.recordedAt).getMonth() + 1).padStart(
-        2,
-        "0",
-      );
+      const key = String(getThaiYearMonth(e.recordedAt).month + 1).padStart(2, "0");
       waistMonthlyMap.set(key, e.waist);
     }
 
-    const monthlyRows: MonthRow[] = THAI_MONTHS_SHORT.map((_, idx) => {
+    const startMonth = ceYear === HISTORY_START_YEAR ? HISTORY_START_MONTH : 0;
+    const endMonth = ceYear === currentCEYear ? currentMonth : 11;
+    const monthlyRows: MonthRow[] = THAI_MONTHS_SHORT.slice(
+      startMonth,
+      endMonth + 1,
+    ).map((_, offset) => {
+      const idx = startMonth + offset;
       const monthKey = String(idx + 1).padStart(2, "0");
       return {
         monthKey,
+        label: `${THAI_MONTHS[idx]} ${toThaiYear(ceYear)}`,
         weight: weightMonthlyMap.get(monthKey) ?? null,
         weightChange: null,
         waist: waistMonthlyMap.get(monthKey) ?? null,
@@ -118,7 +137,7 @@ export default function HistoryClient({
     }
 
     return monthlyRows;
-  }, [yearWeightEntries, yearWaistEntries]);
+  }, [yearWeightEntries, yearWaistEntries, ceYear, currentCEYear, currentMonth]);
 
   // --- Weight summary ---
   const allWeightSorted = useMemo(
@@ -239,7 +258,8 @@ export default function HistoryClient({
       <div className="flex items-center justify-center gap-6 my-4">
         <button
           onClick={() => setCeYear((y) => y - 1)}
-          className="text-[#F59E0B] hover:text-[#E7EAF0] transition-colors"
+          disabled={ceYear <= HISTORY_START_YEAR}
+          className="text-[#F59E0B] hover:text-[#E7EAF0] transition-colors disabled:text-[#343A46] disabled:cursor-not-allowed"
         >
           <ChevronLeft size={24} />
         </button>
@@ -290,7 +310,7 @@ export default function HistoryClient({
                   className={`border-b border-white/10 last:border-0 ${i % 2 === 0 ? "bg-[#171A20]/70" : "bg-[#0F1115]/55"}`}
                 >
                   <td data-label="เดือน" className="px-4 py-3 text-[#E7EAF0] whitespace-nowrap">
-                    {THAI_MONTHS[i]}
+                    {row.label}
                   </td>
                   <td data-label="น้ำหนัก" className="px-4 py-3 text-right text-[#E7EAF0] whitespace-nowrap">
                     {row.weight !== null ? `${row.weight.toFixed(1)} กก.` : "—"}

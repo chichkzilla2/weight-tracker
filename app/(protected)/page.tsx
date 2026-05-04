@@ -11,6 +11,7 @@ import { getCurrentThaiMonthRange } from "@/lib/thai-month";
 
 const MONTHLY_LIMIT_MESSAGE =
   "สามารถลงน้ำหนักและรอบเอวได้เดือนละ 1 ครั้งเท่านั้น หากต้องการแก้ไขข้อมูล กรุณาติดต่อผู้ดูแลระบบ";
+const HISTORY_START = new Date("2026-03-31T17:00:00.000Z"); // 1 Apr 2026, UTC+7
 
 export default async function HomePage() {
   const session = await auth();
@@ -60,23 +61,35 @@ export default async function HomePage() {
   );
   const weightEntriesAsc = [...weightEntriesDesc].reverse();
   const waistEntriesAsc = [...waistEntriesDesc].reverse();
+  const historyWeightEntriesAsc = weightEntriesAsc.filter(
+    (e) => e.recordedAt >= HISTORY_START,
+  );
+  const historyWeightEntriesDesc = weightEntriesDesc.filter(
+    (e) => e.recordedAt >= HISTORY_START,
+  );
+  const historyWaistEntriesAsc = waistEntriesAsc.filter(
+    (e) => e.recordedAt >= HISTORY_START,
+  );
+  const historyWaistEntriesDesc = waistEntriesDesc.filter(
+    (e) => e.recordedAt >= HISTORY_START,
+  );
 
-  const serializedWeightAsc = weightEntriesAsc.map((e) => ({
+  const serializedWeightAsc = historyWeightEntriesAsc.map((e) => ({
     id: e.id,
     weight: parseFloat(e.weight.toString()),
     recordedAt: e.recordedAt.toISOString(),
   }));
-  const serializedWeightDesc = weightEntriesDesc.map((e) => ({
+  const serializedWeightDesc = historyWeightEntriesDesc.map((e) => ({
     id: e.id,
     weight: parseFloat(e.weight.toString()),
     recordedAt: e.recordedAt.toISOString(),
   }));
-  const serializedWaistAsc = waistEntriesAsc.map((e) => ({
+  const serializedWaistAsc = historyWaistEntriesAsc.map((e) => ({
     id: e.id,
     waist: parseFloat(e.waist.toString()),
     recordedAt: e.recordedAt.toISOString(),
   }));
-  const serializedWaistDesc = waistEntriesDesc.map((e) => ({
+  const serializedWaistDesc = historyWaistEntriesDesc.map((e) => ({
     id: e.id,
     waist: parseFloat(e.waist.toString()),
     recordedAt: e.recordedAt.toISOString(),

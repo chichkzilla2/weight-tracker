@@ -65,6 +65,8 @@ interface GroupData {
 }
 
 const GROUP_CAPACITY = 10;
+const CHALLENGE_START_YEAR = 2026;
+const CHALLENGE_START_MONTH = 3; // April, zero-based
 
 function formatDateInput(value: string) {
   const parts = new Intl.DateTimeFormat("en-CA", {
@@ -81,19 +83,35 @@ function todayDateInput() {
   return formatDateInput(new Date().toISOString());
 }
 
-function formatThaiMonthInput(value: string) {
-  const [yearValue, monthValue] = formatDateInput(value).split("-");
-  const year = Number(yearValue);
-  const month = Number(monthValue);
-  return `${THAI_MONTHS[month - 1] ?? ""} ${toThaiYear(year)}`;
-}
-
-function todayThaiMonthLabel() {
-  return formatThaiMonthInput(new Date().toISOString());
-}
-
 function formatThaiMonthKey(value: string) {
   return formatDateInput(value).slice(0, 7);
+}
+
+function formatMonthDateValue(year: number, month: number) {
+  return `${year}-${String(month + 1).padStart(2, "0")}-01`;
+}
+
+function buildChallengeMonths() {
+  const [currentYearValue, currentMonthValue] = todayDateInput().split("-");
+  const currentYear = Number(currentYearValue);
+  const currentMonth = Number(currentMonthValue) - 1;
+  const months: { key: string; dateValue: string; label: string }[] = [];
+
+  for (let year = CHALLENGE_START_YEAR; year <= currentYear; year++) {
+    const startMonth = year === CHALLENGE_START_YEAR ? CHALLENGE_START_MONTH : 0;
+    const endMonth = year === currentYear ? currentMonth : 11;
+
+    for (let month = startMonth; month <= endMonth; month++) {
+      const dateValue = formatMonthDateValue(year, month);
+      months.push({
+        key: dateValue.slice(0, 7),
+        dateValue,
+        label: `${THAI_MONTHS[month]} ${toThaiYear(year)}`,
+      });
+    }
+  }
+
+  return months.reverse();
 }
 
 interface AdminClientProps {
@@ -581,15 +599,19 @@ export default function AdminClient({ users, groups }: AdminClientProps) {
     dialog?.type === "deleteUser" || dialog?.type === "deleteGroup"
       ? "bg-[#8A3F3F]/20 text-[#D08A8A]"
       : "bg-[#F59E0B]/15 text-[#F59E0B]";
-  const currentThaiMonthKey = todayDateInput().slice(0, 7);
-  const hasCurrentWeightRecord =
-    recordUser?.weightEntries.some(
-      (entry) => formatThaiMonthKey(entry.recordedAt) === currentThaiMonthKey,
-    ) ?? false;
-  const hasCurrentWaistRecord =
-    recordUser?.waistEntries.some(
-      (entry) => formatThaiMonthKey(entry.recordedAt) === currentThaiMonthKey,
-    ) ?? false;
+  const challengeMonths = useMemo(buildChallengeMonths, []);
+  const weightEntriesByMonth = new Map(
+    (recordUser?.weightEntries ?? []).map((entry) => [
+      formatThaiMonthKey(entry.recordedAt),
+      entry,
+    ]),
+  );
+  const waistEntriesByMonth = new Map(
+    (recordUser?.waistEntries ?? []).map((entry) => [
+      formatThaiMonthKey(entry.recordedAt),
+      entry,
+    ]),
+  );
 
   return (
     <div>
@@ -810,142 +832,124 @@ export default function AdminClient({ users, groups }: AdminClientProps) {
                 <p className="text-sm font-semibold text-[#F59E0B]">
                   ข้อมูลน้ำหนัก
                 </p>
-                {!hasCurrentWeightRecord && (
-                  <form
-                    onSubmit={handleCreateWeightRecord}
-                    className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_1fr_auto]"
-                  >
-                    <Input
-                      name="weight"
-                      type="number"
-                      step="0.1"
-                      min="0"
-                      placeholder="น้ำหนัก"
-                      required
-                      className="border-white/10 rounded-xl text-sm"
-                    />
-                    <input
-                      type="hidden"
-                      name="recordedAt"
-                      value={todayDateInput()}
-                    />
-                    <div className="rounded-xl border border-white/10 bg-[#171A20]/70 px-3 py-2 text-sm text-[#E7EAF0]">
-                      {todayThaiMonthLabel()}
-                    </div>
-                    <button
-                      type="submit"
-                      disabled={recordSaving}
-                      className="rounded-xl bg-[#F59E0B] px-3 py-2 text-sm font-medium text-[#111318] disabled:opacity-50"
-                    >
-                      เพิ่ม
-                    </button>
-                  </form>
-                )}
                 <div className="space-y-2">
-                  {recordUser.weightEntries.map((entry) => (
-                    <form
-                      key={entry.id}
-                      onSubmit={handleUpdateWeightRecord}
-                      className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_1fr_auto]"
-                    >
-                      <input type="hidden" name="entryId" value={entry.id} />
-                      <Input
-                        name="weight"
-                        type="number"
-                        step="0.1"
-                        min="0"
-                        defaultValue={entry.weight}
-                        required
-                        className="border-white/10 rounded-xl text-sm"
-                      />
-                      <input
-                        type="hidden"
-                        name="recordedAt"
-                        value={formatDateInput(entry.recordedAt)}
-                      />
-                      <div className="rounded-xl border border-white/10 bg-[#171A20]/70 px-3 py-2 text-sm text-[#E7EAF0]">
-                        {formatThaiMonthInput(entry.recordedAt)}
-                      </div>
-                      <button
-                        type="submit"
-                        disabled={recordSaving}
-                        className="rounded-xl border border-[#F59E0B]/25 px-3 py-2 text-sm font-medium text-[#F59E0B] disabled:opacity-50"
+                  {challengeMonths.map((month) => {
+                    const entry = weightEntriesByMonth.get(month.key);
+                    return (
+                      <form
+                        key={month.key}
+                        onSubmit={
+                          entry
+                            ? handleUpdateWeightRecord
+                            : handleCreateWeightRecord
+                        }
+                        className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_1fr_auto]"
                       >
-                        แก้ไข
-                      </button>
-                    </form>
-                  ))}
+                        {entry && (
+                          <input
+                            type="hidden"
+                            name="entryId"
+                            value={entry.id}
+                          />
+                        )}
+                        <Input
+                          name="weight"
+                          type="number"
+                          step="0.1"
+                          min="0"
+                          defaultValue={entry?.weight ?? ""}
+                          placeholder="น้ำหนัก"
+                          required
+                          className="border-white/10 rounded-xl text-sm"
+                        />
+                        <input
+                          type="hidden"
+                          name="recordedAt"
+                          value={
+                            entry
+                              ? formatDateInput(entry.recordedAt)
+                              : month.dateValue
+                          }
+                        />
+                        <div className="rounded-xl border border-white/10 bg-[#171A20]/70 px-3 py-2 text-sm text-[#E7EAF0]">
+                          {month.label}
+                        </div>
+                        <button
+                          type="submit"
+                          disabled={recordSaving}
+                          className={
+                            entry
+                              ? "rounded-xl border border-[#F59E0B]/25 px-3 py-2 text-sm font-medium text-[#F59E0B] disabled:opacity-50"
+                              : "rounded-xl bg-[#F59E0B] px-3 py-2 text-sm font-medium text-[#111318] disabled:opacity-50"
+                          }
+                        >
+                          {entry ? "แก้ไข" : "เพิ่ม"}
+                        </button>
+                      </form>
+                    );
+                  })}
                 </div>
               </div>
               <div className="space-y-3 rounded-xl border border-white/10 bg-[#0F1115]/45 p-3">
                 <p className="text-sm font-semibold text-[#F59E0B]">
                   ข้อมูลรอบเอว
                 </p>
-                {!hasCurrentWaistRecord && (
-                  <form
-                    onSubmit={handleCreateWaistRecord}
-                    className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_1fr_auto]"
-                  >
-                    <Input
-                      name="waist"
-                      type="number"
-                      step="0.1"
-                      min="0"
-                      placeholder="รอบเอว"
-                      required
-                      className="border-white/10 rounded-xl text-sm"
-                    />
-                    <input
-                      type="hidden"
-                      name="recordedAt"
-                      value={todayDateInput()}
-                    />
-                    <div className="rounded-xl border border-white/10 bg-[#171A20]/70 px-3 py-2 text-sm text-[#E7EAF0]">
-                      {todayThaiMonthLabel()}
-                    </div>
-                    <button
-                      type="submit"
-                      disabled={recordSaving}
-                      className="rounded-xl bg-[#F59E0B] px-3 py-2 text-sm font-medium text-[#111318] disabled:opacity-50"
-                    >
-                      เพิ่ม
-                    </button>
-                  </form>
-                )}
                 <div className="space-y-2">
-                  {recordUser.waistEntries.map((entry) => (
-                    <form
-                      key={entry.id}
-                      onSubmit={handleUpdateWaistRecord}
-                      className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_1fr_auto]"
-                    >
-                      <input type="hidden" name="entryId" value={entry.id} />
-                      <Input
-                        name="waist"
-                        type="number"
-                        step="0.1"
-                        min="0"
-                        defaultValue={entry.waist}
-                        required
-                        className="border-white/10 rounded-xl text-sm"
-                      />
-                      <input
-                        type="hidden"
-                        name="recordedAt"
-                        value={formatDateInput(entry.recordedAt)}
-                      />
-                      <div className="rounded-xl border border-white/10 bg-[#171A20]/70 px-3 py-2 text-sm text-[#E7EAF0]">
-                        {formatThaiMonthInput(entry.recordedAt)}
-                      </div>
-                      <button
-                        type="submit"
-                        disabled={recordSaving}
-                        className="rounded-xl border border-[#F59E0B]/25 px-3 py-2 text-sm font-medium text-[#F59E0B] disabled:opacity-50"
+                  {challengeMonths.map((month) => {
+                    const entry = waistEntriesByMonth.get(month.key);
+                    return (
+                      <form
+                        key={month.key}
+                        onSubmit={
+                          entry
+                            ? handleUpdateWaistRecord
+                            : handleCreateWaistRecord
+                        }
+                        className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_1fr_auto]"
                       >
-                        แก้ไข
-                      </button>
-                    </form>
-                  ))}
+                        {entry && (
+                          <input
+                            type="hidden"
+                            name="entryId"
+                            value={entry.id}
+                          />
+                        )}
+                        <Input
+                          name="waist"
+                          type="number"
+                          step="0.1"
+                          min="0"
+                          defaultValue={entry?.waist ?? ""}
+                          placeholder="รอบเอว"
+                          required
+                          className="border-white/10 rounded-xl text-sm"
+                        />
+                        <input
+                          type="hidden"
+                          name="recordedAt"
+                          value={
+                            entry
+                              ? formatDateInput(entry.recordedAt)
+                              : month.dateValue
+                          }
+                        />
+                        <div className="rounded-xl border border-white/10 bg-[#171A20]/70 px-3 py-2 text-sm text-[#E7EAF0]">
+                          {month.label}
+                        </div>
+                        <button
+                          type="submit"
+                          disabled={recordSaving}
+                          className={
+                            entry
+                              ? "rounded-xl border border-[#F59E0B]/25 px-3 py-2 text-sm font-medium text-[#F59E0B] disabled:opacity-50"
+                              : "rounded-xl bg-[#F59E0B] px-3 py-2 text-sm font-medium text-[#111318] disabled:opacity-50"
+                          }
+                        >
+                          {entry ? "แก้ไข" : "เพิ่ม"}
+                        </button>
+                      </form>
+                    );
+                  })}
                 </div>
               </div>
             </div>
