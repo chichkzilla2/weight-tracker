@@ -46,10 +46,10 @@ export async function createUser(
   await requireAdmin();
 
   const raw = {
-    username: formData.get("username") as string,
+    username: String(formData.get("username") ?? "").trim(),
     password: formData.get("password") as string,
-    firstName: formData.get("firstName") as string,
-    lastName: formData.get("lastName") as string,
+    firstName: String(formData.get("firstName") ?? "").trim(),
+    lastName: String(formData.get("lastName") ?? "").trim(),
     groupId: formData.get("groupId") as string,
     role: formData.get("role") as string,
   };
@@ -326,12 +326,21 @@ export async function createWeightRecordByAdmin(
   if (!date) return { error: "กรุณาเลือกวันที่ที่ถูกต้อง", success: false };
   const recordMonth = getThaiMonthStart(date);
 
-  const entry = await prisma.weightEntry.upsert({
-    where: { userId_recordMonth: { userId, recordMonth } },
-    update: { weight: value, recordedAt: date },
-    create: { userId, weight: value, recordedAt: date, recordMonth },
-    select: { id: true, weight: true, recordedAt: true },
-  });
+  let entry;
+  try {
+    entry = await prisma.weightEntry.create({
+      data: { userId, weight: value, recordedAt: date, recordMonth },
+      select: { id: true, weight: true, recordedAt: true },
+    });
+  } catch (err) {
+    if (
+      err instanceof Prisma.PrismaClientKnownRequestError &&
+      err.code === "P2002"
+    ) {
+      return { error: "มีข้อมูลน้ำหนักของเดือนนี้แล้ว กรุณาแก้ไขรายการเดิม", success: false };
+    }
+    throw err;
+  }
   revalidateRecordPages();
   return {
     success: true,
@@ -370,6 +379,21 @@ export async function updateWeightRecordByAdmin(
   return { success: true };
 }
 
+export async function deleteWeightRecordByAdmin(
+  entryId: string,
+): Promise<{ error?: string; success: boolean }> {
+  await requireAdmin();
+
+  try {
+    await prisma.weightEntry.delete({ where: { id: entryId } });
+  } catch {
+    return { error: "ไม่พบข้อมูลน้ำหนักที่ต้องการลบ", success: false };
+  }
+
+  revalidateRecordPages();
+  return { success: true };
+}
+
 export async function createWaistRecordByAdmin(
   userId: string,
   waist: string,
@@ -386,12 +410,21 @@ export async function createWaistRecordByAdmin(
   if (!date) return { error: "กรุณาเลือกวันที่ที่ถูกต้อง", success: false };
   const recordMonth = getThaiMonthStart(date);
 
-  const entry = await prisma.waistEntry.upsert({
-    where: { userId_recordMonth: { userId, recordMonth } },
-    update: { waist: value, recordedAt: date },
-    create: { userId, waist: value, recordedAt: date, recordMonth },
-    select: { id: true, waist: true, recordedAt: true },
-  });
+  let entry;
+  try {
+    entry = await prisma.waistEntry.create({
+      data: { userId, waist: value, recordedAt: date, recordMonth },
+      select: { id: true, waist: true, recordedAt: true },
+    });
+  } catch (err) {
+    if (
+      err instanceof Prisma.PrismaClientKnownRequestError &&
+      err.code === "P2002"
+    ) {
+      return { error: "มีข้อมูลรอบเอวของเดือนนี้แล้ว กรุณาแก้ไขรายการเดิม", success: false };
+    }
+    throw err;
+  }
   revalidateRecordPages();
   return {
     success: true,
@@ -426,6 +459,21 @@ export async function updateWaistRecordByAdmin(
   } catch {
     return { error: "ไม่พบข้อมูลรอบเอว หรือมีข้อมูลเดือนนี้แล้ว", success: false };
   }
+  revalidateRecordPages();
+  return { success: true };
+}
+
+export async function deleteWaistRecordByAdmin(
+  entryId: string,
+): Promise<{ error?: string; success: boolean }> {
+  await requireAdmin();
+
+  try {
+    await prisma.waistEntry.delete({ where: { id: entryId } });
+  } catch {
+    return { error: "ไม่พบข้อมูลรอบเอวที่ต้องการลบ", success: false };
+  }
+
   revalidateRecordPages();
   return { success: true };
 }

@@ -23,7 +23,7 @@ export const namePartsSchema = z.object({
 })
 
 export const createUserSchema = z.object({
-  username: z.string().min(3, "ชื่อผู้ใช้ต้องมีอย่างน้อย 3 ตัวอักษร"),
+  username: z.string().trim().min(3, "ชื่อผู้ใช้ต้องมีอย่างน้อย 3 ตัวอักษร"),
   password: z.string().min(6, "รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร"),
   firstName: namePartsSchema.shape.firstName,
   lastName: namePartsSchema.shape.lastName,
@@ -47,7 +47,7 @@ export const changePasswordSchema = z.object({
 export const registerSchema = z.object({
   firstName: namePartsSchema.shape.firstName,
   lastName: namePartsSchema.shape.lastName,
-  username: z.string().min(3, "ชื่อผู้ใช้ต้องมีอย่างน้อย 3 ตัวอักษร").max(30, "ชื่อผู้ใช้ต้องไม่เกิน 30 ตัวอักษร"),
+  username: z.string().trim().min(3, "ชื่อผู้ใช้ต้องมีอย่างน้อย 3 ตัวอักษร").max(30, "ชื่อผู้ใช้ต้องไม่เกิน 30 ตัวอักษร"),
   password: z.string().min(6, "รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร").max(128, "รหัสผ่านต้องไม่เกิน 128 ตัวอักษร"),
   confirmPassword: z.string().min(1, "กรุณายืนยันรหัสผ่าน"),
   groupId: z.string().optional(),

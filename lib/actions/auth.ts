@@ -8,10 +8,25 @@ import { Prisma } from "@prisma/client";
 import { auth } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 
+function trimIdentityFields(data: unknown) {
+  if (!data || typeof data !== "object" || Array.isArray(data)) return data;
+
+  const input = data as Record<string, unknown>;
+  return {
+    ...input,
+    firstName:
+      typeof input.firstName === "string" ? input.firstName.trim() : input.firstName,
+    lastName:
+      typeof input.lastName === "string" ? input.lastName.trim() : input.lastName,
+    username:
+      typeof input.username === "string" ? input.username.trim() : input.username,
+  };
+}
+
 export async function registerUser(
   data: unknown,
 ): Promise<{ error?: string; success: boolean }> {
-  const parsed = registerSchema.safeParse(data);
+  const parsed = registerSchema.safeParse(trimIdentityFields(data));
   if (!parsed.success) {
     return {
       error: parsed.error.issues[0]?.message ?? "ข้อมูลไม่ถูกต้อง",

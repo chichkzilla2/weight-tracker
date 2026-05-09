@@ -23,6 +23,8 @@ import {
   updateWeightRecordByAdmin,
   createWaistRecordByAdmin,
   updateWaistRecordByAdmin,
+  deleteWeightRecordByAdmin,
+  deleteWaistRecordByAdmin,
 } from "@/lib/actions/admin";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -115,6 +117,25 @@ function buildChallengeMonths() {
   return months.reverse();
 }
 
+function trimFormFields(form: HTMLFormElement, names: string[]) {
+  for (const name of names) {
+    const field = form.elements.namedItem(name);
+    if (field instanceof HTMLInputElement) {
+      field.value = field.value.trim();
+    }
+  }
+}
+
+function recordActionLabel(action: RecordAction) {
+  if (action === "create") return "เพิ่ม";
+  if (action === "update") return "แก้ไข";
+  return "ลบ";
+}
+
+function recordMetricLabel(metric: RecordMetric) {
+  return metric === "weight" ? "น้ำหนัก" : "รอบเอว";
+}
+
 interface AdminClientProps {
   users: UserData[];
   groups: GroupData[];
@@ -122,6 +143,8 @@ interface AdminClientProps {
 
 type Tab = "users" | "groups";
 type DetailUser = UserData;
+type RecordMetric = "weight" | "waist";
+type RecordAction = "create" | "update" | "delete";
 
 type DialogState =
   | {
@@ -138,6 +161,16 @@ type DialogState =
   | { type: "editGroup"; groupId: string; groupName: string }
   | { type: "editUserName"; userId: string; userName: string }
   | { type: "changePassword"; userId: string; userName: string }
+  | {
+      type: "record";
+      action: RecordAction;
+      metric: RecordMetric;
+      userName: string;
+      monthLabel: string;
+      entryId?: string;
+      value?: string;
+      recordedAt?: string;
+    }
   | null;
 
 const initialUserState = { error: "", success: false };
@@ -347,161 +380,260 @@ export default function AdminClient({ users, groups }: AdminClientProps) {
     }
   }
 
-  async function handleCreateWeightRecord(e: FormEvent<HTMLFormElement>) {
+  function handleCreateWeightRecord(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!recordUser) return;
     const form = e.currentTarget;
     const formData = new FormData(form);
-    setRecordSaving(true);
-    try {
-      const result = await createWeightRecordByAdmin(
-        recordUser.id,
-        String(formData.get("weight") ?? ""),
-        String(formData.get("recordedAt") ?? ""),
-      );
-      if (result.error) {
-        toast.error(result.error);
-        return;
-      }
-      if (result.entry) {
-        setRecordUser({
-          ...recordUser,
-          weightEntries: [
-            result.entry,
-            ...recordUser.weightEntries.filter(
-              (entry) => entry.id !== result.entry?.id,
-            ),
-          ],
-        });
-      }
-      form.reset();
-      toast.success("เพิ่มข้อมูลน้ำหนักเรียบร้อย");
-      router.refresh();
-    } catch {
-      toast.error("เพิ่มข้อมูลน้ำหนักไม่สำเร็จ");
-    } finally {
-      setRecordSaving(false);
-    }
+    setDialog({
+      type: "record",
+      action: "create",
+      metric: "weight",
+      userName: recordUser.realName,
+      monthLabel: String(formData.get("monthLabel") ?? ""),
+      value: String(formData.get("weight") ?? ""),
+      recordedAt: String(formData.get("recordedAt") ?? ""),
+    });
   }
 
-  async function handleUpdateWeightRecord(e: FormEvent<HTMLFormElement>) {
+  function handleUpdateWeightRecord(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!recordUser) return;
     const formData = new FormData(e.currentTarget);
     const entryId = String(formData.get("entryId") ?? "");
     const weight = String(formData.get("weight") ?? "");
     const recordedAt = String(formData.get("recordedAt") ?? "");
-    setRecordSaving(true);
-    try {
-      const result = await updateWeightRecordByAdmin(
-        entryId,
-        weight,
-        recordedAt,
-      );
-      if (result.error) {
-        toast.error(result.error);
-        return;
-      }
-      setRecordUser({
-        ...recordUser,
-        weightEntries: recordUser.weightEntries.map((entry) =>
-          entry.id === entryId
-            ? {
-                ...entry,
-                weight: Number(weight),
-                recordedAt: new Date(
-                  `${recordedAt}T00:00:00+07:00`,
-                ).toISOString(),
-              }
-            : entry,
-        ),
-      });
-      toast.success("แก้ไขข้อมูลน้ำหนักเรียบร้อย");
-      router.refresh();
-    } catch {
-      toast.error("แก้ไขข้อมูลน้ำหนักไม่สำเร็จ");
-    } finally {
-      setRecordSaving(false);
-    }
+    setDialog({
+      type: "record",
+      action: "update",
+      metric: "weight",
+      userName: recordUser.realName,
+      monthLabel: String(formData.get("monthLabel") ?? ""),
+      entryId,
+      value: weight,
+      recordedAt,
+    });
   }
 
-  async function handleCreateWaistRecord(e: FormEvent<HTMLFormElement>) {
+  function handleCreateWaistRecord(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!recordUser) return;
     const form = e.currentTarget;
     const formData = new FormData(form);
-    setRecordSaving(true);
-    try {
-      const result = await createWaistRecordByAdmin(
-        recordUser.id,
-        String(formData.get("waist") ?? ""),
-        String(formData.get("recordedAt") ?? ""),
-      );
-      if (result.error) {
-        toast.error(result.error);
-        return;
-      }
-      if (result.entry) {
-        setRecordUser({
-          ...recordUser,
-          waistEntries: [
-            result.entry,
-            ...recordUser.waistEntries.filter(
-              (entry) => entry.id !== result.entry?.id,
-            ),
-          ],
-        });
-      }
-      form.reset();
-      toast.success("เพิ่มข้อมูลรอบเอวเรียบร้อย");
-      router.refresh();
-    } catch {
-      toast.error("เพิ่มข้อมูลรอบเอวไม่สำเร็จ");
-    } finally {
-      setRecordSaving(false);
-    }
+    setDialog({
+      type: "record",
+      action: "create",
+      metric: "waist",
+      userName: recordUser.realName,
+      monthLabel: String(formData.get("monthLabel") ?? ""),
+      value: String(formData.get("waist") ?? ""),
+      recordedAt: String(formData.get("recordedAt") ?? ""),
+    });
   }
 
-  async function handleUpdateWaistRecord(e: FormEvent<HTMLFormElement>) {
+  function handleUpdateWaistRecord(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!recordUser) return;
     const formData = new FormData(e.currentTarget);
     const entryId = String(formData.get("entryId") ?? "");
     const waist = String(formData.get("waist") ?? "");
     const recordedAt = String(formData.get("recordedAt") ?? "");
-    setRecordSaving(true);
-    try {
-      const result = await updateWaistRecordByAdmin(entryId, waist, recordedAt);
-      if (result.error) {
-        toast.error(result.error);
-        return;
-      }
-      setRecordUser({
-        ...recordUser,
-        waistEntries: recordUser.waistEntries.map((entry) =>
-          entry.id === entryId
-            ? {
-                ...entry,
-                waist: Number(waist),
-                recordedAt: new Date(
-                  `${recordedAt}T00:00:00+07:00`,
-                ).toISOString(),
-              }
-            : entry,
-        ),
-      });
-      toast.success("แก้ไขข้อมูลรอบเอวเรียบร้อย");
-      router.refresh();
-    } catch {
-      toast.error("แก้ไขข้อมูลรอบเอวไม่สำเร็จ");
-    } finally {
-      setRecordSaving(false);
-    }
+    setDialog({
+      type: "record",
+      action: "update",
+      metric: "waist",
+      userName: recordUser.realName,
+      monthLabel: String(formData.get("monthLabel") ?? ""),
+      entryId,
+      value: waist,
+      recordedAt,
+    });
+  }
+
+  function handleDeleteRecord(
+    metric: RecordMetric,
+    entryId: string,
+    monthLabel: string,
+  ) {
+    if (!recordUser) return;
+    setDialog({
+      type: "record",
+      action: "delete",
+      metric,
+      userName: recordUser.realName,
+      monthLabel,
+      entryId,
+    });
   }
 
   async function handleConfirm() {
     if (!dialog) return;
     setConfirming(true);
+
+    if (dialog.type === "record") {
+      if (!recordUser) {
+        setConfirming(false);
+        setDialog(null);
+        return;
+      }
+
+      setRecordSaving(true);
+      try {
+        const metricLabel = recordMetricLabel(dialog.metric);
+        const actionLabel = recordActionLabel(dialog.action);
+
+        if (dialog.action === "create") {
+          if (dialog.metric === "weight") {
+            const result = await createWeightRecordByAdmin(
+              recordUser.id,
+              dialog.value ?? "",
+              dialog.recordedAt ?? "",
+            );
+            if (result.error) {
+              toast.error(result.error);
+              setConfirming(false);
+              return;
+            }
+            if (result.entry) {
+              const entry = result.entry;
+              setRecordUser((prev) =>
+                prev
+                  ? {
+                      ...prev,
+                      weightEntries: [
+                        entry,
+                        ...prev.weightEntries.filter(
+                          (item) => item.id !== entry.id,
+                        ),
+                      ],
+                    }
+                  : prev,
+              );
+            }
+          } else {
+            const result = await createWaistRecordByAdmin(
+              recordUser.id,
+              dialog.value ?? "",
+              dialog.recordedAt ?? "",
+            );
+            if (result.error) {
+              toast.error(result.error);
+              setConfirming(false);
+              return;
+            }
+            if (result.entry) {
+              const entry = result.entry;
+              setRecordUser((prev) =>
+                prev
+                  ? {
+                      ...prev,
+                      waistEntries: [
+                        entry,
+                        ...prev.waistEntries.filter(
+                          (item) => item.id !== entry.id,
+                        ),
+                      ],
+                    }
+                  : prev,
+              );
+            }
+          }
+        }
+
+        if (dialog.action === "update") {
+          const result =
+            dialog.metric === "weight"
+              ? await updateWeightRecordByAdmin(
+                  dialog.entryId ?? "",
+                  dialog.value ?? "",
+                  dialog.recordedAt ?? "",
+                )
+              : await updateWaistRecordByAdmin(
+                  dialog.entryId ?? "",
+                  dialog.value ?? "",
+                  dialog.recordedAt ?? "",
+                );
+          if (result.error) {
+            toast.error(result.error);
+            setConfirming(false);
+            return;
+          }
+          setRecordUser((prev) =>
+            prev
+              ? dialog.metric === "weight"
+                ? {
+                    ...prev,
+                    weightEntries: prev.weightEntries.map((entry) =>
+                      entry.id === dialog.entryId
+                        ? {
+                            ...entry,
+                            weight: Number(dialog.value),
+                            recordedAt: new Date(
+                              `${dialog.recordedAt}T00:00:00+07:00`,
+                            ).toISOString(),
+                          }
+                        : entry,
+                    ),
+                  }
+                : {
+                    ...prev,
+                    waistEntries: prev.waistEntries.map((entry) =>
+                      entry.id === dialog.entryId
+                        ? {
+                            ...entry,
+                            waist: Number(dialog.value),
+                            recordedAt: new Date(
+                              `${dialog.recordedAt}T00:00:00+07:00`,
+                            ).toISOString(),
+                          }
+                        : entry,
+                    ),
+                  }
+              : prev,
+          );
+        }
+
+        if (dialog.action === "delete") {
+          const result =
+            dialog.metric === "weight"
+              ? await deleteWeightRecordByAdmin(dialog.entryId ?? "")
+              : await deleteWaistRecordByAdmin(dialog.entryId ?? "");
+          if (result.error) {
+            toast.error(result.error);
+            setConfirming(false);
+            return;
+          }
+          setRecordUser((prev) =>
+            prev
+              ? dialog.metric === "weight"
+                ? {
+                    ...prev,
+                    weightEntries: prev.weightEntries.filter(
+                      (entry) => entry.id !== dialog.entryId,
+                    ),
+                  }
+                : {
+                    ...prev,
+                    waistEntries: prev.waistEntries.filter(
+                      (entry) => entry.id !== dialog.entryId,
+                    ),
+                  }
+              : prev,
+          );
+        }
+
+        toast.success(
+          `${actionLabel}ข้อมูล${metricLabel}ของ ${dialog.userName} เดือน${dialog.monthLabel} เรียบร้อย`,
+        );
+        router.refresh();
+      } catch {
+        toast.error("ดำเนินการข้อมูลน้ำหนัก/รอบเอวไม่สำเร็จ");
+        setConfirming(false);
+        return;
+      } finally {
+        setRecordSaving(false);
+      }
+    }
 
     if (dialog.type === "saveGroups") {
       const results = await Promise.all(
@@ -587,17 +719,25 @@ export default function AdminClient({ users, groups }: AdminClientProps) {
   ];
   const tabIndex = tabs.findIndex((t) => t.key === activeTab);
   const DialogIcon =
-    dialog?.type === "deleteUser" || dialog?.type === "deleteGroup"
+    dialog?.type === "deleteUser" ||
+    dialog?.type === "deleteGroup" ||
+    (dialog?.type === "record" && dialog.action === "delete")
       ? Trash2
       : dialog?.type === "saveGroups"
         ? AlertTriangle
         : dialog?.type === "changePassword"
           ? KeyRound
-          : dialog?.type === "editGroup" || dialog?.type === "editUserName"
+          : dialog?.type === "editGroup" ||
+              dialog?.type === "editUserName" ||
+              (dialog?.type === "record" && dialog.action === "update")
             ? Pencil
-            : Info;
+            : dialog?.type === "record" && dialog.action === "create"
+              ? Plus
+              : Info;
   const dialogIconClass =
-    dialog?.type === "deleteUser" || dialog?.type === "deleteGroup"
+    dialog?.type === "deleteUser" ||
+    dialog?.type === "deleteGroup" ||
+    (dialog?.type === "record" && dialog.action === "delete")
       ? "bg-[#8A3F3F]/20 text-[#D08A8A]"
       : "bg-[#F59E0B]/15 text-[#F59E0B]";
   const challengeMonths = useMemo(buildChallengeMonths, []);
@@ -844,7 +984,7 @@ export default function AdminClient({ users, groups }: AdminClientProps) {
                             ? handleUpdateWeightRecord
                             : handleCreateWeightRecord
                         }
-                        className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_1fr_auto]"
+                        className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_1fr_auto_auto]"
                       >
                         {entry && (
                           <input
@@ -872,6 +1012,7 @@ export default function AdminClient({ users, groups }: AdminClientProps) {
                               : month.dateValue
                           }
                         />
+                        <input type="hidden" name="monthLabel" value={month.label} />
                         <div className="rounded-xl border border-white/10 bg-[#171A20]/70 px-3 py-2 text-sm text-[#E7EAF0]">
                           {month.label}
                         </div>
@@ -886,6 +1027,18 @@ export default function AdminClient({ users, groups }: AdminClientProps) {
                         >
                           {entry ? "แก้ไข" : "เพิ่ม"}
                         </button>
+                        {entry && (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleDeleteRecord("weight", entry.id, month.label)
+                            }
+                            disabled={recordSaving}
+                            className="rounded-xl border border-[#7A3434]/60 px-3 py-2 text-sm font-medium text-[#D08A8A] disabled:opacity-50"
+                          >
+                            ลบ
+                          </button>
+                        )}
                       </form>
                     );
                   })}
@@ -906,7 +1059,7 @@ export default function AdminClient({ users, groups }: AdminClientProps) {
                             ? handleUpdateWaistRecord
                             : handleCreateWaistRecord
                         }
-                        className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_1fr_auto]"
+                        className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_1fr_auto_auto]"
                       >
                         {entry && (
                           <input
@@ -934,6 +1087,7 @@ export default function AdminClient({ users, groups }: AdminClientProps) {
                               : month.dateValue
                           }
                         />
+                        <input type="hidden" name="monthLabel" value={month.label} />
                         <div className="rounded-xl border border-white/10 bg-[#171A20]/70 px-3 py-2 text-sm text-[#E7EAF0]">
                           {month.label}
                         </div>
@@ -948,6 +1102,18 @@ export default function AdminClient({ users, groups }: AdminClientProps) {
                         >
                           {entry ? "แก้ไข" : "เพิ่ม"}
                         </button>
+                        {entry && (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleDeleteRecord("waist", entry.id, month.label)
+                            }
+                            disabled={recordSaving}
+                            className="rounded-xl border border-[#7A3434]/60 px-3 py-2 text-sm font-medium text-[#D08A8A] disabled:opacity-50"
+                          >
+                            ลบ
+                          </button>
+                        )}
                       </form>
                     );
                   })}
@@ -1132,6 +1298,35 @@ export default function AdminClient({ users, groups }: AdminClientProps) {
               </div>
             </>
           )}
+          {dialog?.type === "record" && (
+            <>
+              <div className="mb-6 text-center">
+                <h3 className="font-bold text-[#E7EAF0] text-lg">
+                  ยืนยันการ{recordActionLabel(dialog.action)}ข้อมูล{recordMetricLabel(dialog.metric)}
+                </h3>
+              </div>
+              <div className="mb-6 space-y-3 rounded-xl border border-white/10 bg-[#0F1115]/55 p-3 text-sm">
+                <p className="text-[#A8AFBD]">
+                  ผู้ใช้:{" "}
+                  <span className="font-semibold text-[#E7EAF0]">
+                    {dialog.userName}
+                  </span>
+                </p>
+                <p className="text-[#A8AFBD]">
+                  เดือน:{" "}
+                  <span className="font-semibold text-[#E7EAF0]">
+                    {dialog.monthLabel}
+                  </span>
+                </p>
+                <p className="text-[#A8AFBD]">
+                  การดำเนินการ:{" "}
+                  <span className="font-semibold text-[#F59E0B]">
+                    {recordActionLabel(dialog.action)}ข้อมูล{recordMetricLabel(dialog.metric)}
+                  </span>
+                </p>
+              </div>
+            </>
+          )}
           <div className="flex gap-2 pt-1">
             <button
               onClick={() => {
@@ -1148,7 +1343,9 @@ export default function AdminClient({ users, groups }: AdminClientProps) {
               onClick={handleConfirm}
               disabled={confirming}
               className={`flex-1 py-2 rounded-xl text-sm font-medium transition-colors disabled:opacity-50 ${
-                dialog?.type === "deleteUser" || dialog?.type === "deleteGroup"
+                dialog?.type === "deleteUser" ||
+                dialog?.type === "deleteGroup" ||
+                (dialog?.type === "record" && dialog.action === "delete")
                   ? "bg-[#7A3434] hover:bg-[#5F2727] text-white"
                   : "bg-[#F59E0B] hover:bg-[#D97706] text-[#111318]"
               }`}
@@ -1212,7 +1409,17 @@ export default function AdminClient({ users, groups }: AdminClientProps) {
                   <h3 className="font-semibold text-[#F59E0B] mb-3 text-sm">
                     เพิ่มผู้ใช้ใหม่
                   </h3>
-                  <form action={userFormAction} className="space-y-3">
+                  <form
+                    action={userFormAction}
+                    onSubmit={(e) =>
+                      trimFormFields(e.currentTarget, [
+                        "firstName",
+                        "lastName",
+                        "username",
+                      ])
+                    }
+                    className="space-y-3"
+                  >
                     <div className="grid grid-cols-2 gap-3">
                       <div className="space-y-1">
                         <Label className="text-xs text-[#F59E0B]">

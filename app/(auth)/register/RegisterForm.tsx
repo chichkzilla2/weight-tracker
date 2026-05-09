@@ -30,9 +30,9 @@ export default function RegisterForm({ groups }: Props) {
 
     const formData = new FormData(e.currentTarget);
     const data = {
-      firstName: formData.get("firstName") as string,
-      lastName: formData.get("lastName") as string,
-      username: formData.get("username") as string,
+      firstName: String(formData.get("firstName") ?? "").trim(),
+      lastName: String(formData.get("lastName") ?? "").trim(),
+      username: String(formData.get("username") ?? "").trim(),
       password: formData.get("password") as string,
       confirmPassword: formData.get("confirmPassword") as string,
       groupId: formData.get("groupId") as string,
