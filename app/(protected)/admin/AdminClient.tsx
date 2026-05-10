@@ -805,18 +805,16 @@ export default function AdminClient({ users, groups }: AdminClientProps) {
                 />
               </div>
 
-              {detailUser.lastName && (
-                <div className="space-y-1">
-                  <Label className="text-xs text-[#F59E0B]">
-                    นามสกุล (last name)
-                  </Label>
-                  <Input
-                    value={detailLastName}
-                    onChange={(e) => setDetailLastName(e.target.value)}
-                    className="border-white/10 rounded-xl text-sm"
-                  />
-                </div>
-              )}
+              <div className="space-y-1">
+                <Label className="text-xs text-[#F59E0B]">
+                  นามสกุล (last name)
+                </Label>
+                <Input
+                  value={detailLastName}
+                  onChange={(e) => setDetailLastName(e.target.value)}
+                  className="border-white/10 rounded-xl text-sm"
+                />
+              </div>
 
               <div className="space-y-1">
                 <Label className="text-xs text-[#F59E0B]">กลุ่ม</Label>
