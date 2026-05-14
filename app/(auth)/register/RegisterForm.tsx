@@ -59,10 +59,10 @@ export default function RegisterForm({ groups }: Props) {
         <div className="text-center mb-8">
           <div className="text-6xl mb-3">🏋️</div>
           <h1 className="text-2xl font-bold text-[#F59E0B] mb-2">
-            Weight Tracker
+            ภารกิจลดไซต์ กู้ภัยพุง
           </h1>
           <p className="text-[#A8AFBD] text-sm">
-            สมัครสมาชิกเพื่อเริ่มต้นติดตามสุขภาพ
+            พิชิตพุง ลดไซต์ไปด้วยกัน
           </p>
         </div>
 

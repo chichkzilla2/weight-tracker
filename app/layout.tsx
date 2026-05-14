@@ -10,8 +10,8 @@ const sarabun = Sarabun({
 })
 
 export const metadata: Metadata = {
-  title: "🏋️ Weight Tracker",
-  description: "บันทึกน้ำหนักเพื่อสุขภาพที่ดีขึ้น",
+  title: "🏋️ ภารกิจลดไซต์ กู้ภัยพุง",
+  description: "พิชิตพุง ลดไซต์ไปด้วยกัน",
 }
 
 export const viewport: Viewport = {

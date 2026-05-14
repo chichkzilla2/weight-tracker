@@ -96,8 +96,8 @@ function LoginContent() {
         {/* Logo/Title */}
         <div className="text-center mb-8">
           <div className="text-6xl mb-3">🏋️</div>
-          <h1 className="text-2xl font-bold text-[#F59E0B] mb-2">Weight Tracker</h1>
-          <p className="text-[#A8AFBD] text-sm">บันทึกน้ำหนักเพื่อสุขภาพที่ดีขึ้น</p>
+          <h1 className="text-2xl font-bold text-[#F59E0B] mb-2">ภารกิจลดไซต์ กู้ภัยพุง</h1>
+          <p className="text-[#A8AFBD] text-sm">พิชิตพุง ลดไซต์ไปด้วยกัน</p>
         </div>
 
         {registered && (
