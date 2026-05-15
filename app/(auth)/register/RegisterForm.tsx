@@ -59,11 +59,9 @@ export default function RegisterForm({ groups }: Props) {
         <div className="text-center mb-8">
           <div className="text-6xl mb-3">🏋️</div>
           <h1 className="text-2xl font-bold text-[#F59E0B] mb-2">
-            ภารกิจลดไซต์ กู้ภัยพุง
+            ภารกิจลดไซส์ กู้ภัยพุง
           </h1>
-          <p className="text-[#A8AFBD] text-sm">
-            พิชิตพุง ลดไซต์ไปด้วยกัน
-          </p>
+          <p className="text-[#A8AFBD] text-sm">พิชิตพุง ลดไซส์ไปด้วยกัน</p>
         </div>
 
         {/* Register Card */}

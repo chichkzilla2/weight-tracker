@@ -10,8 +10,8 @@ const sarabun = Sarabun({
 })
 
 export const metadata: Metadata = {
-  title: "🏋️ ภารกิจลดไซต์ กู้ภัยพุง",
-  description: "พิชิตพุง ลดไซต์ไปด้วยกัน",
+  title: "🏋️ ภารกิจลดไซส์ กู้ภัยพุง",
+  description: "พิชิตพุง ลดไซส์ไปด้วยกัน",
 }
 
 export const viewport: Viewport = {
